@@ -30,7 +30,6 @@ import sys
 import time
 import datetime
 
-import jack
 import websocket
 import binascii
 
@@ -42,19 +41,13 @@ midiTime = 0
 
 class mWS(websocket.WebSocket):
 
-    def jack_init(self):
-        self.Jclient = jack.Client("RTbolidozorSender")
-        self.Jport = self.Jclient.midi_inports.register("RTbolidozor_1")
-        self.Jclient.set_process_callback(self.midi_process)
-        self.Jclient.activate()
-
     def on_connect(self):
         print "connected"
+        #self.send("$stanica;"+str(self.config))
         self.connected=True
 
     def on_open(self):
-        print "0"
-        print "1"
+        self.send("ahoj")
 
     def on_message(self, data):
         print data
@@ -68,26 +61,13 @@ class mWS(websocket.WebSocket):
     def on_close(self):
         print 'Socket closed.'
 
-    def midi_process(self, frames):
-        try:
-            for offset, data in self.Jport.incoming_midi_events():
-                midiTime = datetime.datetime.utcnow()
-                print (offset, str(midiTime), data)
-                try:
-                    OutData = str(""+str(midiTime)+";"+str(offset)+";"+str(data)+";").decode('utf-8', errors='ignore')
-                    if self.connected:
-                        print "Odchozi data:", OutData
-                        self.ws.send(OutData)
-                    else:
-                        self.connectWS()
+    def setStation(self, config):
+        self.config=config
+        self.send("$stanica;"+str(self.config)+";")
 
-                except Exception, e:
-                    print e
+    def sendEvent(self):
+        self.send("$event;"+str('{AAAAA}')+";")
 
-        except Exception, e:
-            print e
-        finally:
-            return jack.CALL_AGAIN
 
 
 
@@ -158,12 +138,12 @@ class MidiToRTBolidozor(object):
 
 
 def main():
-    MidiRT = mWS("ws://62.77.113.30:5252/ws")
-    MidiRT.jack_init()
-    #MidiRT.connect()
-    MidiRT.send("HI")
+    client = mWS()
+    client.connect("ws://62.77.113.30:5252/ws")
+    client.setStation('{"name":"ZVPP","ident":"ZVPP-R3","lat":49.00001,"lon":14.543001, "prew":"http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/ZVPP/ZVPP-R3/", "space":"http://space.astro.cz/bolidozor/ZVPP/ZVPP-R3/"}')
     while True:
-        pass
+        time.sleep(3)
+        client.sendEvent()
 
 
 if __name__ == "__main__":
