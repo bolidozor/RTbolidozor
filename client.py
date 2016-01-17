@@ -10,8 +10,6 @@ import jack
 import websocket
 import thread
 
-
-
 class mWS2():
 
     def __init__(self):
