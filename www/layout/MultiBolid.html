@@ -1,0 +1,58 @@
+<html>
+{% import datetime %}
+  <head>
+    <title>{% block title %}Default title{% end %}</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="MB.css">
+
+
+  </head>
+  <body>    
+    <div id="header">
+        <img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img>
+        {{ "multi-station bolid database" }}
+    </div>
+    <div class="container">
+    <div class="parameters">
+        <form style="margin: 0px; padding: 0px; display: in-line; max-width: 90%;">
+            Month: <input type="month" name="month" value="{{parent.get_argument('month', str(datetime.datetime.utcnow().strftime('%Y-%m')))}}">
+            <input type="submit">
+        </form>
+    </div>
+
+    <div class="parameters" id="error">
+        Error: None result   --- testovaci chyba :) 
+    </div>
+    
+    {% set event_n = 0 %}
+    {% for event_group in _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+range[0]+" AND meta.time < "+range[1]+" GROUP BY meta.link ORDER BY meta.time DESC ") %}
+        <div class="event_group" id="{{event_group[8]}}">
+            <span class="eventGroupCell"> # {{ event_n = event_n + 1 }} event_group {{ event_group[8] }}</span>
+            <span class="eventGroupCell">{{ str(event_group[1])[0:4] }}-{{ str(event_group[1])[4:6] }}-{{ str(event_group[1])[6:8] }} {{ str(event_group[1])[8:10] }}:{{ str(event_group[1])[10:12] }}:{{ str(event_group[1])[12:14] }} </span>
+        </div>
+        <table class="eventListTable" id="{{event_group[8]}}" style="width:100%">
+            <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
+        {% set event_list = _sql("SELECT * FROM meta WHERE meta.link="+str(event_group[8])+" ORDER BY meta.time DESC ")%}
+        {% for event in event_list %}
+            <tr> <div class="event_list">
+                <td><span class="eventCell"> {{str(event[0])[0:4]}}-{{str(event[0])[4:6]}}-{{str(event[0])[6:8]}} {{str(event[0])[8:10]}}:{{str(event[0])[10:12]}}:{{str(event[0])[12:14]}}.{{str(event[0])[14:]}} </span></td>
+                <td><span class="eventCell"> {{event[1]}}</span></td>
+                <td><span class="eventCell"> {{float(event[2])/1000}}</span></td>
+                <td><span class="eventCell"> {{float(event[3])/10}}</span></td>
+                <td><span class="eventCell"> {{float(event[4])/1000}}</span></td>
+                <td><span class="eventCell"> {{float(event[5])/1000000}}</span></td>
+                <td><span class="eventCell">
+                    <a href="{{links[0][event[1]]}}/{{str(event[6])[0:4]}}/{{str(event[6])[4:6]}}/{{str(event[6])[6:8]}}/{{str(event[6])[8:10]}}/{{str(event[6])}}"><img src="prw.png" style="max-width: 25px;"></img></a>
+                    <a href="{{links[1][event[1]]}}/{{str(event[6])[0:4]}}/{{str(event[6])[4:6]}}/{{str(event[6])[6:8]}}/{{str(event[6])[8:10]}}/{{str(event[6])}}"><img src="js9.png" style="max-width: 25px;"></img></a></span></td>
+            </div></tr>
+        {% end %}
+        </table>
+
+    {% end %}
+    </div>
+    <div id="foot">
+        Foot
+
+    </div>
+    </body>
+</html>
