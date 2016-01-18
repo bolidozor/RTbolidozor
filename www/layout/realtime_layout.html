@@ -5,11 +5,16 @@
     <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
     <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
     <script src="http://code.jquery.com/jquery.min.js"></script>
-        <script>
+    <script>
+
+      function log (msg) {
+        console.log(msg)
+      }
 
       var snd = new Audio("meteor.wav"); // buffers automatically when created
+      
       function message(msg){
-        $('#ahoj').prepend(msg+'</p>')
+        log(msg)
       }
 
       function showmeteor(marker, duration){
@@ -18,12 +23,11 @@
       }
 
       function hidemeteor(marker, duration){
-        setTimeout(function() {marker.setIcon(IconStation); },3000);
+        setTimeout(function() {marker.setIcon(IconStation); },1000);
       }
 
       function meteor(station, amplitude, duration, marker){
         showmeteor(marker, duration);
-        //setTimeout(function() { marker.valueOf()._icon.style.backgroundColor = 'blue';},1000);
         setTimeout(function() { hidemeteor(marker, duration);}, 0);
       }
      
@@ -43,7 +47,18 @@
 
                 socket.onmessage = function(msg){
                    message('<p class="message">Received: '+msg.data);
-                   meteor("OBSUPICE", 123, 2, obsUpice);
+                   log('Received: '+msg.data)
+                   var split = msg.data.split(";")
+
+                   switch(split[1]) {
+                      {% for event_group in _sqlWeb("SELECT * FROM stations ORDER BY time DESC ") %}
+                      case '{{event_group[1]}}':
+                          meteor("{{event_group[1]}}", 0, 0, {{event_group[1]}});
+                          break;
+                      {% end %}
+                      default:
+                          break;
+                  }
                 }
 
                 socket.onclose = function(){
@@ -57,7 +72,7 @@
         </script>
   </head>
   <body>
-    <div id="ahoj">aaa</div>
+    <div id="header"><img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img></div>
     <div id="map"></div>
        <script type="text/javascript">
 
@@ -75,7 +90,7 @@
           popupAnchor: [-3, -76],
       });
 
-      var map = L.map('map').setView([51.505, -0.09], 13);
+      var map = L.map('map').setView([50, 14], 8);
 
       L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IjZjNmRjNzk3ZmE2MTcwOTEwMGY0MzU3YjUzOWFmNWZhIn0.Y8bhBaUMqFiPrDRW9hieoQ', {
         maxZoom: 18,
@@ -87,6 +102,9 @@
 
 
       var obsUpice = L.marker([51.5, -0.09]).addTo(map)
+          {% for event_group in _sqlWeb("SELECT * FROM stations ORDER BY time DESC ") %}
+          var {{event_group[1]}} = L.marker([{{event_group[5]}},{{event_group[6]}}]).addTo(map)
+          {% end %}
 
 
       var greenIcon = L.icon({
@@ -119,18 +137,10 @@
       //map.on('click', onMapClick);
       map.on('click', onMap);
 
-
-
-
-
-          log = function(data){
-            $("div#ahoj").prepend("</br>" +data);
-            console.log(data);
-          };
      
           $(document).ready(function (evt) {
             var ws;
-            evt.preventDefault();
+           // evt.preventDefault();
      
               var host = "62.77.113.30";
               var port = 5252;
@@ -147,30 +157,15 @@
               // Close Websocket callback
               ws.onclose = function(evt) {
                 log("***Connection Closed***");
-                alert("Connection close");
-                $("div#message_details").empty();
-     
                 };
      
               // Open Websocket callback
-              ws.onopen = function(evt) { 
-                $("div#message_details").show();
+              ws.onopen = function(evt) {
                 log("***Connection Opened***");
               };
      
-            // Send websocket message function
-            //$("#send").click(function(evt) {
-            //    log("Sending Message: "+$("#message").val());
-            //    ws.send($("#message").val());
-            //});
      
           });
-
-
-
-
-
-
   connect();
   </script>
   </body>

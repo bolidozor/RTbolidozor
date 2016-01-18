@@ -16,7 +16,7 @@ body {
 
 #map {
 	height: 88%;
-	background-color: blue;
+	background-color: #eaedf1;
 }
 
 #header{
@@ -46,4 +46,12 @@ body {
     border-top-color: #dedfe5;
     border-radius: 0;
     border-bottom: none medium;
+}
+
+.h_center{
+	position:absolute;
+	top:50%;
+	left:50%;
+	height: 100px;
+	margin-top:-50px; /* this is half the height of your div*/ 
 }

@@ -8,6 +8,7 @@ from tornado import ioloop
 from tornado import websocket
 import json
 import sqlite3
+import time
 import datetime
 
 cl = []
@@ -39,9 +40,23 @@ def _sql(query):
         connection.close()
         return result
 
+
+def _sqlWeb(query):
+        dbPath = 'web.db'
+        connection = sqlite3.connect(dbPath)
+        cursorobj = connection.cursor()
+        try:
+                cursorobj.execute(query)
+                result = cursorobj.fetchall()
+                connection.commit()
+        except Exception:
+                raise
+        connection.close()
+        return result
+
 class IndexHandler(web.RequestHandler):
     @tornado.web.asynchronous
-    def get(self):
+    def get(self, addres=None):
         self.render("index.html")
 
 class ClientsHandler(web.RequestHandler):
@@ -63,14 +78,18 @@ class MultiBolid(web.RequestHandler):
         items = ["Item 1", "Item 2", "Item 3"]
         event = _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+date_from+" AND meta.time <"+date_to+" GROUP BY meta.link ORDER BY meta.time DESC ")     # seznam jedtotlivých událostí
         query = _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+date_from+" AND meta.time <"+date_to+" ORDER BY meta.time DESC")                         # seznam vsech udalosti
-        self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", items=items, range=[date_from, date_to], data=[event, query], _sql = _sql, links=[fits, js9], parent=self)
+        self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self)
+
+class RTbolidozor(web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self, params=None):
+        self.render("www/layout/realtime_layout.html", title="Bloidozor multi-bolid database", _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self)
 
 class WebHandler(web.RequestHandler):
     @tornado.web.asynchronous
-    def get(self, addres):
+    def get(self, addres=None):
         print "web", addres
-        items = ["Item 1", "Item 2", "Item 3"]
-        self.render("www/layout/realtime_layout.html", title="My title", items=items)
+        self.render("www/layout/index.html", title="My title")
 
 class SocketHandler(websocket.WebSocketHandler): 
     def initialize(self):
@@ -84,19 +103,12 @@ class SocketHandler(websocket.WebSocketHandler):
         print "Opened new port: ", self
         if self not in cl:
             cl.append(self)
-        self.write_message("HI")
-        #try:
-        #    if self.StationList:
-        #        pass
-        #except Exception, e:
-        #    self.StationList = []
 
     def on_close(self):
         if self in cl:
             cl.remove(self)
 
     def on_message(self, message):
-        print "Prijata zprava: ", message
         self.write_message(u"ACK")
         if message[0] == "$":
             m_type = message[1:message.find(";")]
@@ -108,17 +120,30 @@ class SocketHandler(websocket.WebSocketHandler):
                 print "stanice je: ", station
                 for client in cl:
                     client.write_message(u"Na stanici:"+station+ m_type +" -- " + message)
-        else:
+            elif m_type == "stanica":
+                jsonstation = json.loads(message.split(";")[1])
+                _sqlWeb("INSERT INTO stations (time, name, ident, handler, time_last, lat, lon, url_space, url_js9, url_rmob) VALUES (" +str(time.time())+ ",'" +str(jsonstation['name'])+ "', '" +str(jsonstation['ident'])+"', '" +str(self)+"'," +str(time.time())+ ", " +str(jsonstation['lat'])+ "," +str(jsonstation['lon'])+ ",'URL', 'URL', 'URL'" + ")")
+            elif m_type == "event":
+                query = _sqlWeb("SELECT name FROM stations WHERE handler = '"+str(self)+"';")[0]
+                print "EVENT", query[0]
+                for client in cl:
+                    client.write_message(u"$meta;" + str(query[0])+ ";" +"{aa}")
+        elif message[0] == '#':
+            print "multicast"
             for client in cl:
                 client.write_message(u"multicast: " + message)
+        else:
+            print "Prijata zprava: ", message
 
 
 app = web.Application([
-    (r'/', IndexHandler),
+    (r'/', WebHandler),
     (r'/ws', SocketHandler),
     (r'/clients', ClientsHandler),
     (r'/multibolid(.*)', MultiBolid),
     (r'/multibolid', MultiBolid),
+    (r'/realtime(.*)', RTbolidozor),
+    (r'/realtime', RTbolidozor),
     (r'/(favicon.ico)', web.StaticFileHandler, {'path': '.'}),
     (r'/(rest_api_example.png)', web.StaticFileHandler, {'path': './'}),
     (r"/(.*\.png)", tornado.web.StaticFileHandler,{"path": './www/media/' }),
