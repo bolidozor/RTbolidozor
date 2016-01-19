@@ -120,7 +120,7 @@ class GetMeteors():
 
 
 def main():  
-    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", 2015, 8, 14, 5, 20)
+    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", 2016, 1, 14, 5, 15)
     #meteors.createDb()
     A=["bolidozor/ZVPP/ZVPP-R3/data"]
     B=["bolidozor/ZVPP/ZVPP-R3/data", "bolidozor/OBSUPICE/OBSUPICE-R4/data", "bolidozor/svakov/SVAKOV-R6/data"]

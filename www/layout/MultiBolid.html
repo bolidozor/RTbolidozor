@@ -1,5 +1,6 @@
 <html>
 {% import datetime %}
+{% import math %}
   <head>
     <title>{% block title %}Default title{% end %}</title>
     <link rel="stylesheet" type="text/css" href="style.css">
@@ -33,9 +34,10 @@
         <table class="eventListTable" id="{{event_group[8]}}" style="width:100%">
             <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
         {% set event_list = _sql("SELECT * FROM meta WHERE meta.link="+str(event_group[8])+" ORDER BY meta.time DESC ")%}
+        {% set time_first = float( str(event_list[0][0])[12:14]+"."+str(event_list[0][0])[14:] )%}
         {% for event in event_list %}
             <tr> <div class="event_list">
-                <td><span class="eventCell"> {{str(event[0])[0:4]}}-{{str(event[0])[4:6]}}-{{str(event[0])[6:8]}} {{str(event[0])[8:10]}}:{{str(event[0])[10:12]}}:{{str(event[0])[12:14]}}.{{str(event[0])[14:]}} </span></td>
+                <td><span class="eventCell"> {{str(event[0])[0:4]}}-{{str(event[0])[4:6]}}-{{str(event[0])[6:8]}} {{str(event[0])[8:10]}}:{{str(event[0])[10:12]}}:{{str(event[0])[12:14]}}.{{str(event[0])[14:]}} &#916 {{float(str(event[0])[12:14]+"."+str(event[0])[14:])-time_first}} s</span></td>
                 <td><span class="eventCell"> {{event[1]}}</span></td>
                 <td><span class="eventCell"> {{float(event[2])/1000}}</span></td>
                 <td><span class="eventCell"> {{float(event[3])/10}}</span></td>

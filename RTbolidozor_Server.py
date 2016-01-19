@@ -40,7 +40,6 @@ def _sql(query):
         connection.close()
         return result
 
-
 def _sqlWeb(query):
         dbPath = 'web.db'
         connection = sqlite3.connect(dbPath)
@@ -54,16 +53,13 @@ def _sqlWeb(query):
         connection.close()
         return result
 
-class IndexHandler(web.RequestHandler):
-    @tornado.web.asynchronous
-    def get(self, addres=None):
-        self.render("index.html")
 
 class ClientsHandler(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
         print cl
         self.render("index.html")
+
 
 class MultiBolid(web.RequestHandler):
     @tornado.web.asynchronous
@@ -80,10 +76,12 @@ class MultiBolid(web.RequestHandler):
         query = _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+date_from+" AND meta.time <"+date_to+" ORDER BY meta.time DESC")                         # seznam vsech udalosti
         self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self)
 
+
 class RTbolidozor(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
         self.render("www/layout/realtime_layout.html", title="Bloidozor multi-bolid database", _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self)
+
 
 class WebHandler(web.RequestHandler):
     @tornado.web.asynchronous
@@ -91,10 +89,10 @@ class WebHandler(web.RequestHandler):
         print "web", addres
         self.render("www/layout/index.html", title="My title")
 
+
 class SocketHandler(websocket.WebSocketHandler): 
     def initialize(self):
         self.StationList = []
-
 
     def check_origin(self, origin):
         return True
@@ -115,12 +113,7 @@ class SocketHandler(websocket.WebSocketHandler):
             if m_type == "HI":
                 self.StationList.append([self] + message[message.find(";")+1:].split(";") )
                 print self.StationList
-            elif m_type == "midi":
-                station = [ i for i in self.StationList if i[0] == self ][0][1]
-                print "stanice je: ", station
-                for client in cl:
-                    client.write_message(u"Na stanici:"+station+ m_type +" -- " + message)
-            elif m_type == "stanica":
+            elif m_type == "stanica":       # inicializacializacni sprava od stanice (obsahoje o sobe informace)
                 jsonstation = json.loads(message.split(";")[1])
                 _sqlWeb("INSERT INTO stations (time, name, ident, handler, time_last, lat, lon, url_space, url_js9, url_rmob) VALUES (" +str(time.time())+ ",'" +str(jsonstation['name'])+ "', '" +str(jsonstation['ident'])+"', '" +str(self)+"'," +str(time.time())+ ", " +str(jsonstation['lat'])+ "," +str(jsonstation['lon'])+ ",'URL', 'URL', 'URL'" + ")")
             elif m_type == "event":
@@ -144,6 +137,7 @@ app = web.Application([
     (r'/multibolid', MultiBolid),
     (r'/realtime(.*)', RTbolidozor),
     (r'/realtime', RTbolidozor),
+    
     (r'/(favicon.ico)', web.StaticFileHandler, {'path': '.'}),
     (r'/(rest_api_example.png)', web.StaticFileHandler, {'path': './'}),
     (r"/(.*\.png)", tornado.web.StaticFileHandler,{"path": './www/media/' }),
