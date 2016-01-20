@@ -26,9 +26,15 @@ js9={'ZVPP-R3':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/Z
      'ZEBRAK-R3':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/ZEBRAK/ZEBRAK-R3/meteors',
      'NACHODSKO-R3':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/nachodsko/NACHODSKO-R3/meteors'}
 
+space={'ZVPP-R3':'http://space.astro.cz/bolidozor/ZVPP/ZVPP-R3/meteors',
+     'OBSUPICE-R3':'http://space.astro.cz/bolidozor/OBSUPICE/OBSUPICE-R4/meteors',
+     'OBSUPICE-R4':'http://space.astro.cz/bolidozor/OBSUPICE/OBSUPICE-R4/meteors',
+     'SVAKOV-R6':'http://space.astro.cz/bolidozor/svakov/SVAKOV-R6/meteors',
+     'ZEBRAK-R3':'http://space.astro.cz/bolidozor/ZEBRAK/ZEBRAK-R3/meteors',
+     'NACHODSKO-R3':'http://space.astro.cz/bolidozor/nachodsko/NACHODSKO-R3/meteors'}
 
 def _sql(query):
-        dbPath = 'bolid.db'
+        dbPath = 'bolidNEW.db'
         connection = sqlite3.connect(dbPath)
         cursorobj = connection.cursor()
         try:
@@ -66,21 +72,26 @@ class MultiBolid(web.RequestHandler):
     def get(self, params=None):
         month = self.get_argument('month', None)
         if not month:
-            month = datetime.datetime.utcnow().strftime('%Y%m')
-        date_from = str(month[0:4]+month[5:7]+"00000000000")
-        date_to  =  str(month[0:4]+str(int(month[5:7])+1).zfill(2)+"00000000000")
+            month = datetime.datetime.utcnow().strftime('%Y-%M')
+        date_from = time.mktime(time.strptime(month, "%Y-%M"))
+        date_to  =  time.mktime(time.strptime(month, "%Y-%M"))+60*60*24*30
         #print date_from, date_to
         #print "webM", params, self.get_argument('month', None)
         items = ["Item 1", "Item 2", "Item 3"]
-        event = _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+date_from+" AND meta.time <"+date_to+" GROUP BY meta.link ORDER BY meta.time DESC ")     # seznam jedtotlivých událostí
-        query = _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+date_from+" AND meta.time <"+date_to+" ORDER BY meta.time DESC")                         # seznam vsech udalosti
-        self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self)
-
+        event = _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+str(date_from)+" AND meta.time <"+str(date_to)+" GROUP BY meta.link ORDER BY meta.time DESC ")     # seznam jedtotlivých událostí
+        query = _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+str(date_from)+" AND meta.time <"+str(date_to)+" ORDER BY meta.time DESC")                         # seznam vsech udalosti
+        self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9, space], parent=self)
 
 class RTbolidozor(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
         self.render("www/layout/realtime_layout.html", title="Bloidozor multi-bolid database", _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self)
+
+class JSweb(web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self, params=None):
+        self.render("www/layout/js.html", title="Bloidozor multi-bolid database", _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self)
+
 
 
 class WebHandler(web.RequestHandler):
@@ -137,6 +148,8 @@ app = web.Application([
     (r'/multibolid', MultiBolid),
     (r'/realtime(.*)', RTbolidozor),
     (r'/realtime', RTbolidozor),
+    (r'/js(.*)', JSweb),
+    (r'/js', JSweb),
     
     (r'/(favicon.ico)', web.StaticFileHandler, {'path': '.'}),
     (r'/(rest_api_example.png)', web.StaticFileHandler, {'path': './'}),

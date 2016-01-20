@@ -5,8 +5,20 @@
     <title>{% block title %}Default title{% end %}</title>
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" type="text/css" href="MB.css">
-
-
+    <link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9support.css">
+    <link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9.css">
+    <script type="text/javascript" src="http://space.astro.cz/bolidozor/support/js9browser/js9support.min.js"></script>
+    <script type="text/javascript" src="http://js9.si.edu/js9/js9.min.js"></script>
+    <script type="text/javascript" src="http://js9.si.edu/js9/js9plugins.js"></script>
+    <script type="text/javascript">
+        function Open(args) {
+            JS9.Load.apply(this, arguments)
+            document.getElementById("window").style.display = 'block';
+        }
+        function Close() {
+            document.getElementById("window").style.display = 'none';
+        }
+    </script>
   </head>
   <body>    
     <div id="header">
@@ -26,26 +38,31 @@
     </div>
     
     {% set event_n = 0 %}
-    {% for event_group in _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+range[0]+" AND meta.time < "+range[1]+" GROUP BY meta.link ORDER BY meta.time DESC ") %}
+    {% for event_group in _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+str(range[0])+" AND meta.time < "+str(range[1])+" GROUP BY meta.link ORDER BY meta.time DESC ") %}
+        {% set time_first = float(event_group[1])%}
         <div class="event_group" id="{{event_group[8]}}">
-            <span class="eventGroupCell"> # {{ event_n = event_n + 1 }} event_group {{ event_group[8] }}</span>
-            <span class="eventGroupCell">{{ str(event_group[1])[0:4] }}-{{ str(event_group[1])[4:6] }}-{{ str(event_group[1])[6:8] }} {{ str(event_group[1])[8:10] }}:{{ str(event_group[1])[10:12] }}:{{ str(event_group[1])[12:14] }} </span>
+            <span class="eventGroupCell"> # {{ event_n = event_n + 1 }} <span style="font-size: xx-small">event_group: {{event_group[8] }}</span></span>
+            <span class="eventGroupCell">{{ datetime.datetime.fromtimestamp(event_group[1]).strftime('%Y-%m-%d %X')}} </span>
+
         </div>
         <table class="eventListTable" id="{{event_group[8]}}" style="width:100%">
             <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
         {% set event_list = _sql("SELECT * FROM meta WHERE meta.link="+str(event_group[8])+" ORDER BY meta.time DESC ")%}
-        {% set time_first = float( str(event_list[0][0])[12:14]+"."+str(event_list[0][0])[14:] )%}
         {% for event in event_list %}
             <tr> <div class="event_list">
-                <td><span class="eventCell"> {{str(event[0])[0:4]}}-{{str(event[0])[4:6]}}-{{str(event[0])[6:8]}} {{str(event[0])[8:10]}}:{{str(event[0])[10:12]}}:{{str(event[0])[12:14]}}.{{str(event[0])[14:]}} &#916 {{float(str(event[0])[12:14]+"."+str(event[0])[14:])-time_first}} s</span></td>
+                <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(event[0]).strftime('%Y-%m-%d %X')}} &#916 {{round(event[0]-time_first)}} s</span></td>
                 <td><span class="eventCell"> {{event[1]}}</span></td>
                 <td><span class="eventCell"> {{float(event[2])/1000}}</span></td>
                 <td><span class="eventCell"> {{float(event[3])/10}}</span></td>
                 <td><span class="eventCell"> {{float(event[4])/1000}}</span></td>
                 <td><span class="eventCell"> {{float(event[5])/1000000}}</span></td>
                 <td><span class="eventCell">
-                    <a href="{{links[0][event[1]]}}/{{str(event[6])[0:4]}}/{{str(event[6])[4:6]}}/{{str(event[6])[6:8]}}/{{str(event[6])[8:10]}}/{{str(event[6])}}"><img src="prw.png" style="max-width: 25px;"></img></a>
-                    <a href="{{links[1][event[1]]}}/{{str(event[6])[0:4]}}/{{str(event[6])[4:6]}}/{{str(event[6])[6:8]}}/{{str(event[6])[8:10]}}/{{str(event[6])}}"><img src="js9.png" style="max-width: 25px;"></img></a></span></td>
+                    <a href="{{links[0][event[1]]}}/{{str(event[6])[0:4]}}/{{str(event[6])[4:6]}}/{{str(event[6])[6:8]}}/{{str(event[6])[8:10]}}/{{str(event[6])}}"><img src="prw.png" style="max-width: 25px;"> </img></a>
+                   
+                    <a href="{{links[1][event[1]]}}/{{str(event[6])[0:4]}}/{{str(event[6])[4:6]}}/{{str(event[6])[6:8]}}/{{str(event[6])[8:10]}}/{{str(event[6])}}"><img src="sun.png" style="max-width: 25px;"> </img></a>
+                    
+                    <a href="javascript:Open('{{links[2][event[1]]}}/{{str(event[6])[0:4]}}/{{str(event[6])[4:6]}}/{{str(event[6])[6:8]}}/{{str(event[6])[8:10]}}/{{str(event[6])}}', {colormap:'b'});"> <img src="open.png" style="max-width: 25px;"></img></a>
+
             </div></tr>
         {% end %}
         </table>
@@ -56,5 +73,12 @@
         Foot
 
     </div>
+
+    <div id="window">
+        <div><a href="javascript:Close();">                       X</a></div>
+        <div class="JS9Menubar"></div>
+        <div class="JS9"></div>
+    </div>
+
     </body>
 </html>

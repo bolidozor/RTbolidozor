@@ -3,11 +3,12 @@
 
 import paramiko
 import sqlite3
+import time
 
 
 class GetMeteors():
     def __init__(self, path=None, year=0, month=0, day=0, minDuration=1, minDurationBolid=2):
-        self.db = sqlite3.connect('bolid.db')
+        self.db = sqlite3.connect('bolidNEW.db')
         self.dbc = self.db.cursor()
         self.path = path
         self.year = year
@@ -16,16 +17,15 @@ class GetMeteors():
         self.minDuration = minDuration
         self.minDurationBolid = minDurationBolid
 
-        sftpUser = 'indexer'
+        sftpUSER ='indexer'
         sftpURL = 'space.astro.cz'
-        
+        sftpKEY = '/home/roman/.ssh/indexer'
+
         self.ssh = paramiko.SSHClient()
-        self.ssh.set_missing_host_key_policy( paramiko.AutoAddPolicy() )
-        self.ssh.connect(sftpURL, username=sftpUser)
+        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        self.ssh.load_system_host_keys()
+        self.ssh.connect(sftpURL, username=sftpUSER, key_filename=sftpKEY)
         self.ftp = self.ssh.open_sftp()
-        #print "Pripojeni sftp na:", sftpUser+"@"+sftpURL, "bylo uspesne"
-        #files = self.ftp.listdir()
-        #print files
 
     def setPath(self, path=None):
         if path:
@@ -47,13 +47,14 @@ class GetMeteors():
 
         #self.dbc = conn.cursor()
         # # file name    noise   peak f.     mag.    duration
-        self.dbc.execute('CREATE TABLE meta (time DATETIME, station text, noise int, freq int, mag int, duration int, file text unique on conflict fail, link int DEFAULT 0)')
+        self.dbc.execute('CREATE TABLE meta (time DATETIME, station text, noise int, freq int, mag int, duration int, file text UNIQUE ON CONFLICT replace, link int DEFAULT 0, met_true int,  met_false int,  met_head int)')
+        self.dbc.execute('CREATE TABLE station (station text, ident text, last int, url_data text, url_space_data text, url_space_snaps text, url_space_met text, map bool DEFAULT false)')
         self.dbc.execute('CREATE TABLE snap (time DATETIME, station text, file text unique on conflict fail)')
         #self.dbc.execute("INSERT INTO meta VALUES (20160114135020707,'ZVPP-R3',42869,26513700,123123, 170667)")
         self.db.commit()
 
 
-    def run(self):
+    def run(self):          ########### Cteni csv souboru a ukladani do databaze
         print "run"
         daypath = self.path+"/"+str(self.year)+"/"+str(self.month).zfill(2)+"/"+str(self.day).zfill(2)+"/"
         print "/storage/"+str(daypath)
@@ -66,14 +67,10 @@ class GetMeteors():
                     for line in data:
                         if "met" in line:
                             d = line.split(';')
-                            #print d,
                             if float(d[4]) > self.minDuration:
-                                #print self.dbc.execute("SELECT  FROM meta WHERE time = '"+str( d[0].split("_")[0] )+"' AND station = "+str( d[0].split("_")[1] )+")")
-                                #print "INSERT INTO meta VALUES ("+str( d[0].split("_")[0] )+",'"+str( d[0].split("_")[1] )+"',"+str( int(float(d[1])*1000) )+","+str( int(float(d[2])*10) )+","+str( int(float(d[3])*1000) )+", "+str( int(float(d[4])*1000000) )+")"
                                 try:
-                                    print "zapis:",
-                                    print float(d[4])
-                                    self.dbc.execute("INSERT INTO meta VALUES ("+str( d[0].split("_")[0] )+",'"+str( d[0].split("_")[1] )+"',"+str( int(float(d[1])*1000) )+","+str( int(float(d[2])*10) )+","+str( int(float(d[3])*1000) )+", "+str( int(float(d[4])*1000000) )+", '"+str(d[0])+"', 0)")
+                                    print "zapis:"+str(d[4])
+                                    self.dbc.execute("INSERT INTO meta (time, station, noise, freq, mag, duration, file) VALUES ("+ str(time.mktime(time.strptime(d[0].split("_")[0][:14], "%Y%m%d%H%M%S%f"))+int(d[0].split("_")[0][14:])/1000)+",'"+str( d[0].split("_")[1] )+"',"+str( int(float(d[1])*1000) )+","+str( int(float(d[2])*10) )+","+str( int(float(d[3])*1000) )+", "+str( int(float(d[4])*1000000) )+", '"+str(d[0])+"')")
                                 except Exception, e:
                                     #print e, "value probably exist"
                                     pass
@@ -82,22 +79,22 @@ class GetMeteors():
                                #pass
                         elif "snap" in line:
                                 try:
-                                    self.dbc.execute("INSERT INTO snap VALUES ("+str( d[0].split("_")[0] )+",'"+str( d[0].split("_")[1] )+"','"+str(d[0])+"')")
+                                    self.dbc.execute("INSERT INTO snap VALUES ("+ str(time.mktime(time.strptime(d[0].split("_")[0][:14], "%Y%m%d%H%M%S%f"))+int(d[0].split("_")[0][14:])/1000)+",'"+str( d[0].split("_")[1] )+"','"+str(d[0])+"')")
                                 except Exception, e:
                                     #print e, "value probably exist"
                                     pass
-
                 finally:
                     self.db.commit()
                     data.close()
 
     def shoda(self):
-        self.dbc.execute("SELECT meta.time, meta.duration FROM meta WHERE meta.duration > "+str(self.minDurationBolid*1000000)+" ORDER BY meta.time")  
-
+        print("SELECT time, duration FROM meta WHERE duration > "+str(self.minDurationBolid*1000000)+" ORDER BY meta.time")  
+        self.dbc.execute("SELECT time, duration FROM meta WHERE duration > "+str(self.minDurationBolid*1000000)+" ORDER BY meta.time")  
         row = self.dbc.fetchall()
+        print row
         for meteor in row:
-            err = 5*1000000 # casova  odchylka
-            self.dbc.execute("SELECT rowid, * FROM meta WHERE meta.time > "+str(meteor[0]-err)+" AND meta.time <"+str(meteor[0]+err)+ " GROUP BY station ORDER BY meta.mag DESC")
+            err = 500 # casova  odchylka
+            self.dbc.execute("SELECT rowid, * FROM meta WHERE time > "+str(meteor[0]-err)+" AND meta.time <"+str(meteor[0]+err)+ " GROUP BY station ORDER BY meta.mag DESC")
             n = self.dbc.fetchall()
             if len(n) >> 2:
                 print "-------", meteor[0], meteor[1]*1.0/1000000.0
@@ -120,7 +117,7 @@ class GetMeteors():
 
 
 def main():  
-    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", 2016, 1, 14, 5, 15)
+    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", year=2016, month=01, day=1, minDuration=5, minDurationBolid=20)
     #meteors.createDb()
     A=["bolidozor/ZVPP/ZVPP-R3/data"]
     B=["bolidozor/ZVPP/ZVPP-R3/data", "bolidozor/OBSUPICE/OBSUPICE-R4/data", "bolidozor/svakov/SVAKOV-R6/data"]
@@ -136,7 +133,7 @@ def main():
                 #pass
             except Exception, e:
                 print e
-    #meteors.cleanshoda()
+        #meteors.cleanshoda()
         meteors.shoda()
     #meteors.cleanDB()
 

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<!-- saved from url=(0051)http://space.astro.cz/bolidozor/support/js9browser/ -->
+<html class=" "><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge;chrome=1"> 
+  <link type="image/x-icon" rel="shortcut icon" href="http://space.astro.cz/bolidozor/support/js9browser/favicon.ico">
+  <link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9support.css">
+  <link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9.css">
+  <script type="text/javascript" src="http://space.astro.cz/bolidozor/support/js9browser/jquery-1.11.3.min.js"></script>
+  <script type="text/javascript" src="http://space.astro.cz/bolidozor/support/js9browser/js9support.min.js"></script>
+  <script type="text/javascript" src="http://space.astro.cz/bolidozor/support/js9browser/js9.min.js"></script>
+  <script type="text/javascript" src="http://space.astro.cz/bolidozor/support/js9browser/js9plugins.js"></script>
+  <script src="http://space.astro.cz/bolidozor/support/js9browser/nprogress.js"></script>
+  <link rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/nprogress.css">
+  <title>Bolidozor JS9 FITS Browser</title>
+  <style>
+/*
+    @font-face {
+      font-family: PT-Sans-Regular;
+      src: url('http://www.mlab.cz/Web/CSS/fonts/PT_Sans_Regular.ttf');
+    }
+
+    h1 {
+      font-family: PT-Sans-Regular;
+    }
+*/
+    body {
+      margin: 0px;
+      padding: 0px;
+    }
+
+    #header {
+      position: relative;
+      display: block;
+      height: 80px;
+      width: 100%;
+      border-bottom: 2px solid #000;
+    }
+
+    #title {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      text-align: right;
+      display: table-cell;
+      vertical-align: text-bottom;
+    }
+
+    #contcont {
+      position: absolute;
+      top: 82px;
+      bottom: 0px;
+      left: 0px;
+      right: 0px;
+    }
+
+    #cont {
+      height: 100%;
+      width: 1000px;
+      padding-top: 0px;
+      margin-top: 0px;
+      margin-bottom: 0px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #left {
+      position: relative;
+      height: 100%;
+      width: 400px;
+      float: left;
+    }
+
+    .highlight {
+      background-color: yellow;
+    }
+
+    #overflow_thing {
+      position: absolute;
+      top: 10px;
+      bottom: 10px;
+      left: 0px;
+      right: 10px;
+      overflow: auto;
+    }
+
+    #right {
+      margin-top: 10px;
+      width: 590px;
+      float: left;
+    }
+  </style>
+  <script>
+    site = ""
+    start_page = "/bolidozor/" // http://space.astro.cz/bolidozor/
+    start_page = "http://space.astro.cz/bolidozor/"
+
+    curr_dir_path = ""
+    curr_dir_contents = []
+    curr_file_path = ""
+
+    function is_fits(path) {
+      return path.lastIndexOf('fits') + 4 == path.length
+    }
+
+    function dirname(path) {
+      return path.match(/.*\//)[0]
+    }
+
+    function link(path, text) {
+      //return '<a href="javascript:visit(\'' + path + '\')">' + text + '</a>'
+      return '<a href="#' + path + '">' + text + '</a>'
+    }
+
+    function segmented_path(path) {
+      edges = path.split("/")
+      curr_path = "/"
+      res = link("/", "(root)") + '/<wbr>'
+
+      for (i = 0; i < edges.length; i++) {
+        if (edges[i] == "")
+          continue;
+        
+        curr_path += edges[i] + '/'
+        res += link(curr_path, edges[i]) + '/<wbr>'
+      }
+
+      return res
+    }
+
+    function highligh_curr_file() {
+      $("#left a").removeClass("highlight")
+      $("#left a").each(function() {
+        console.log(this.href)
+        if(curr_file_path == this.href.substr(this.href.indexOf('#') + 1, this.href.length)) {
+          $(this).addClass("highlight")
+        }
+      });
+    }
+
+    function visit_dir(path) {
+      curr_dir_path = path
+
+      $.ajax(path).done(function(html) {
+        a_tags = $(html).find('a')
+
+        $('#listing_title').html(segmented_path(path))
+        $('#listing').html('<ul>')
+
+        hrefs = []
+
+        for (i = 0; i < a_tags.length; i++) {
+          a = a_tags[i]
+          href = a.getAttribute('href')
+          text = a.textContent
+
+          if (href.indexOf('/') == 0) {
+            href = site + href
+          } else {
+            href = path + href
+          }
+
+          hrefs.push(href)
+
+          $('#listing').append('<li>' + link(href, text) + '</li>')
+        }
+        $("#listing").append('</ul>')
+        curr_dir_contents = hrefs
+        highligh_curr_file()
+
+        NProgress.done()
+      }).fail(function(a, b, error) {
+        NProgress.done()
+        alert(error)
+      })
+    }
+
+    function visit_file(path) {
+      curr_file_path = path
+      highligh_curr_file()
+
+      if (is_fits(path)) {
+        JS9.Load('../../..' + path.substr(path.indexOf('/'), path.length))
+      } else {
+        JS9.DisplayHelp(path)
+      }
+    }
+
+    function visit(path) {
+      NProgress.start()
+      $('#title').html(path)
+
+      if (path.lastIndexOf('/') + 1 != path.length) {
+        try {
+          visit_file(path)
+        } finally {
+          if (dirname(path) != curr_dir_path)
+            visit_dir(dirname(path))
+          else
+            NProgress.done()
+        }
+      } else {
+          visit_dir(path)
+      }
+    }
+
+    function visit_hash() {
+      hash = window.location.hash.substring(1)
+
+      if (hash == "") {
+        visit(start_page)
+      } else {
+        visit(hash)
+      }
+    }
+
+    function key_down(event) {
+      shift = 0
+
+      switch (event.keyCode) {
+        case 38:
+          shift = -1
+          break
+        case 40:
+          shift = 1
+          break
+        default:
+          return
+      }
+
+      index = curr_dir_contents.indexOf(curr_file_path)
+      entry = undefined
+
+      while (true) {
+        index += shift
+        entry = curr_dir_contents[index]
+
+        if (entry === undefined)
+          return
+
+        if (is_fits(entry))
+          break
+      }
+
+      event.preventDefault()
+      window.location.hash = entry
+    }
+  </script>
+</head>
+<body onload="visit_hash()" onhashchange="visit_hash()" onkeydown="key_down(event)">
+  <div id="header">
+    <img src="./Bolidozor JS9 FITS Browser_files/header_logo.png" style="float: left">
+    <div id="title">/bolidozor/</div>
+  </div>
+  <div style="clear: both"></div>
+  <div id="contcont">
+  <div id="cont">
+    <div id="left">
+
+    </div>
+    <div id="right">
+      <div class="JS9PluginContainer">
+        <div class="JS9Menubar JS9Plugin" data-width="590px" style="width: 590px; height: auto;">
+          <div class="JS9MenubarContainer" width="590" height="0">
+            <span id="JS9Menus_JS9Menubar" class="ui-widget-header ui-corner-all">
+              <button type="button" id="fileMenuJS9Menubar" class="JS9Button">File</button>
+              <button type="button" id="viewMenuJS9Menubar" class="JS9Button">View</button>
+              <button type="button" id="zoomMenuJS9Menubar" class="JS9Button">Zoom</button>
+              <button type="button" id="scaleMenuJS9Menubar" class="JS9Button">Scale</button>
+              <button type="button" id="colorMenuJS9Menubar" class="JS9Button">Color</button>
+              <button type="button" id="regionMenuJS9Menubar" class="JS9Button">Region</button>
+              <button type="button" id="wcsMenuJS9Menubar" class="JS9Button">WCS</button>
+              <button type="button" id="analysisMenuJS9Menubar" class="JS9Button">Analysis</button>
+              <button type="button" id="helpMenuJS9Menubar" class="JS9Button">Help</button>
+              <button type="button" id="hiddenRegionMenuJS9Menubar" class="JS9Button" style="display:none">R</button>
+              <button type="button" id="hiddenAnchorMenuJS9Menubar" class="JS9Button" style="display:none">R</button>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="JS9" data-width="590px" data-height="512px" id="JS9" style="width: 590px; height: 512px;">
+        <div class="JS9Container" tabindex="0" style="z-index: 0;">
+          <canvas class="JS9Image" width="590" height="512" style="z-index: 0;">
+          </canvas>
+        </div>
+        <div class="JS9Container" style="z-index: 8;">
+          <div class="JS9Message">
+          </div>
+          <div class="JS9Message">
+          </div>
+        </div>
+        <div style="visibility:hidden; position:relative; top:-50;left:-50">
+          <input type="file" id="openLocalFile-JS9" multiple="true" onchange="javascript:for(var i=0; i&lt;this.files.length; i++){JS9.Load(this.files[i], {display:&#39;JS9&#39;}); }">
+        </div>
+        <div style="visibility:hidden; position:relative; top:-50;left:-50">
+          <input type="file" id="openLocalRegions-JS9" multiple="true" onchange="javascript:for(var i=0; i&lt;this.files.length; i++){JS9.LoadRegions(this.files[i], {display:&#39;JS9&#39;}); }">
+        </div>
+        <div class="JS9Container" style="z-index: 0;">
+          <div class="canvas-container" style="width: 590px; height: 512px; position: relative; -webkit-user-select: none;">
+            <canvas class="JS9Layer lower-canvas" id="JS9-regions-shapeLayer" width="590" height="512" style="position: absolute; width: 590px; height: 512px; left: 0px; top: 0px; -webkit-user-select: none;">
+            </canvas>
+            <canvas class="upper-canvas JS9Layer" width="590" height="512" style="position: absolute; width: 590px; height: 512px; left: 0px; top: 0px; -webkit-user-select: none;">  
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div id="dhtmlwindowholder">
+    <span style="display:none">.</span>
+  </div>
+  <iframe id="foxcub_translator_popup_win" style="visibility:hidden;width:0px;height:0px;border:0;padding:0;"></iframe>
+
+</body>
+</html>
