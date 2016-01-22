@@ -1,0 +1,16 @@
+.ZooMainWindow {
+	 /* Must manually set width/height */
+	 width:800px;
+	 height:500px;
+
+	 /* The magic centering code */
+	 margin:auto;
+	 position:absolute;
+	 top:0;bottom:0; /* Aligns Vertically - Remove for Horizontal Only */
+	 left:0;right:0; /* Aligns Horizontally - Remove for Vertical Only  */
+
+	 /* Prevent div from overflowing main window */
+	 max-width:100%;
+	 max-height:100%;
+	 overflow:auto;
+}

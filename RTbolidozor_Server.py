@@ -82,6 +82,13 @@ class MultiBolid(web.RequestHandler):
         query = _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+str(date_from)+" AND meta.time <"+str(date_to)+" ORDER BY meta.time DESC")                         # seznam vsech udalosti
         self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9, space], parent=self)
 
+class ZooBolid(web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self, params=None):
+        items = ["Item 1", "Item 2", "Item 3"]
+        self.render("www/layout/ZooBolid.html", title="Bloidozor game")
+
+
 class RTbolidozor(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
@@ -148,6 +155,8 @@ app = web.Application([
     (r'/multibolid', MultiBolid),
     (r'/realtime(.*)', RTbolidozor),
     (r'/realtime', RTbolidozor),
+    (r'/zoo', ZooBolid),
+    (r'/zoo(.*)', ZooBolid),
     (r'/js(.*)', JSweb),
     (r'/js', JSweb),
     
