@@ -4,10 +4,12 @@
 import paramiko
 import sqlite3
 import time
+import datetime
+
 
 
 class GetMeteors():
-    def __init__(self, path=None, year=0, month=0, day=0, minDuration=1, minDurationBolid=2):
+    def __init__(self, path=None, year=0, month=0, day=0, minDuration=1, minDurationBolid=20):
         self.db = sqlite3.connect('bolidNEW.db')
         self.dbc = self.db.cursor()
         self.path = path
@@ -69,7 +71,7 @@ class GetMeteors():
                             d = line.split(';')
                             if float(d[4]) > self.minDuration:
                                 try:
-                                    print "zapis:"+str(d[4])
+                                    print "zapis:", d[4]
                                     self.dbc.execute("INSERT INTO meta (time, station, noise, freq, mag, duration, file) VALUES ("+ str(time.mktime(time.strptime(d[0].split("_")[0][:14], "%Y%m%d%H%M%S%f"))+int(d[0].split("_")[0][14:])/1000)+",'"+str( d[0].split("_")[1] )+"',"+str( int(float(d[1])*1000) )+","+str( int(float(d[2])*10) )+","+str( int(float(d[3])*1000) )+", "+str( int(float(d[4])*1000000) )+", '"+str(d[0])+"')")
                                 except Exception, e:
                                     #print e, "value probably exist"
@@ -93,11 +95,11 @@ class GetMeteors():
         row = self.dbc.fetchall()
         print row
         for meteor in row:
-            err = 500 # casova  odchylka
+            err = 300 # casova  odchylka
             self.dbc.execute("SELECT rowid, * FROM meta WHERE time > "+str(meteor[0]-err)+" AND meta.time <"+str(meteor[0]+err)+ " GROUP BY station ORDER BY meta.mag DESC")
             n = self.dbc.fetchall()
             if len(n) >> 2:
-                print "-------", meteor[0], meteor[1]*1.0/1000000.0
+                print "-------", meteor[0], datetime.datetime.fromtimestamp(meteor[0]).strftime('%Y-%m-%d %X'), meteor[1]*1.0/1000000.0
                 refid = n[0][0]
                 for near in n:
                     self.dbc.execute("UPDATE meta SET link ="+str(refid)+" WHERE rowid ="+str(near[0]))
@@ -117,16 +119,17 @@ class GetMeteors():
 
 
 def main():  
-    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", year=2016, month=01, day=1, minDuration=5, minDurationBolid=20)
+    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", year=2016, month=02, day=1, minDuration=5, minDurationBolid=20)
     #meteors.createDb()
-    A=["bolidozor/ZVPP/ZVPP-R3/data"]
-    B=["bolidozor/ZVPP/ZVPP-R3/data", "bolidozor/OBSUPICE/OBSUPICE-R4/data", "bolidozor/svakov/SVAKOV-R6/data"]
-    C=["bolidozor/ZVPP/ZVPP-R3/data", "bolidozor/OBSUPICE/OBSUPICE-R4/data", "bolidozor/svakov/SVAKOV-R6/data", "bolidozor/ZEBRAK/ZEBRAK-R3/data", "bolidozor/nachodsko/NACHODSKO-R3/data"]
+    A=["bolidozor/ZVPP/ZVPP-R4/data"]
+    B=["bolidozor/ZVPP/ZVPP-R4/data", "bolidozor/OBSUPICE/OBSUPICE-R4/data", "bolidozor/svakov/SVAKOV-R7/data"]
+    C=["bolidozor/ZVPP/ZVPP-R4/data", "bolidozor/OBSUPICE/OBSUPICE-R4/data", "bolidozor/svakov/SVAKOV-R7/data", "bolidozor/svakov/TEST-R3/data", "bolidozor/ZEBRAK/ZEBRAK-R3/data", "bolidozor/nachodsko/NACHODSKO-R3/data", "bolidozor/ZVOLENEVES/ZVOLENEVES-R1/data"]
+    
     for path in C:
         meteors.setPath(path)
         #for month in xrange(1,1):
         #meteors.setMonth(month)
-        for day in xrange(1,31):
+        for day in xrange(1,8):
             try:
                 meteors.setDay(day)  
                 meteors.run()
@@ -134,8 +137,12 @@ def main():
             except Exception, e:
                 print e
         #meteors.cleanshoda()
-        meteors.shoda()
-    #meteors.cleanDB()
+        #meteors.shoda()
+    #meteors.cleanDB
+
+    
+    meteors.cleanshoda()
+    meteors.shoda()
 
 if __name__ == '__main__':
     main()

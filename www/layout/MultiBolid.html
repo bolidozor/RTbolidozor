@@ -33,6 +33,11 @@
             <input type="submit">
         </form>
     </div>
+    {% if len(data[0]) < 1%}
+        <div class="parameters" id="error">
+        Error: 0 výsledků ... Zkus jiný datum
+        </div>
+    {% end %}
 
     <div class="parameters" id="error">
         Error: None result   --- testovaci chyba :) 

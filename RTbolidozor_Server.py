@@ -13,25 +13,37 @@ import datetime
 
 cl = []
 fits={'ZVPP-R3':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/ZVPP/ZVPP-R3/meteors/',
-     'OBSUPICE-R3':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/OBSUPICE/OBSUPICE-R4/meteors/',
+      'ZVPP-R4':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/ZVPP/ZVPP-R4/meteors/',
+     'OBSUPICE-R3':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/OBSUPICE/OBSUPICE-R3/meteors/',
      'OBSUPICE-R4':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/OBSUPICE/OBSUPICE-R4/meteors/',
+     'SVAKOV-R7':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/svakov/SVAKOV-R7/meteors/',
      'SVAKOV-R6':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/svakov/SVAKOV-R6/meteors/',
+     'TEST-R3':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/svakov/TEST-R3/meteors/',
      'ZEBRAK-R3':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/ZEBRAK/ZEBRAK-R3/meteors/',
-     'NACHODSKO-R3':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/nachodsko/NACHODSKO-R3/meteors/'}
+     'NACHODSKO-R3':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/nachodsko/NACHODSKO-R3/meteors/',
+     'ZVOLENEVES-R1':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/ZVOLENEVES/ZVOLENEVES-R1/meteors/'}
 
 js9={'ZVPP-R3':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/ZVPP/ZVPP-R3/meteors',
-     'OBSUPICE-R3':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/OBSUPICE/OBSUPICE-R4/meteors',
+     'ZVPP-R4':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/ZVPP/ZVPP-R4/meteors',
+     'OBSUPICE-R3':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/OBSUPICE/OBSUPICE-R3/meteors',
      'OBSUPICE-R4':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/OBSUPICE/OBSUPICE-R4/meteors',
      'SVAKOV-R6':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/svakov/SVAKOV-R6/meteors',
+     'SVAKOV-R7':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/svakov/SVAKOV-R7/meteors',
+     'TEST-R3':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/svakov/TEST-R3/meteors',
      'ZEBRAK-R3':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/ZEBRAK/ZEBRAK-R3/meteors',
-     'NACHODSKO-R3':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/nachodsko/NACHODSKO-R3/meteors'}
+     'NACHODSKO-R3':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/nachodsko/NACHODSKO-R3/meteors',
+     'ZVOLENEVES-R1':'http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/ZVOLENEVES/ZVOLENEVES-R1/meteors'}
 
 space={'ZVPP-R3':'http://space.astro.cz/bolidozor/ZVPP/ZVPP-R3/meteors',
-     'OBSUPICE-R3':'http://space.astro.cz/bolidozor/OBSUPICE/OBSUPICE-R4/meteors',
+     'ZVPP-R4':'http://space.astro.cz/bolidozor/ZVPP/ZVPP-R4/meteors',
+     'OBSUPICE-R3':'http://space.astro.cz/bolidozor/OBSUPICE/OBSUPICE-R3/meteors',
      'OBSUPICE-R4':'http://space.astro.cz/bolidozor/OBSUPICE/OBSUPICE-R4/meteors',
      'SVAKOV-R6':'http://space.astro.cz/bolidozor/svakov/SVAKOV-R6/meteors',
+     'SVAKOV-R7':'http://space.astro.cz/bolidozor/svakov/SVAKOV-R7/meteors',
+     'TEST-R3':'http://space.astro.cz/bolidozor/svakov/TEST-R3/meteors',
      'ZEBRAK-R3':'http://space.astro.cz/bolidozor/ZEBRAK/ZEBRAK-R3/meteors',
-     'NACHODSKO-R3':'http://space.astro.cz/bolidozor/nachodsko/NACHODSKO-R3/meteors'}
+     'NACHODSKO-R3':'http://space.astro.cz/bolidozor/nachodsko/NACHODSKO-R3/meteors',
+     'ZVOLENEVES-R1':'http://space.astro.cz/bolidozor/ZVOLENEVES/ZVOLENEVES-R1/meteors'}
 
 def _sql(query):
         dbPath = 'bolidNEW.db'
@@ -72,12 +84,20 @@ class MultiBolid(web.RequestHandler):
     def get(self, params=None):
         month = self.get_argument('month', None)
         if not month:
-            month = datetime.datetime.utcnow().strftime('%Y-%M')
-        date_from = time.mktime(time.strptime(month, "%Y-%M"))
-        date_to  =  time.mktime(time.strptime(month, "%Y-%M"))+60*60*24*30
-        #print date_from, date_to
+            month = datetime.datetime.utcnow().strftime('%Y-%m')
+            date_from = time.mktime(time.strptime(month, "%Y-%m"))
+            date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
+        elif month == "all":
+            date_from = 0
+            date_to = time.time()
+        else:
+            date_from = time.mktime(time.strptime(month, "%Y-%m"))
+            date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
+
         #print "webM", params, self.get_argument('month', None)
+
         items = ["Item 1", "Item 2", "Item 3"]
+
         event = _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+str(date_from)+" AND meta.time <"+str(date_to)+" GROUP BY meta.link ORDER BY meta.time DESC ")     # seznam jedtotlivých událostí
         query = _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+str(date_from)+" AND meta.time <"+str(date_to)+" ORDER BY meta.time DESC")                         # seznam vsech udalosti
         self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9, space], parent=self)
@@ -88,17 +108,23 @@ class ZooBolid(web.RequestHandler):
         items = ["Item 1", "Item 2", "Item 3"]
         self.render("www/layout/ZooBolid.html", title="Bloidozor game")
 
+class AstroTools(web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self, params=None):
+        items = ["Item 1", "Item 2", "Item 3"]
+        self.render("www/layout/AstroTools.html", title="Astro tools")
+
 
 class RTbolidozor(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
         self.render("www/layout/realtime_layout.html", title="Bloidozor multi-bolid database", _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self)
 
+
 class JSweb(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
         self.render("www/layout/js.html", title="Bloidozor multi-bolid database", _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self)
-
 
 
 class WebHandler(web.RequestHandler):
@@ -155,6 +181,8 @@ app = web.Application([
     (r'/multibolid', MultiBolid),
     (r'/realtime(.*)', RTbolidozor),
     (r'/realtime', RTbolidozor),
+    (r'/astrotools(.*)', AstroTools),
+    (r'/astrotools', AstroTools),
     (r'/zoo', ZooBolid),
     (r'/zoo(.*)', ZooBolid),
     (r'/js(.*)', JSweb),
