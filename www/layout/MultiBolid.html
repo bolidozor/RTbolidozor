@@ -1,11 +1,13 @@
  <!DOCTYPE html>
 <html>
+
 {% import datetime %}
 {% import math %}
   <head>
+    <meta charset='utf-8'>
     <title>{% block title %}Default title{% end %}</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <link rel="stylesheet" type="text/css" href="MB.css">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/MB.css">
     <link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9support.css">
     <link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9.css">
     <script type="text/javascript" src="http://space.astro.cz/bolidozor/support/js9browser/js9support.min.js"></script>
@@ -43,33 +45,33 @@
             Error: None result   --- testovaci chyba :) 
         </div>
         
-        {% set event_n = 0 %}
-        {% for event_group in _sql("SELECT * FROM meta WHERE link != 0 AND time > "+str(range[0])+" AND time < "+str(range[1])+" GROUP BY link ORDER BY time DESC ;") %}<!-- META - 0 id, 1 time, 2 id_station, 3 noise, 4 freq, 5 mag, 6 duration, 7 file , 8 link, 9 met_true, 10 met_false, 11 met_head --> 
-            {% set time_first = float(event_group[1])%}
-            {% set links = _sql("SELECT metalink.link, meta.time, meta.file FROM metalink LEFT JOIN meta ON meta.id = metalink.link WHERE metalink.master = "+str(event_group[0])+" GROUP BY metalink.link; ") %}
-            <div class="event_group" id="{{event_group[8]}}">
-                <span class="eventGroupCell"> # {{ event_n = event_n + 1 }} <span style="font-size: xx-small">event_group: {{event_group[8] }}</span></span>
-                <span class="eventGroupCell">{{ datetime.datetime.fromtimestamp(event_group[1]).strftime('%Y-%m-%d %X')}} </span>
+
+        {% for event_group in _sql("SELECT metalink.id, metalink.master, meta.time FROM metalink LEFT JOIN meta ON meta.id = metalink.link WHERE meta.time > "+str(range[0])+" AND meta.time < "+str(range[1])+" GROUP BY metalink.master ORDER BY meta.time DESC ;") %}<!-- META - 0 id, 1 time, 2 id_station, 3 noise, 4 freq, 5 mag, 6 duration, 7 file , 8 link, 9 met_true, 10 met_false, 11 met_head --> 
+            {% set links = _sql("SELECT metalink.link, meta.time, meta.id_station, meta.noise, meta.freq, meta.mag, meta.duration, observatory.name, station.name, meta.file FROM metalink LEFT JOIN meta ON meta.id = metalink.link LEFT JOIN station ON station.id = meta.id_station LEFT JOIN observatory ON observatory.id = station.id_observatory WHERE metalink.master = "+str(event_group[1])+" GROUP BY metalink.link; ") %}
+            <div class="event_group" id="{{event_group[1]}}">
+                <span class="eventGroupCell"> # {{ event_group[0] }} <span style="font-size: xx-small">event_group: {{event_group[1] }}</span></span>
+                <span class="eventGroupCell">{{ datetime.datetime.fromtimestamp(event_group[2]).strftime('%Y-%m-%d %X')}} </span>
 
             </div>
-            <table class="eventListTable" id="{{event_group[8]}}" style="width:100%">
+            <table class="eventListTable" id="{{event_group[1]}}" style="width:100%">
                 <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
 
             {% for event in links %}
                 <tr> <div class="event_list">
-                    <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(event[1]).strftime('%Y-%m-%d %X')}} &#916 {{round(event[0]-0)}}s</span></td>
-                    <td><span class="eventCell"> {{event[0]}}</span></td>
-                    <td><span class="eventCell"> {{float(event[0])}}</span></td>
-                    <td><span class="eventCell"> {{float(event[0])}}</span></td>
-                    <td><span class="eventCell"> {{float(event[0])}}</span></td>
-                    <td><span class="eventCell"> {{event[0]}}</span></td>
-                    <td><span class="eventCell">
+                    <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(event[1]).strftime('%Y-%m-%d %X')}} &#916 {{round(event[1] - float(event_group[2]))}}s</span></td>
+                    <td><span class="eventCell"> {{event[8]}}</span></td>
+                    <td><span class="eventCell"> {{float(event[3])}}</span>
+                    <td><span class="eventCell"> {{float(event[4])}}</span></td>
+                    <td><span class="eventCell"> {{float(event[5])}}</span></td>
+                    <td><span class="eventCell"> {{event[6]}}</span></td>
+                    <td><span class="eventCell">  <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}"><img src="prw.png" style="max-width: 20px;"></a>
+                                                  <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}"><img src="sun.png" style="max-width: 20px;"></a>
+                                                  <a href="javascript:Open('http://space.astro.cz/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}', {colormap:'b'});"> <img src="open.png" style="max-width: 20px;"></img></a>></td>
                 </div></tr>
 
             {% end %}
-    {% end %}
         </table>
-
+        {% end %}
     {% end %}
     </div>
     <div id="foot">

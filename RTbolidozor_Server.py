@@ -109,21 +109,22 @@ class MultiBolid(web.RequestHandler):
             date_from = time.mktime(time.strptime(month, "%Y-%m"))
             date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
 
-        #print "webM", params, self.get_argument('month', None)
-
-        items = ["Item 1", "Item 2", "Item 3"]
-
         event = _sql("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s GROUP BY link ORDER BY time DESC;" %(str(date_from), str(date_to)))     # seznam jedtotlivých událostí
-        print("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s GROUP BY link ORDER BY time DESC;" %(str(date_from), str(date_to)))     # seznam jedtotlivých událostí
         query = _sql("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s ORDER BY time DESC;" %(str(date_from), str(date_to)))    # seznam vsech udalosti
-        print "ssssssss", event, "oooooooo", query
-        self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9, space], parent=self)
+        self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, parent=self)
 
 class ZooBolid(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
         items = ["Item 1", "Item 2", "Item 3"]
         self.render("www/layout/ZooBolid.html", title="Bloidozor game")
+
+class Browser(web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self, params=None):
+        print "params:", params
+        self.render("www/layout/browser.html", title="Bloidozor data browser", _sql = _sql, parent=self)
+
 
 class AstroTools(web.RequestHandler):
     @tornado.web.asynchronous
@@ -254,6 +255,8 @@ app = web.Application([
         (r'/multibolid', MultiBolid),
         (r'/realtime(.*)', RTbolidozor),
         (r'/realtime', RTbolidozor),
+        (r'/browser(.*)', Browser),
+        (r'/browser', Browser),
         (r'/astrotools(.*)', AstroTools),
         (r'/astrotools', AstroTools),
         (r'/zoo', ZooBolid),

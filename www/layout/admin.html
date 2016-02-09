@@ -1,7 +1,8 @@
-
 <!DOCTYPE html>
 <html>
+
 <head>
+  <meta charset='utf-8'>
 	<title>{{title}}</title>
     <link rel="stylesheet" type="text/css" href="/style.css">
     <link rel="stylesheet" type="text/css" href="/MB.css">
@@ -22,83 +23,102 @@
 	{% set y = _sql("SELECT observatory.id, observatory.name, observatory.id_owner, user.r_name FROM observatory LEFT JOIN user ON user.id = observatory.id_owner;") %}
   {% if y%}
 	{% for x in y%}
-    <div class="event_group" id="observtory">
-        <span class="eventGroupCell"> 
+      <div class="event_group" id="observtory">
+          <span class="eventGroupCell"> 
        		
 						#{{x[0]}}  stanica {{x[1]}}
 					
-       <span style="font-size: xx-small"> uzivatele {{x[3]}}</span></span>
-    <span class="eventGroupCell"></span></div>
-        <div>
+          <span style="font-size: xx-small"> uživatele {{x[3]}}</span>
+        </span>
+      </div>
+      <table class="eventListTable" id="{{'aaa'}}" style="width:100%">
+      <div>
           {% for x2 in _sql("SELECT * FROM station WHERE id_observatory = "+str(x[0])+";")%}
-          <li>{{x2}}</li>
+          <tr> 
+              <div class="event_list">
+                <td><span class="eventCell"> {{ x2 }} &#916 {{"round(event[0]-0)"}}s</span></td>
+                <td><span class="eventCell"> {{ "a"}}</span></td>
+              </div>
+          </tr>
           {% end %}
-        </div>
+      </div>
+      </table>
 		{% end %}
 		{% end %}
+
+    <div class="parameters" id="header">
+        Uživatelé:
+    </div>   
+    {% for x in _sql("SELECT id, name, r_name, email, text, id_astrozor FROM user;")%}
+      <div class="event_group" id="observtory">
+          <span class="eventGroupCell"> 
+          
+            #{{x[0]}}  Uživatel {{x[1]}} se jménem {{x[2]}}. Email: {{x[3]}}. Na astrozoru jako uživatel číslo {{x[5]}}.
+          
+          <span style="font-size: xx-small"> uživatele {{x[3]}}</span>
+        </span>
+      </div>
+
+    {% end %}
+
+    <div class="parameters" id="header">
+        Přidat nový parametr:
+    </div> 
+
     
+      <div class="event_group" id="observtory">
+           Add user:
+      </div>
 
-    <div class="parameters" id="error">
-        Error: None result   --- testovaci chyba :) 
+    <table style="width:100%">
+      <form  action="/auth/new/user" method="post" accept-charset="UTF-8">
+       <tr><td> User name: </td><td>    <input type="text" name="user" required></td><td></td></tr>
+  		 <tr><td> Pass: </td><td>         <input type="password" name="pass" required></td><td></td></tr>
+       <tr><td> Pass: </td><td>         <input type="password" name="repass"></td><td></td></tr>
+  		 <tr><td> Real name: </td><td>    <input type="text" name="r_name" required></td><td></td></tr>
+  		 <tr><td> Email: </td><td>        <input type="email" name="email" required></td><td></td></tr>
+  		 <tr><td> Astrozor id: </td><td>  <input type="number" name="describe" value="-1"  min="-1" step="1"></td><td></td></tr>
+  		 <tr><td> </td><td>               <input type="submit"></td><td></td></tr>
+      </form>
+    </table>
+
+    <div class="event_group" id="observtory">
+           Add observatory:
+      </div>
+    <table class="eventListTable" style="width:100%">
+      <form  action="/auth/new/observatory" method="post" accept-charset="UTF-8">
+        <tr><td> name: </td><td><input type="text" name="name"></td><td>(svakov, ZVPP, OBSUPICE)</td></tr>
+        <tr><td> Lat: </td><td><input type="text" name="lat"></td><td>(deg)</td></tr>
+        <tr><td> Lon: </td><td><input type="text" name="lon"></td><td>(deg)</td></tr>
+        <tr><td> Alt: </td><td><input type="text" name="alt"></td><td>(deg)</td></tr>
+        <tr><td> Owner: </td><td><select name="owner">
+            <option value="-1">-1</option>
+            {% for x in _sql("SELECT id, name, r_name FROM user;")%}
+                <option value="{{x[0]}}">{{x[2]}} ({{x[1]}})</option>
+            {% end %}
+        </select></td><td></td></tr>
+        <tr><td> Describe: </td><td><input type="text" name="describe"></td><td></td></tr>
+        <tr><td> Astrozor link: </td><td><input type="text" name="link"> (astrozor link)</td><td></td></tr>
+        <tr><td> </td><td><input type="submit"></td><td></td></tr>
+      </form>
+    </table>
+
+    <div class="event_group">
+        Add station:
     </div>
-   
-
-
-    <div class="parameters">
-        aaa
-    </div>
-
-    <div class="parameters">
-    	Add user:<br>
-        <form  action="/auth/new/user" method="post"><br>
-        User name: <input type="text" name="user"><br>
-  		Pass<input type="text" name="pass"><br>
-  		real name: <input type="text" name="r_name"><br>
-  		email: <input type="text" name="email"><br>
-  		describe: <input type="text" name="describe"><br>
-  		<input type="submit"><br>
-        </form>
-    </div>
-
-    <div class="parameters">
-    	Add observatory:<br>
-        <form  action="/auth/new/observatory" method="post"><br>
-        name: <input type="text" name="name"> (svakov, ZVPP, OBSUPICE)<br>
-  		Lat<input type="text" name="lat"> (deg)<br>
-  		Lon: <input type="text" name="lon"> (deg)<br>
-  		Alt: <input type="text" name="alt"> (deg)<br>
-  		Owner: <select name="owner">
-				<option value="-1">-1</option>
-  				{% set y = _sql("SELECT id, name, r_name FROM user;") %}
-  				{% if y%}
-					{% for x in y%}
-						<option value="{{x[0]}}">{{x[2]}} ({{x[1]}})</option>
-					{% end %}
-				{% end %}
-  				</select> <br>
-  		Describe: <input type="text" name="describe"><br>
-  		Astrozor link: <input type="text" name="link"> (astrozor link)<br>
-  		<input type="submit"><br>
-        </form>
-    </div>
-
-    <div class="parameters">
-    	Add station:<br><br>
-        <form  action="/auth/new/station" method="post"><br>
-        name: <input type="text" name="name"> (svakov, ZVPP, OBSUPICE)<br>
-  		observatory: <select name="observatory">
-				<option value="-1">-1</option>
-  				{% set y = _sql("SELECT id, name FROM observatory;")%}
-  				{% if y%}
-  					{% for x in y%}
-  						<option value="{{x[0]}}">{{str(x[1])}}</option>
-  					{% end %}
-				{% end %}
-  				</select> <br>
-  		describe: <input type="text" name="describe"><br>
-  		<input type="submit"><br>
-        </form>
-    </div>
+    <table class="eventListTable" style="width:100%">
+      <form  action="/auth/new/station" method="post" accept-charset="UTF-8">
+      <tr><td> name: </td><td><input type="text" name="name"> (svakov, ZVPP, OBSUPICE)</td><td></td></tr>
+      <tr><td> observatory: </td><td><select name="observatory">
+          <option value="-1">-1</option>
+          {% for x in _sql("SELECT id, name FROM observatory;")%}
+            <option value="{{x[0]}}">{{str(x[1])}}</option>
+          {% end %}
+      </select></td><td></td></tr>
+      <tr><td> describe: </td><td><input type="text" name="describe"></td><td></td></tr>
+      <tr><td> </td><td> <input type="submit"></td><td></td></tr>
+      </form>
+    </table>
 </div>
 <div id="foot">
     Foot
