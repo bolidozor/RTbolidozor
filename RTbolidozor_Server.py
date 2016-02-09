@@ -16,6 +16,7 @@ import json
 import MySQLdb as mdb
 import time
 import datetime
+import svgwrite
 
 cl = []
 fits={'ZVPP-R3':'http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/ZVPP/ZVPP-R3/meteors/',
@@ -123,7 +124,19 @@ class Browser(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
         print "params:", params
-        self.render("www/layout/browser.html", title="Bloidozor data browser", _sql = _sql, parent=self)
+        if 'plotJS' in params:
+            height = self.get_argument('height', 250)
+            width = self.get_argument('width', 600)
+            step = self.get_argument('step', 0)
+            d = params.split('/')
+            print params, d
+            #counts = _sql('SELECT')
+            #svg = svgwrite.Drawing(size=(700,220))
+
+
+            self.render("www/layout/browser.html", title="Bloidozor data browser", _sql = _sql, parent=self)
+        else:
+            self.render("www/layout/browser.html", title="Bloidozor data browser", _sql = _sql, parent=self)
 
 
 class AstroTools(web.RequestHandler):

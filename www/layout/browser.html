@@ -5,30 +5,38 @@
   <meta charset='utf-8'>
     <title>{{title}}</title>
     <link rel="stylesheet" type="text/css" href="/style.css">
-    <link rel="stylesheet" type="text/css" href="/MB.css">
+    <link rel="stylesheet" type="text/css" href="/RTbolid.css">
 
 </head>
 <body>
 
-<div id="header"><img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img></div>
+<div id="header"><a href="/"><img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img></a></div>
 
 <div class="container">
     <div class="parameters">
-        Stanice<div class="parameters">
-        aouaouoauaouoauuo
+        Stanice
     </div>
+    {% for station in _sql("SELECT station.name, observatory.name, user.r_name, user.email FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id LEFT JOIN user ON user.id = observatory.id_owner;")%}
+    
+    <div class="block_header">
+        {{station[0]}} <span style="size: small;"> @ {{station[1]}} </span>
+        
+    </div>
+    
+    <div class="block_content">
+        Správce: <a href="mailto:{{station[3]}}">{{station[2]}}</a>
+        <div><img src="/ic_chevron_left_black_24dp_1x.png"><svg width="300px" height="300px" xmlns="http://www.w3.org/2000/svg"> <text x="10" y="50" font-size="30">My SVG</text> </svg><img src="/ic_chevron_right_black_24dp_1x.png"></div>
     </div>
 
-    <div class="event_group" id="{{event_group[1]}}">
-                aooeoaeaoeoaeoaeoea
-            </div>
-
+    <p><button onclick="Draw()">Draw</button></p>
+    {% end %}
 
 </div> <!-- class="container" -->
 <div id="foot">
     Foot
 
 </div>
+
 
 </body>
 </html>
