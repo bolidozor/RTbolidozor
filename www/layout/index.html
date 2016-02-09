@@ -4,7 +4,7 @@
     <link rel="stylesheet" type="text/css" href="style.css">
   </head>
   <body>
-  <div id="header"><img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img></div>
+  <div id="header"><img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img> {% if user %} {{user}} <small><a href="/auth/logout/">logout</a>{% else %} <a href="/auth/login/">login</a></small> {% end %}</div>
 
   	<div id="content"
                  style="text-align: center;
@@ -14,6 +14,10 @@
                 <span style="background-color: white; margin: 20px; padding 5px; border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: #dedfe5; border-right-width: 1px; border-right-style: solid; border-right-color: #dedfe5;"> <a href="./realtime">RTbolidozor | Real time map</a> </span>
                 <span></span>
                 <span style="background-color: white; margin: 20px; padding 5px; "> <a href="./multibolid">RTbolidozor | Bolid comparer</a> </span>
+                {% if user%}
+                  <span></span>
+                  <span style="background-color: white; margin: 20px; padding 5px; "> <a href="./auth/setting/">RTbolidozor | Settings</a> </span>
+                {% end %}
             </div>
   </body>
 </html>

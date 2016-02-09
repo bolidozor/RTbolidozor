@@ -1,0 +1,15 @@
+<tr> <div class="event_list">
+                    <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(event[0]).strftime('%Y-%m-%d %X')}} &#916 {{round(event[0]-time_first)}} s</span></td>
+                    <td><span class="eventCell"> {{event[2]}}</span></td>
+                    <td><span class="eventCell"> {{float(event[3])}}</span></td>
+                    <td><span class="eventCell"> {{float(event[4])}}</span></td>
+                    <td><span class="eventCell"> {{float(event[5])}}</span></td>
+                    <td><span class="eventCell"> {{float(event[6])}}</span></td>
+                    <td><span class="eventCell">
+                        <a href="{{links[0][event[2]]}}/{{str(event[7])[0:4]}}/{{str(event[7])[4:6]}}/{{str(event[7])[6:8]}}/{{str(event[7])[8:10]}}/{{str(event[7])}}"><img src="prw.png" style="max-width: 25px;"> </img></a>
+                       
+                        <a href="{{links[1][event[2]]}}/{{str(event[7])[0:4]}}/{{str(event[7])[4:6]}}/{{str(event[7])[6:8]}}/{{str(event[7])[8:10]}}/{{str(event[7])}}"><img src="sun.png" style="max-width: 25px;"> </img></a>
+                        
+                        <a href="javascript:Open('{{links[2][event[7]]}}/{{str(event[7])[0:4]}}/{{str(event[7])[4:6]}}/{{str(event[7])[6:8]}}/{{str(event[7])[8:10]}}/{{str(event[7])}}', {colormap:'b'});"> <img src="open.png" style="max-width: 25px;"></img></a>
+
+                </div></tr>

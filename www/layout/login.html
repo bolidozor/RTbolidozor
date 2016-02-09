@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+
+</head>
+<body>
+
+  <div id="header"><img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img></div>
+
+<div id="content"
+                 style="text-align: center;
+                 vertical-align: middle;
+                 width: 250px;
+                 max-height: 200px;
+                 margin-top: 10%;
+                 background-color: white;">
+	<form action="/auth/login/" method="post" id="login_form">
+
+	        <label for="username">Username</label><br>
+	        <input class="text-input" id="username" name="username" type="text" value=""><br>
+
+
+	        <label for="password">Password</label><br>
+	        <input class="text-input" id="password" name="password" type="password" value=""><br>
+
+
+	        <span class="errormessage"></span><br>
+
+
+	    <div id="form_btn">
+	        <input id="signin-btn" class="btn btn-blue" type="submit" value="Sign In" tabindex="3">
+	    </div>
+	</form>
+</div>
+
+</body>
+</html>

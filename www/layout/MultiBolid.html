@@ -33,44 +33,41 @@
             <input type="submit">
         </form>
     </div>
-    {% if len(data[0]) < 1%}
+    {% if 0 %} 
         <div class="parameters" id="error">
-        Error: 0 výsledků ... Zkus jiný datum
+        Error: 0 výsledků ... Zkus jiný datum {{len(data[0])}}
         </div>
+    {% else %}
+
+        <div class="parameters" id="error">
+            Error: None result   --- testovaci chyba :) 
+        </div>
+        
+        {% set event_n = 0 %}
+        {% for event_group in _sql("SELECT * FROM meta WHERE link != 0 AND time > "+str(range[0])+" AND time < "+str(range[1])+" GROUP BY link ORDER BY time DESC ;") %}<!-- META - 0 id, 1 time, 2 id_station, 3 noise, 4 freq, 5 mag, 6 duration, 7 file , 8 link, 9 met_true, 10 met_false, 11 met_head --> 
+            {% set time_first = float(event_group[1])%}
+            {% set links = _sql("SELECT metalink.link, meta.time, meta.file FROM metalink LEFT JOIN meta ON meta.id = metalink.link WHERE metalink.master = "+str(event_group[0])+" GROUP BY metalink.link; ") %}
+            <div class="event_group" id="{{event_group[8]}}">
+                <span class="eventGroupCell"> # {{ event_n = event_n + 1 }} <span style="font-size: xx-small">event_group: {{event_group[8] }}</span></span>
+                <span class="eventGroupCell">{{ datetime.datetime.fromtimestamp(event_group[1]).strftime('%Y-%m-%d %X')}} </span>
+
+            </div>
+            <table class="eventListTable" id="{{event_group[8]}}" style="width:100%">
+                <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
+
+            {% for event in links %}
+                <tr> <div class="event_list">
+                    <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(event[1]).strftime('%Y-%m-%d %X')}} &#916 {{round(event[0]-0)}}s</span></td>
+                    <td><span class="eventCell"> {{event[0]}}</span></td>
+                    <td><span class="eventCell"> {{float(event[0])}}</span></td>
+                    <td><span class="eventCell"> {{float(event[0])}}</span></td>
+                    <td><span class="eventCell"> {{float(event[0])}}</span></td>
+                    <td><span class="eventCell"> {{event[0]}}</span></td>
+                    <td><span class="eventCell">
+                </div></tr>
+
+            {% end %}
     {% end %}
-
-    <div class="parameters" id="error">
-        Error: None result   --- testovaci chyba :) 
-    </div>
-    
-    {% set event_n = 0 %}
-    {% for event_group in _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+str(range[0])+" AND meta.time < "+str(range[1])+" GROUP BY meta.link ORDER BY meta.time DESC ") %}
-        {% set time_first = float(event_group[1])%}
-        <div class="event_group" id="{{event_group[8]}}">
-            <span class="eventGroupCell"> # {{ event_n = event_n + 1 }} <span style="font-size: xx-small">event_group: {{event_group[8] }}</span></span>
-            <span class="eventGroupCell">{{ datetime.datetime.fromtimestamp(event_group[1]).strftime('%Y-%m-%d %X')}} </span>
-
-        </div>
-        <table class="eventListTable" id="{{event_group[8]}}" style="width:100%">
-            <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
-        {% set event_list = _sql("SELECT * FROM meta WHERE meta.link="+str(event_group[8])+" ORDER BY meta.time DESC ")%}
-        {% for event in event_list %}
-            <tr> <div class="event_list">
-                <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(event[0]).strftime('%Y-%m-%d %X')}} &#916 {{round(event[0]-time_first)}} s</span></td>
-                <td><span class="eventCell"> {{event[1]}}</span></td>
-                <td><span class="eventCell"> {{float(event[2])/1000}}</span></td>
-                <td><span class="eventCell"> {{float(event[3])/10}}</span></td>
-                <td><span class="eventCell"> {{float(event[4])/1000}}</span></td>
-                <td><span class="eventCell"> {{float(event[5])/1000000}}</span></td>
-                <td><span class="eventCell">
-                    <a href="{{links[0][event[1]]}}/{{str(event[6])[0:4]}}/{{str(event[6])[4:6]}}/{{str(event[6])[6:8]}}/{{str(event[6])[8:10]}}/{{str(event[6])}}"><img src="prw.png" style="max-width: 25px;"> </img></a>
-                   
-                    <a href="{{links[1][event[1]]}}/{{str(event[6])[0:4]}}/{{str(event[6])[4:6]}}/{{str(event[6])[6:8]}}/{{str(event[6])[8:10]}}/{{str(event[6])}}"><img src="sun.png" style="max-width: 25px;"> </img></a>
-                    
-                    <a href="javascript:Open('{{links[2][event[1]]}}/{{str(event[6])[0:4]}}/{{str(event[6])[4:6]}}/{{str(event[6])[6:8]}}/{{str(event[6])[8:10]}}/{{str(event[6])}}', {colormap:'b'});"> <img src="open.png" style="max-width: 25px;"></img></a>
-
-            </div></tr>
-        {% end %}
         </table>
 
     {% end %}

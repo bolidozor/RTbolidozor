@@ -109,6 +109,7 @@ td {
     border-right-color: #dedfe5;
 }
 
+
 .parameters#error{
 	width: 104%;
 	margin-left: -2%;
@@ -119,6 +120,15 @@ td {
     margin-bottom: 5px;
 }
 
+.parameters#header{
+	width: 104%;
+	margin-left: -2%;
+	background-color: #62F753;
+    border-bottom-color: #04FF04;
+    border-right-color: #04FF04;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
 
 
 input, input[type="text"], input[type="email"], textarea, select {

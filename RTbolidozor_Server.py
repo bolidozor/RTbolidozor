@@ -6,8 +6,14 @@ import tornado.web
 from tornado import web
 from tornado import ioloop
 from tornado import websocket
+from tornado import auth
+from tornado import escape
+from tornado import httpserver
+from tornado import options
+from tornado import web
 import json
-import sqlite3
+#import sqlite3
+import MySQLdb as mdb
 import time
 import datetime
 
@@ -46,17 +52,21 @@ space={'ZVPP-R3':'http://space.astro.cz/bolidozor/ZVPP/ZVPP-R3/meteors',
      'ZVOLENEVES-R1':'http://space.astro.cz/bolidozor/ZVOLENEVES/ZVOLENEVES-R1/meteors'}
 
 def _sql(query):
-        dbPath = 'bolidNEW.db'
-        connection = sqlite3.connect(dbPath)
+        #dbPath = 'bolid.db'
+        #connection = sqlite3.connect(dbPath)
+        #cursorobj = connection.cursor()
+        connection = mdb.connect(host="localhost", user="root", passwd="root", db="bolid", use_unicode=True, charset="utf8")
         cursorobj = connection.cursor()
+        result = None
         try:
                 cursorobj.execute(query)
                 result = cursorobj.fetchall()
                 connection.commit()
-        except Exception:
-                raise
+        except Exception, e:
+                print "Err", e
         connection.close()
         return result
+
 
 def _sqlWeb(query):
         dbPath = 'web.db'
@@ -72,12 +82,17 @@ def _sqlWeb(query):
         return result
 
 
+class WebHandler(web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self, addres=None):
+        print "web", addres
+        self.render("www/layout/index.html", title="My title", user=self.get_secure_cookie("name"))
+
 class ClientsHandler(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
         print cl
         self.render("index.html")
-
 
 class MultiBolid(web.RequestHandler):
     @tornado.web.asynchronous
@@ -98,8 +113,10 @@ class MultiBolid(web.RequestHandler):
 
         items = ["Item 1", "Item 2", "Item 3"]
 
-        event = _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+str(date_from)+" AND meta.time <"+str(date_to)+" GROUP BY meta.link ORDER BY meta.time DESC ")     # seznam jedtotlivých událostí
-        query = _sql("SELECT rowid, * FROM meta WHERE meta.link != 0 AND meta.time > "+str(date_from)+" AND meta.time <"+str(date_to)+" ORDER BY meta.time DESC")                         # seznam vsech udalosti
+        event = _sql("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s GROUP BY link ORDER BY time DESC;" %(str(date_from), str(date_to)))     # seznam jedtotlivých událostí
+        print("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s GROUP BY link ORDER BY time DESC;" %(str(date_from), str(date_to)))     # seznam jedtotlivých událostí
+        query = _sql("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s ORDER BY time DESC;" %(str(date_from), str(date_to)))    # seznam vsech udalosti
+        print "ssssssss", event, "oooooooo", query
         self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9, space], parent=self)
 
 class ZooBolid(web.RequestHandler):
@@ -112,27 +129,83 @@ class AstroTools(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
         items = ["Item 1", "Item 2", "Item 3"]
-        self.render("www/layout/AstroTools.html", title="Astro tools")
-
+        self.render("www/layout/AstroTools/index.html", title="Astro tools")
 
 class RTbolidozor(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
         self.render("www/layout/realtime_layout.html", title="Bloidozor multi-bolid database", _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self)
 
-
 class JSweb(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
         self.render("www/layout/js.html", title="Bloidozor multi-bolid database", _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self)
 
-
-class WebHandler(web.RequestHandler):
+class AuthLoginHandler(web.RequestHandler):
     @tornado.web.asynchronous
-    def get(self, addres=None):
-        print "web", addres
-        self.render("www/layout/index.html", title="My title")
+    def get(self):
+        try:
+            errormessage = self.get_argument("error")
+        except:
+            errormessage = ""
+        self.render("www/layout/login.html", errormessage = errormessage)
 
+    def post(self):
+        username = self.get_argument("username", "")
+        password = self.get_argument("password", "")
+        auth = self.check_permission(password, username)
+        if auth:
+            self.set_current_user(username)
+            self.redirect(self.get_argument("next", u"/"))
+        else:
+            error_msg = u"?error=" + tornado.escape.url_escape("Login incorrect")
+            self.redirect(u"/auth/login/" + error_msg)
+
+    def check_permission(self, password, username):
+        if username == "admin" and password == "admin":
+            return True
+        return False
+
+    def set_current_user(self, user):
+        if user:
+            print "set_secure_user", tornado.escape.json_encode(user)
+            self.set_secure_cookie("name", "Roman Dvořák")
+            self.set_secure_cookie("user", tornado.escape.json_encode(user))
+        else:
+            self.clear_cookie("user")
+
+
+class AuthLogoutHandler(web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        self.clear_cookie("name")
+        self.clear_cookie("user")
+        self.redirect(self.get_argument("next", "/"))
+
+class AuthNewHandler(web.RequestHandler):
+    @tornado.web.asynchronous
+    def post(self, type):
+        print "new type data,", type
+        if type == "user":
+            print "ADD DATA:", _sql("INSERT INTO user (name, pass, r_name, email, text) VALUES ('%s', '%s', '%s', '%s', '%s')" %(self.get_argument('user', ''), self.get_argument('name', ''), self.get_argument('r_name', ''), self.get_argument('email', ''), self.get_argument('describe', '')))
+            return self.write("done")
+
+        elif type == "observatory":
+            print "ADD DATA:",  _sql("INSERT INTO observatory (name, lat, lon, alt, id_owner, text, id_astrozor) VALUES ('%s', '%f', '%f', '%i', '%i', '%s', '%s')" %(self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('alt', '')), int(self.get_argument('owner', '')), self.get_argument('describe', ''), self.get_argument('link', '')))
+            return self.write("done")
+
+        elif type == "station":
+            print "ADD DATA:",  _sql("INSERT INTO station (name, id_observatory, map) VALUES ('%s', '%i', '%s')" %(self.get_argument('name', ''), int(self.get_argument('observatory', '')), self.get_argument('describe', '')))
+            return self.write("done")
+
+        else:
+            return self.write("err")
+
+class AuthSettingHandler(web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        self.render("www/layout/admin.html", title="Administration page", s_cookie=self.get_secure_cookie, _sql = _sql, _sqlWeb = _sqlWeb)
+        
 
 class SocketHandler(websocket.WebSocketHandler): 
     def initialize(self):
@@ -174,29 +247,36 @@ class SocketHandler(websocket.WebSocketHandler):
 
 
 app = web.Application([
-    (r'/', WebHandler),
-    (r'/ws', SocketHandler),
-    (r'/clients', ClientsHandler),
-    (r'/multibolid(.*)', MultiBolid),
-    (r'/multibolid', MultiBolid),
-    (r'/realtime(.*)', RTbolidozor),
-    (r'/realtime', RTbolidozor),
-    (r'/astrotools(.*)', AstroTools),
-    (r'/astrotools', AstroTools),
-    (r'/zoo', ZooBolid),
-    (r'/zoo(.*)', ZooBolid),
-    (r'/js(.*)', JSweb),
-    (r'/js', JSweb),
-    
-    (r'/(favicon.ico)', web.StaticFileHandler, {'path': '.'}),
-    (r'/(rest_api_example.png)', web.StaticFileHandler, {'path': './'}),
-    (r"/(.*\.png)", tornado.web.StaticFileHandler,{"path": './www/media/' }),
-    (r"/(.*\.jpg)", tornado.web.StaticFileHandler,{"path": './www/media/' }),
-    (r"/(.*\.css)", tornado.web.StaticFileHandler,{"path": './www/css/' }),
-    (r"/(.*\.wav)", tornado.web.StaticFileHandler,{"path": './www/wav/' }),
-   #(r"/static/(.*)", web.StaticFileHandler, {"path": "/var/www"}),
-    (r"/(.*)", WebHandler),
-], debug=True, autoreload=True)
+        (r'/', WebHandler),
+        (r'/ws', SocketHandler),
+        (r'/clients', ClientsHandler),
+        (r'/multibolid(.*)', MultiBolid),
+        (r'/multibolid', MultiBolid),
+        (r'/realtime(.*)', RTbolidozor),
+        (r'/realtime', RTbolidozor),
+        (r'/astrotools(.*)', AstroTools),
+        (r'/astrotools', AstroTools),
+        (r'/zoo', ZooBolid),
+        (r'/zoo(.*)', ZooBolid),
+        (r"/auth/login/", AuthLoginHandler),
+        (r"/auth/logout/", AuthLogoutHandler),
+        (r"/auth/setting/", AuthSettingHandler),
+        (r"/auth/new/(.*)", AuthNewHandler),
+        (r'/js(.*)', JSweb),
+        (r'/js', JSweb),
+        
+        (r'/(favicon.ico)', web.StaticFileHandler, {'path': '.'}),
+        (r'/(rest_api_example.png)', web.StaticFileHandler, {'path': './'}),
+        (r"/(.*\.png)", tornado.web.StaticFileHandler,{"path": './www/media/' }),
+        (r"/(.*\.jpg)", tornado.web.StaticFileHandler,{"path": './www/media/' }),
+        (r"/(.*\.css)", tornado.web.StaticFileHandler,{"path": './www/css/' }),
+        (r"/(.*\.wav)", tornado.web.StaticFileHandler,{"path": './www/wav/' }),
+       #(r"/static/(.*)", web.StaticFileHandler, {"path": "/var/www"}),
+        (r"/(.*)", WebHandler),
+    ],
+    cookie_secret="ROT13IrehaxnWrArwyrcfvQvixnAnFirgr",
+    debug=True,
+    autoreload=True)
 
 def main():
     app.listen(5252)

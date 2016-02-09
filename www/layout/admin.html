@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{title}}</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/MB.css">
+
+</head>
+<body>
+
+<div id="header"><img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img></div>
+<div class="container">
+    <div class="parameters">
+        aaa
+    </div>
+
+
+    <div class="parameters" id="header">
+        Stanice:
+    </div> 
+	{% set y = _sql("SELECT observatory.id, observatory.name, observatory.id_owner, user.r_name FROM observatory LEFT JOIN user ON user.id = observatory.id_owner;") %}
+  {% if y%}
+	{% for x in y%}
+    <div class="event_group" id="observtory">
+        <span class="eventGroupCell"> 
+       		
+						#{{x[0]}}  stanica {{x[1]}}
+					
+       <span style="font-size: xx-small"> uzivatele {{x[3]}}</span></span>
+    <span class="eventGroupCell"></span></div>
+        <div>
+          {% for x2 in _sql("SELECT * FROM station WHERE id_observatory = "+str(x[0])+";")%}
+          <li>{{x2}}</li>
+          {% end %}
+        </div>
+		{% end %}
+		{% end %}
+    
+
+    <div class="parameters" id="error">
+        Error: None result   --- testovaci chyba :) 
+    </div>
+   
+
+
+    <div class="parameters">
+        aaa
+    </div>
+
+    <div class="parameters">
+    	Add user:<br>
+        <form  action="/auth/new/user" method="post"><br>
+        User name: <input type="text" name="user"><br>
+  		Pass<input type="text" name="pass"><br>
+  		real name: <input type="text" name="r_name"><br>
+  		email: <input type="text" name="email"><br>
+  		describe: <input type="text" name="describe"><br>
+  		<input type="submit"><br>
+        </form>
+    </div>
+
+    <div class="parameters">
+    	Add observatory:<br>
+        <form  action="/auth/new/observatory" method="post"><br>
+        name: <input type="text" name="name"> (svakov, ZVPP, OBSUPICE)<br>
+  		Lat<input type="text" name="lat"> (deg)<br>
+  		Lon: <input type="text" name="lon"> (deg)<br>
+  		Alt: <input type="text" name="alt"> (deg)<br>
+  		Owner: <select name="owner">
+				<option value="-1">-1</option>
+  				{% set y = _sql("SELECT id, name, r_name FROM user;") %}
+  				{% if y%}
+					{% for x in y%}
+						<option value="{{x[0]}}">{{x[2]}} ({{x[1]}})</option>
+					{% end %}
+				{% end %}
+  				</select> <br>
+  		Describe: <input type="text" name="describe"><br>
+  		Astrozor link: <input type="text" name="link"> (astrozor link)<br>
+  		<input type="submit"><br>
+        </form>
+    </div>
+
+    <div class="parameters">
+    	Add station:<br><br>
+        <form  action="/auth/new/station" method="post"><br>
+        name: <input type="text" name="name"> (svakov, ZVPP, OBSUPICE)<br>
+  		observatory: <select name="observatory">
+				<option value="-1">-1</option>
+  				{% set y = _sql("SELECT id, name FROM observatory;")%}
+  				{% if y%}
+  					{% for x in y%}
+  						<option value="{{x[0]}}">{{str(x[1])}}</option>
+  					{% end %}
+				{% end %}
+  				</select> <br>
+  		describe: <input type="text" name="describe"><br>
+  		<input type="submit"><br>
+        </form>
+    </div>
+</div>
+<div id="foot">
+    Foot
+
+</div>
+
+</body>
+</html>
