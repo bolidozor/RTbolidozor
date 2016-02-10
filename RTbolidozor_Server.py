@@ -121,20 +121,67 @@ class ZooBolid(web.RequestHandler):
         self.render("www/layout/ZooBolid.html", title="Bloidozor game")
 
 class Browser(web.RequestHandler):
-    @tornado.web.asynchronous
+    def calc_colour(self, val):
+        if self.color == 1:
+            if val < self.maxVal/3:    #    0/3 ... 1/3
+                red = 0
+                green = val*3.0 * 255.0/self.maxVal
+                blue = 255
+
+            elif val < self.maxVal/3*2:    #    1/3 ... 2/3
+                red = val*3 * 255.0/self.maxVal
+                green = 255
+                blue = (self.maxVal*3.0 - val*3.0) * 255.0/self.maxVal - 254
+
+            else:                               #    2/3 ... 3/3
+                red = 255
+                green = (self.maxVal*3.0 - val*3.0)*255.0/self.maxVal
+                blue = 0
+        else:
+            red = val*255/self.maxVal
+            green = val*255/self.maxVal
+            blue = val*255/self.maxVal
+        return "rgb(%i,%i,%i)"%(int(red), int(green), int(blue))
+
     def get(self, params=None):
+        month = self.get_argument('month', None)
+        self.maxVal = self.get_argument('max', 100)
+        self.color = self.get_argument('color', 1)
+        height = self.get_argument('height', 250)
+        width = self.get_argument('width', 600)
+        step = self.get_argument('step', 0)
         print "params:", params
         if 'plotJS' in params:
-            height = self.get_argument('height', 250)
-            width = self.get_argument('width', 600)
-            step = self.get_argument('step', 0)
+            print month
+            if not month:
+                print "month is not setup"
+                month = datetime.datetime.utcnow().strftime('%Y-%m')
+                date_from = time.mktime(time.strptime(month, "%Y-%m"))
+                date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
+            elif month == "all":
+                date_from = 0
+                date_to = time.time()
+            else:
+                date_from = time.mktime(time.strptime(month, "%Y-%m"))
+                date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
             d = params.split('/')
-            print params, d
-            #counts = _sql('SELECT')
-            #svg = svgwrite.Drawing(size=(700,220))
+            #print params, d
+            counts = _sql("select 3600*(meta.time div 3600), count(*) from meta LEFT JOIN station ON station.id = meta.id_station WHERE station.name = '%s' AND time > '%s' AND time < '%s' GROUP BY meta.time div 3600;" %(d[2], str(date_from), str(date_to)))
+            if counts:
+                self.maxVal = max(item[1] for item in counts)
+            svg = svgwrite.Drawing(size=(600,250))
+            pixH = float(height)/24.0
+            pixW = float(width)/31.0
+            pixW = pixH
+            for hour in counts:
+                dataTime = datetime.datetime.fromtimestamp(hour[0])
+                svg.add(svg.rect( insert=(pixW*dataTime.day, pixH*dataTime.hour-1), size=(pixW, pixH), stroke = self.calc_colour(hour[1]), fill = self.calc_colour(hour[1])) )
+            
+            svg.add(svg.rect( insert=(pixW*dataTime.day, pixH*dataTime.hour-1), size=(pixW, pixH), stroke = "#10AAAA", fill = self.calc_colour(hour[1])) )
+            Ssvg = svg.tostring()
+            #print Ssvg
 
-
-            self.render("www/layout/browser.html", title="Bloidozor data browser", _sql = _sql, parent=self)
+            self.write(Ssvg)
         else:
             self.render("www/layout/browser.html", title="Bloidozor data browser", _sql = _sql, parent=self)
 

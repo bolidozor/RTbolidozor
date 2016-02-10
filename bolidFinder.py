@@ -148,7 +148,7 @@ class GetMeteors():
 
 
 def main():  
-    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", year=2016, month=01, day=1, minDBDuration = 0.1, minDuration=5, minDurationBolid=15)
+    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", year=2016, month=02, day=1, minDBDuration = 0.1, minDuration=5, minDurationBolid=15)
     
     try:
         #meteors.createDb()
@@ -167,7 +167,7 @@ def main():
             meteors.setPath("bolidozor/%s/%s/data" %(stat[0], stat[1]), stationID = stat[2])
             #for month in xrange(1,1):
             #meteors.setMonth(month)
-            for day in xrange(1,31):
+            for day in xrange(1,10):
                 try:
                     meteors.setDay(day)  
                     meteors.run()

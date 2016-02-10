@@ -2,6 +2,29 @@
   <head>
     <title>{% block title %}Bolidozor{% end %}</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <style type="text/css">
+
+    body{
+      background: url(/rmds02d_transparent.png) bottom right no-repeat fixed;
+      background-size: 50% auto;
+      min-width: 900px;
+      margin: 0px;
+      background-color: #eaedf1;
+      color: #383641;
+      font-family: Helvetica, Arial, sans-serif;
+
+    }
+
+    #indexblock{
+      width: 150px;
+      height: 250px;
+      background-color: red;
+      margin: 20px;
+      padding: 5px
+
+    }
+
+    </style>
   </head>
   <body>
   <div id="header"><img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img> {% if user %} {{user}} <small><a href="/auth/logout/">logout</a>{% else %} <a href="/auth/login/">login</a></small> {% end %}</div>
@@ -11,14 +34,17 @@
                  vertical-align: middle;
                  margin-top: 25%;
                  margin-bottom: 25%;">
-                <span style="background-color: white; margin: 20px; padding 5px; border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: #dedfe5; border-right-width: 1px; border-right-style: solid; border-right-color: #dedfe5;"> <a href="./realtime">RTbolidozor | Real time map</a> </span>
-                <span></span>
-                <span style="background-color: white; margin: 20px; padding 5px; "> <a href="./multibolid/">RTbolidozor | Bolid comparer</a> </span>
-                <span></span>
-                <span style="background-color: white; margin: 20px; padding 5px; "> <a href="./browser/">RTbolidozor | Browser</a> </span>
+                
+
+                <span id="indexblock" style=" border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: #dedfe5; border-right-width: 1px; border-right-style: solid; border-right-color: #dedfe5;"> <a href="./realtime">RTbolidozor | Real time map</a> </span>
+                <span id="indexblock"> <a href="./multibolid/">RTbolidozor | Bolid comparer</a> </span>
+
+                <span id="indexblock"> <a href="./browser/">RTbolidozor | Browser</a> </span>
+                
+
+
                 {% if user%}
-                  <span></span>
-                  <span style="background-color: white; margin: 20px; padding 5px; "> <a href="./auth/setting/">RTbolidozor | Settings</a> </span>
+                  <span id="indexblock"> <a href="./auth/setting/">RTbolidozor | Settings</a> </span>
                 {% end %}
             </div>
   </body>
