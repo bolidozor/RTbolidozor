@@ -144,40 +144,58 @@ class Browser(web.RequestHandler):
         return "rgb(%i,%i,%i)"%(int(red), int(green), int(blue))
 
     def get(self, params=None):
-        month = self.get_argument('month', None)
+        d_month = self.get_argument('month', None)
+
         self.maxVal = self.get_argument('max', 100)
         self.color = self.get_argument('color', 1)
         height = self.get_argument('height', 250)
-        width = self.get_argument('width', 600)
+        width = self.get_argument('width', 700)
         step = self.get_argument('step', 0)
-        print "params:", params
+
         if 'plotJS' in params:
-            print month
-            if not month:
-                print "month is not setup"
-                month = datetime.datetime.utcnow().strftime('%Y-%m')
-                date_from = time.mktime(time.strptime(month, "%Y-%m"))
-                date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
-            elif month == "all":
+
+            if d_month and d_month != "last" and d_month != "LAST":
+                d_month = time.mktime(time.strptime(d_month, "%Y-%m"))
+            d_from = self.get_argument('from', None)
+            if d_from:
+                d_from = time.mktime(time.strptime(d_from, "%Y-%m"))
+            d_to = self.get_argument('to', None)
+            if d_to:
+                d_to = time.mktime(time.strptime(d_to, "%Y-%m"))
+
+            if d_month == "last" or d_month == "LAST":
+                d_month = time.time()-3600*24*(int((int(width)//int(int(height)/24)))-3)
+                date_from = d_month
+                date_to   = time.time()
+            elif not d_month and not d_from and not d_to:
+                d_month = time.time()
+                date_from = d_month
+                date_to  =  d_month+60*60*24*30
+            elif d_month == "all":
                 date_from = 0
                 date_to = time.time()
-            else:
-                date_from = time.mktime(time.strptime(month, "%Y-%m"))
-                date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
+            elif d_month:
+                date_from = d_month
+                date_to  =  d_month+60*60*24*30
+            elif d_from and d_to:
+                date_from = d_month
+                date_to  =  d_month+60*60*24*30
+            if d_from and d_to:
+                date_from = d_from
+                date_to = d_to
             d = params.split('/')
             #print params, d
+            
             counts = _sql("select 3600*(meta.time div 3600), count(*) from meta LEFT JOIN station ON station.id = meta.id_station WHERE station.name = '%s' AND time > '%s' AND time < '%s' GROUP BY meta.time div 3600;" %(d[2], str(date_from), str(date_to)))
             if counts:
                 self.maxVal = max(item[1] for item in counts)
-            svg = svgwrite.Drawing(size=(600,250))
+            svg = svgwrite.Drawing(size=(width,height))
             pixH = float(height)/24.0
             pixW = float(width)/31.0
             pixW = pixH
             for hour in counts:
                 dataTime = datetime.datetime.fromtimestamp(hour[0])
-                svg.add(svg.rect( insert=(pixW*dataTime.day, pixH*dataTime.hour-1), size=(pixW, pixH), stroke = self.calc_colour(hour[1]), fill = self.calc_colour(hour[1])) )
-            
-            svg.add(svg.rect( insert=(pixW*dataTime.day, pixH*dataTime.hour-1), size=(pixW, pixH), stroke = "#10AAAA", fill = self.calc_colour(hour[1])) )
+                svg.add(svg.rect( insert=(pixW*((hour[0]-date_from)//86400), pixH*dataTime.hour-1), size=(pixW, pixH), stroke = self.calc_colour(hour[1]), fill = self.calc_colour(hour[1])) )
             Ssvg = svg.tostring()
             #print Ssvg
 

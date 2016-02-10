@@ -41,11 +41,6 @@
         </div>
     {% else %}
 
-        <div class="parameters" id="error">
-            Error: None result   --- testovaci chyba :) 
-        </div>
-        
-
         {% for event_group in _sql("SELECT metalink.id, metalink.master, meta.time FROM metalink LEFT JOIN meta ON meta.id = metalink.link WHERE meta.time > "+str(range[0])+" AND meta.time < "+str(range[1])+" GROUP BY metalink.master ORDER BY meta.time DESC ;") %}<!-- META - 0 id, 1 time, 2 id_station, 3 noise, 4 freq, 5 mag, 6 duration, 7 file , 8 link, 9 met_true, 10 met_false, 11 met_head --> 
             {% set links = _sql("SELECT metalink.link, meta.time, meta.id_station, meta.noise, meta.freq, meta.mag, meta.duration, observatory.name, station.name, meta.file FROM metalink LEFT JOIN meta ON meta.id = metalink.link LEFT JOIN station ON station.id = meta.id_station LEFT JOIN observatory ON observatory.id = station.id_observatory WHERE metalink.master = "+str(event_group[1])+" GROUP BY metalink.link; ") %}
             <div class="event_group" id="{{event_group[1]}}">
@@ -64,9 +59,9 @@
                     <td><span class="eventCell"> {{float(event[4])}}</span></td>
                     <td><span class="eventCell"> {{float(event[5])}}</span></td>
                     <td><span class="eventCell"> {{event[6]}}</span></td>
-                    <td><span class="eventCell">  <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}"><img src="prw.png" style="max-width: 20px;"></a>
-                                                  <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}"><img src="sun.png" style="max-width: 20px;"></a>
-                                                  <a href="javascript:Open('http://space.astro.cz/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}', {colormap:'b'});"> <img src="open.png" style="max-width: 20px;"></img></a>></td>
+                    <td><span class="eventCell">  <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}"><img src="/prw.png" style="max-width: 20px;"></a>
+                                                  <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}"><img src="/sun.png" style="max-width: 20px;"></a>
+                                                  <a href="javascript:Open('http://space.astro.cz/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img></a></td>
                 </div></tr>
 
             {% end %}

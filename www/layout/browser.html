@@ -26,11 +26,10 @@
     <div class="block_content">
         Správce: <a href="mailto:{{station[3]}}">{{station[2]}}</a>
         <div>
-            <object type="image/svg+xml" data="/browser/plotJS/{{station[0]}}/?width=600&height=300&month={{parent.get_argument('month', None)}}" style="width: 100%;" height="300" border="0"></object>
+            <object type="image/svg+xml" data="/browser/plotJS/{{station[0]}}/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="300" border="0"></object>
         </div>
     </div>
 
-    <p><button onclick="Draw()">Draw</button></p>
     {% end %}
 
 </div> <!-- class="container" -->
