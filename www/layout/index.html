@@ -14,13 +14,37 @@
     }
 
     #indexblock{
-      width: 150px;
+      width: 350px;
       height: 250px;
       background-color: red;
       margin: 20px;
       padding: 5px
 
     }
+
+    #floater {
+      position: absolute;
+      float: left;
+      width: 100%;
+      text-align: center;
+      vertical-align: center;
+    }
+
+    #floater a{
+    width: 250px;
+    height: 250px;
+    display: inline-block;
+    float: left;
+    margin-left: 50px;
+    margin-top: 50px;
+    }
+
+
+    #Bfill{
+      height: 100%;
+      width: 100%;
+    }
+
 
     </style>
 
@@ -29,20 +53,13 @@
 
    {% if user %} {{user}} <small><a href="/auth/logout/">logout</a>{% else %} <a href="/auth/login/">login</a></small> {% end %}
 
-{% end %}{% block container %}
-    <div id="content"
-       style="text-align: center;
-       vertical-align: middle;
-       margin-top: 25%;
-       margin-bottom: 25%;">
-                
-                <span id="indexblock" style=" border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: #dedfe5; border-right-width: 1px; border-right-style: solid; border-right-color: #dedfe5;"> <a href="./realtime">RTbolidozor | Real time map</a> </span>
-                <span id="indexblock"> <a href="./multibolid/">RTbolidozor | Bolid comparer</a> </span>
+{% end %}{% block clear %}
 
-                <span id="indexblock"> <a href="./browser/">RTbolidozor | Browser</a> </span>
+    <div id="floater">
+     <a href="/realtime" style="background: url('/IndexBrowser.png') no-repeat;"> RTbolidozor</a>
+     <a href="/multibolid" style="background: url('/IndexBrowser.png') no-repeat;"> Multi bolid</a>
+     <a href="/browser" style="background: url('/IndexBrowser.png') no-repeat;"> Browser</a>
+
     </div>
-
-                {% if user%}
-                  <span id="indexblock"> <a href="./auth/setting/">RTbolidozor | Settings</a> </span>
-                {% end %}
+    
 {% end %}

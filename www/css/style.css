@@ -4,6 +4,8 @@ body {
 	background-color: #eaedf1;
 	color: #383641;
 	font-family: Helvetica, Arial, sans-serif;
+    background: url(/rmds02d_transparent.png) bottom right no-repeat fixed;
+    background-size: 50% auto;
 }
 
 #ahoj {
@@ -16,7 +18,9 @@ body {
 
 #map {
 	height: 88%;
-	background-color: #eaedf1;
+	width: 100%;
+	min-height: 500px;
+
 }
 
 #header{

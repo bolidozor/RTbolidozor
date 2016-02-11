@@ -66,7 +66,7 @@ class GetMeteors():
             print e
         
         #self.dbc.execute('CREATE TABLE observatory (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30) UNIQUE KEY, lat FLOAT, lon FLOAT, alt FLOAT, text VARCHAR(255), id_owner INT, id_astrozor INT);')
-        #self.dbc.execute('CREATE TABLE station (id INT(6) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30), id_observatory INT(6), map BOOLEAN DEFAULT 0);')
+        #self.dbc.execute('CREATE TABLE station (id INT(6) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30), id_observatory INT(6), map BOOLEAN DEFAULT 0, handler VARCHAR(60));')
         self.dbc.execute('CREATE TABLE meta (id INT(6) AUTO_INCREMENT PRIMARY KEY, time FLOAT(13,3), id_station INT(6), noise FLOAT, freq FLOAT, mag FLOAT, duration FLOAT, file VARCHAR(40) UNIQUE KEY, link INT DEFAULT 0, met_true INT DEFAULT 0, met_false INT DEFAULT 0, met_head INT DEFAULT 0);')
         self.dbc.execute('CREATE TABLE metalink (id INT(6) AUTO_INCREMENT PRIMARY KEY, master INT, link INT);')
         self.dbc.execute('CREATE TABLE snap (id INT(6) AUTO_INCREMENT PRIMARY KEY, time FLOAT(13,3), id_station INT(6), file VARCHAR(40) UNIQUE KEY);')

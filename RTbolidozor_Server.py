@@ -21,15 +21,8 @@ import svgwrite
 
 cl = []
 
-
-header = """ <div id="header">
-                <a href="/">
-                    <img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img>
-                </a>
-            </div> 
-        """
-
-globalStrings = {'header': header}
+def wwwCleanName(string):
+    return ''.join( c for c in string if c not in '?:!/;-_#$%^!@' )
 
 
 def _sql(query):
@@ -49,31 +42,18 @@ def _sql(query):
         return result
 
 
-def _sqlWeb(query):
-        dbPath = 'web.db'
-        connection = sqlite3.connect(dbPath)
-        cursorobj = connection.cursor()
-        try:
-                cursorobj.execute(query)
-                result = cursorobj.fetchall()
-                connection.commit()
-        except Exception:
-                raise
-        connection.close()
-        return result
-
 
 class WebHandler(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, addres=None):
         print "web", addres
-        self.render("www/layout/index.html", title="My title", user=self.get_secure_cookie("name"), glob=globalStrings)
+        self.render("www/layout/index.html", title="My title", user=self.get_secure_cookie("name"))
 
 class ClientsHandler(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
         print cl
-        self.render("index.html", glob=globalStrings)
+        self.render("index.html")
 
 class MultiBolid(web.RequestHandler):
     @tornado.web.asynchronous
@@ -92,7 +72,7 @@ class MultiBolid(web.RequestHandler):
 
         event = _sql("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s GROUP BY link ORDER BY time DESC;" %(str(date_from), str(date_to)))     # seznam jedtotlivých událostí
         query = _sql("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s ORDER BY time DESC;" %(str(date_from), str(date_to)))    # seznam vsech udalosti
-        self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, parent=self, glob=globalStrings)
+        self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, parent=self)
 
 class ZooBolid(web.RequestHandler):
     @tornado.web.asynchronous
@@ -189,7 +169,7 @@ class Browser(web.RequestHandler):
 
             self.write(Ssvg)
         else:
-            self.render("www/layout/browser.html", title="Bloidozor data browser", _sql = _sql, parent=self, glob=globalStrings)
+            self.render("www/layout/browser.html", title="Bloidozor data browser", _sql = _sql, parent=self)
 
 
 
@@ -202,17 +182,17 @@ class AstroTools(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
         items = ["Item 1", "Item 2", "Item 3"]
-        self.render("www/layout/AstroTools/index.html", title="Astro tools", glob=globalStrings)
+        self.render("www/layout/AstroTools/index.html", title="Astro tools")
 
 class RTbolidozor(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
-        self.render("www/layout/realtime_layout.html", title="Bloidozor multi-bolid database", _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self, glob=globalStrings)
+        self.render("www/layout/realtime_layout.html", title="Bloidozor multi-bolid database", _sql = _sql, parent=self, CleanName = wwwCleanName)
 
 class JSweb(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
-        self.render("www/layout/js.html", title="Bloidozor multi-bolid database", _sql = _sql, _sqlWeb = _sqlWeb, links=[fits, js9], parent=self, glob=globalStrings)
+        self.render("www/layout/js.html", title="Bloidozor multi-bolid database", _sql = _sql, parent=self)
 
 class AuthLoginHandler(web.RequestHandler):
     @tornado.web.asynchronous
@@ -277,7 +257,7 @@ class AuthNewHandler(web.RequestHandler):
 class AuthSettingHandler(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
-        self.render("www/layout/admin.html", title="Administration page", s_cookie=self.get_secure_cookie, _sql = _sql, _sqlWeb = _sqlWeb)
+        self.render("www/layout/admin.html", title="Administration page", s_cookie=self.get_secure_cookie, _sql = _sql)
         
 
 class SocketHandler(websocket.WebSocketHandler): 
@@ -302,12 +282,15 @@ class SocketHandler(websocket.WebSocketHandler):
             m_type = message[1:message.find(";")]
             if m_type == "HI":
                 self.StationList.append([self] + message[message.find(";")+1:].split(";") )
-                print self.StationList
+                print "type: HI", self.StationList
             elif m_type == "stanica":       # inicializacializacni sprava od stanice (obsahoje o sobe informace)
                 jsonstation = json.loads(message.split(";")[1])
-                _sqlWeb("INSERT INTO stations (time, name, ident, handler, time_last, lat, lon, url_space, url_js9, url_rmob) VALUES (" +str(time.time())+ ",'" +str(jsonstation['name'])+ "', '" +str(jsonstation['ident'])+"', '" +str(self)+"'," +str(time.time())+ ", " +str(jsonstation['lat'])+ "," +str(jsonstation['lon'])+ ",'URL', 'URL', 'URL'" + ")")
+                print "type stanica", jsonstation['ident']
+                print("UPDATE station SET handler = '" + str(self)+"' WHERE name='"+jsonstation['ident']+"';")
+                _sql("UPDATE station SET handler = '" + str(self)+"' WHERE name='"+jsonstation['ident']+"';")
             elif m_type == "event":
-                query = _sqlWeb("SELECT name FROM stations WHERE handler = '"+str(self)+"';")[0]
+                print "type event", message
+                query = _sql("SELECT name FROM station WHERE handler = '"+str(self)+"';")[0]
                 print "EVENT", query[0]
                 for client in cl:
                     client.write_message(u"$meta;" + str(query[0])+ ";" +"{aa}")
