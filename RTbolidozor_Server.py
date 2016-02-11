@@ -132,7 +132,11 @@ class Browser(web.RequestHandler):
                 d_to = time.mktime(time.strptime(d_to, "%Y-%m"))
 
             if d_month == "last" or d_month == "LAST":
-                d_month = time.time()-3600*24*(int((int(width)//int(int(height)/24)))-3)
+                today = datetime.datetime.now()
+                now = time.time()
+                # time.mktime(datetime.datetime.strptime(s, "%d/%m/%Y").timetuple())
+                #tomidnight = (86400000-(now - today.replace(hour=0, minute=0, second=0, microsecond=0).time().microsecond)/1000)
+                d_month = now-3600*24*(int((int(width)//int(int(height)/24)))-3)
                 date_from = d_month
                 date_to   = time.time()
             elif not d_month and not d_from and not d_to:
