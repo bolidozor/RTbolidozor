@@ -1,7 +1,5 @@
-<html>
-  <head>
-    <title>{% block title %}Bolidozor{% end %}</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
+{% extends "base.html" %}
+{% block meta %}
     <style type="text/css">
 
     body{
@@ -25,27 +23,26 @@
     }
 
     </style>
-  </head>
-  <body>
-  <div id="header"><img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img> {% if user %} {{user}} <small><a href="/auth/logout/">logout</a>{% else %} <a href="/auth/login/">login</a></small> {% end %}</div>
 
-  	<div id="content"
-                 style="text-align: center;
-                 vertical-align: middle;
-                 margin-top: 25%;
-                 margin-bottom: 25%;">
+
+{% end %}{% block header %}
+
+   {% if user %} {{user}} <small><a href="/auth/logout/">logout</a>{% else %} <a href="/auth/login/">login</a></small> {% end %}
+
+{% end %}{% block container %}
+    <div id="content"
+       style="text-align: center;
+       vertical-align: middle;
+       margin-top: 25%;
+       margin-bottom: 25%;">
                 
-
                 <span id="indexblock" style=" border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: #dedfe5; border-right-width: 1px; border-right-style: solid; border-right-color: #dedfe5;"> <a href="./realtime">RTbolidozor | Real time map</a> </span>
                 <span id="indexblock"> <a href="./multibolid/">RTbolidozor | Bolid comparer</a> </span>
 
                 <span id="indexblock"> <a href="./browser/">RTbolidozor | Browser</a> </span>
-                
-
+    </div>
 
                 {% if user%}
                   <span id="indexblock"> <a href="./auth/setting/">RTbolidozor | Settings</a> </span>
                 {% end %}
-            </div>
-  </body>
-</html>
+{% end %}

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset='utf-8'>
+    <title>{{title}}</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/RTbolid.css">
+    {% block meta %}{% end %}
+  </head>
+  <body>
+  		<div id="header"><a href="/"><img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img></a>{% block header %}{% end %}</div>
+		<div class="container">
+		{% block container %}
+        {% end %}
+		</div>
+  </body>
+</html>

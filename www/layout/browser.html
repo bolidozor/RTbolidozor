@@ -1,18 +1,7 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block container %}
 
-<head>
-  <meta charset='utf-8'>
-    <title>{{title}}</title>
-    <link rel="stylesheet" type="text/css" href="/style.css">
-    <link rel="stylesheet" type="text/css" href="/RTbolid.css">
 
-</head>
-<body>
-
-<div id="header"><a href="/"><img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img></a></div>
-
-<div class="container">
     <div class="parameters">
         Stanice
     </div>
@@ -32,12 +21,8 @@
 
     {% end %}
 
-</div> <!-- class="container" -->
-<div id="foot">
-    Foot
-
-</div>
+{% end %}{% block header%}
 
 
-</body>
-</html>
+
+{% end %}
