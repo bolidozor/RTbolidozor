@@ -1,13 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+#
+# sudo apt-get install python-websocket
+#
+
 import sys
 import time
 import datetime
-
 import websocket
 import binascii
-
 
 exitapp = False
 met = False
@@ -38,19 +40,22 @@ class mWS(websocket.WebSocket):
         self.config=config
         self.send("$stanica;"+str(self.config)+";")
 
-    def sendEvent(self):
-        self.send("$event;"+str('{}')+";")
+    def sendEvent(self, pipe = None):
+        self.send("$event;"+str(pipe)+";")
 
-
+    def sendInfe(self, info = None):
+	self.send("$info;"+str(info)+";")
 
 def main():
     client = mWS()
     client.connect("ws://62.77.113.30:5252/ws")
-    client.setStation('{"name":"TEST","ident":"TEST-R3","lat":50,"lon":15, "prew":"http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/ZVPP/ZVPP-R3/", "space":"http://space.astro.cz/bolidozor/ZVPP/ZVPP-R3/"}')
-    while True:
-        time.sleep(3)
-        client.sendEvent()
-
+    client.setStation('{"name":"ZVPP","ident":"ZVPP-R4"}')
+    client.sendEvent("mmm")
+    while 1:
+        print "-"
+        pipe = sys.stdin.read(10)        
+        if "met" in pipe:
+            client.sendEvent(pipe)
 
 if __name__ == "__main__":
     try:
