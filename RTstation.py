@@ -47,15 +47,20 @@ class mWS(websocket.WebSocket):
 	self.send("$info;"+str(info)+";")
 
 def main():
-    client = mWS()
-    client.connect("ws://62.77.113.30:5252/ws")
-    client.setStation('{"name":"ZVPP","ident":"ZVPP-R4"}')
-    client.sendEvent("mmm")
     while 1:
-        print "-"
-        pipe = sys.stdin.read(10)        
-        if "met" in pipe:
-            client.sendEvent(pipe)
+        try:
+            client = mWS()
+            client.connect("ws://62.77.113.30:5252/ws")
+            client.setStation('{"name":"ZVPP","ident":"ZVPP-R4"}')
+            client.sendEvent("mmm")
+            while 1:
+                print "-"
+                pipe = sys.stdin.read(10)        
+                if "met" in pipe:
+                    client.sendEvent(pipe)
+        except e:
+            print e
+            time.sleep(60)
 
 if __name__ == "__main__":
     try:
