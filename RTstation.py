@@ -58,7 +58,7 @@ def main():
                 pipe = sys.stdin.read(10)        
                 if "met" in pipe:
                     client.sendEvent(pipe)
-        except e:
+        except Exception, e:
             print e
             time.sleep(60)
 
