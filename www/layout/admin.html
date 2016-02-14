@@ -52,6 +52,21 @@
     {% end %}
 
     <div class="parameters" id="header">
+        Servery:
+    </div>   
+    {% for x in _sql("SELECT id, name, type, text, id_astrozor FROM server;")%}
+      <div class="event_group" id="observtory">
+          <span class="eventGroupCell"> 
+          
+            #{{x[0]}}  Server {{x[1]}} ({{x[3]}}) typ {{x[2]}} Astrozor: {{x[4]}}.
+          
+          <span style="font-size: xx-small"> uživatele {{x[3]}}</span>
+        </span>
+      </div>
+
+    {% end %}
+
+    <div class="parameters" id="header">
         Přidat nový parametr:
     </div> 
 
@@ -60,7 +75,7 @@
            Add user:
       </div>
 
-    <table style="width:100%">
+    <table class="eventListTable" style="width:100%">
       <form  action="/auth/new/user" method="post" accept-charset="UTF-8">
        <tr><td> User name: </td><td>    <input type="text" name="user" required></td><td></td></tr>
   		 <tr><td> Pass: </td><td>         <input type="password" name="pass" required></td><td></td></tr>
@@ -106,6 +121,32 @@
           {% end %}
       </select></td><td></td></tr>
       <tr><td> describe: </td><td><input type="text" name="describe"></td><td></td></tr>
+      <tr><td> </td><td> <input type="submit"></td><td></td></tr>
+      </form>
+    </table>
+
+    <div class="event_group">
+        Add map location:
+    </div>
+    <table class="eventListTable" style="width:100%">
+      <form  action="/auth/new/server" method="post" accept-charset="UTF-8">
+      <tr><td> name: </td><td><input type="text" name="name"> (svakov, ZVPP, OBSUPICE)</td><td></td></tr>
+      <tr><td> observatory: </td><td><select name="id_owner">
+          <option value="-1">-1</option>
+          {% for x in _sql("SELECT id, name FROM observatory;")%}
+            <option value="{{x[0]}}">{{str(x[1])}}</option>
+          {% end %}
+      </select></td><td></td></tr>
+      <tr><td> type: </td><td><select name="type">
+          <option value="1">Server</option>
+          <option value="-1">VOR</option>
+          <option value="-2">GRAVES</option>
+      </select></td><td></td></tr>
+      <tr><td> Lat: </td><td><input type="text" name="lat"></td><td>(deg)</td></tr>
+      <tr><td> Lon: </td><td><input type="text" name="lon"></td><td>(deg)</td></tr>
+      <tr><td> Alt: </td><td><input type="text" name="alt"></td><td>(m)</td></tr>
+      <tr><td> describe: </td><td><input type="text" name="describe"></td><td></td></tr>
+      <tr><td> Astrozor id: </td><td>  <input type="number" name="id_astrozor" value="-1"  min="-1" step="1"></td><td></td></tr>
       <tr><td> </td><td> <input type="submit"></td><td></td></tr>
       </form>
     </table>

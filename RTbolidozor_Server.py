@@ -141,7 +141,7 @@ class Browser(web.RequestHandler):
 
             if d_month == "last" or d_month == "LAST":
                 today = datetime.datetime.now()
-                now = time.time() + (86400-(int(time.time()) - calendar.timegm((today.replace(hour=0, minute=0, second=0, microsecond=0)).timetuple()) ))
+                now = time.time() + (86400-(int(time.time()) - calendar.timegm((today.replace(hour=0, minute=0, second=0, microsecond=0)).timetuple()) )) + 86400
                 # time.mktime(datetime.datetime.strptime(s, "%d/%m/%Y").timetuple())
                 #tomidnight = (86400000-(now - today.replace(hour=0, minute=0, second=0, microsecond=0).time().microsecond)/1000)
                 d_month = now-3600*24*(int((int(width)//int(int(height)/24)))-3)
@@ -173,7 +173,9 @@ class Browser(web.RequestHandler):
             pixH = float(height)/24.0
             #pixW = float(width)/31.0
             pixW = pixH
-            maxday = (int(counts[0][0])//3600)//24
+            #maxday = (int(counts[0][0])//3600)//24
+            maxday = ((int(time.time())//3600)//24)+1
+            print maxday
             svg.add(svg.rect(insert=( 50, 50), size=(50, 50), stroke = "#303030", fill = "#303030" ))
             
             for hour in counts:
@@ -251,7 +253,7 @@ class AuthLogoutHandler(web.RequestHandler):
         self.redirect(self.get_argument("next", "/"))
 
 class AuthNewHandler(web.RequestHandler):
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
     def post(self, type):
         print "new type data,", type
         if type == "user":
@@ -264,6 +266,11 @@ class AuthNewHandler(web.RequestHandler):
 
         elif type == "station":
             print "ADD DATA:",  _sql("INSERT INTO station (name, id_observatory, map) VALUES ('%s', '%i', '%s')" %(self.get_argument('name', ''), int(self.get_argument('observatory', '')), self.get_argument('describe', '')))
+            return self.write("done")
+        #self.dbc.execute('CREATE TABLE server (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30) UNIQUE KEY, lat FLOAT, lon FLOAT, alt FLOAT, type INT(3), text VARCHAR(255), id_owner INT, id_station INT, id_astrozor INT);')
+
+        elif type == "server":
+            print "ADD DATA:",  _sql("INSERT INTO server (name, lat, lon, alt, type, text, id_owner, id_astrozor) VALUES ('%s', '%f', '%f', '%f', '%i', '%s', '%i', '%i')" %(self.get_argument('name', ''), float(self.get_argument('lat', 0)), float(self.get_argument('lon', 0)), float(self.get_argument('alt', -1)),  int(self.get_argument('type', 0)), self.get_argument('describe', ''), int(self.get_argument('id_owner', -1)), int(self.get_argument('id_astrozor', -1)) ))
             return self.write("done")
 
         else:

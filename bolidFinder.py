@@ -192,7 +192,7 @@ def main():
                 meteors.setPath("bolidozor/%s/%s/data" %(station[0], station[1]), stationID = station[2])
                 now = time.time()
                 start = int(now - DelayDownload)
-                stop = int(now)
+                stop = int(now)+86400
                 for genTime in xrange(start, stop, 86400):
                     try:
                         meteors.set(year = datetime.datetime.fromtimestamp(int(genTime)).year, month = datetime.datetime.fromtimestamp(int(genTime)).month, day = datetime.datetime.fromtimestamp(int(genTime)).day)
