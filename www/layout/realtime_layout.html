@@ -100,29 +100,51 @@
           iconUrl: '/ic_gps_fixed_black_24dp_1x.png',
           iconSize: [24, 24],
           iconAnchor: [12, 12],
-          popupAnchor: [-3, -76],
+          popupAnchor: [0, -20],
       });
 
       var IconEvent = L.icon({
           iconUrl: '/ic_flare_black_36dp_1x.png',
           iconSize: [36, 36],
           iconAnchor: [18, 18],
-          popupAnchor: [-3, -76],
-      });
-
-      var IconGraves = L.icon({
-          iconUrl: '/ic_filter_tilt_shift_black_48dp_1x.png',
-          iconSize: [40, 40],
-          iconAnchor: [20, 20],
-          popupAnchor: [-3, -76],
+          popupAnchor: [0, -20],
       });
 
       var IconStationInactive = L.icon({
           iconUrl: '/ic_gps_not_fixed_black_24dp_1x.png',
           iconSize: [24, 24],
           iconAnchor: [12, 12],
-          popupAnchor: [-3, -76],
+          popupAnchor: [0, -20],
       });
+
+      var IconGraves = L.icon({
+          iconUrl: '/ic_filter_tilt_shift_black_48dp_1x.png',
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+          popupAnchor: [0, -20],
+      });
+
+      var IconVor = L.icon({
+          iconUrl: '/ic_filter_tilt_shift_black_48dp_1x.png',
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+          popupAnchor: [0, -20],
+      });
+
+      var IconType0 = L.icon({
+          iconUrl: '/ic_dns_black_18dp_1x.png',
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+          popupAnchor: [0, -20],
+      });
+
+      var IconType1 = L.icon({
+          iconUrl: '/ic_dns_black_18dp_1x.png',
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+          popupAnchor: [0, -20],
+      });
+
 
 
       var map = L.map('map').setView([50, 14], 8);
@@ -139,6 +161,18 @@
         var {{ CleanName(event_group[1])}} = L.marker([{{event_group[2]}},{{event_group[3]}}]).addTo(map)
         {{ CleanName(event_group[1])}}.setIcon(IconStationInactive)
         {{ CleanName(event_group[1])}}.bindPopup("station <b>{{event_group[1]}}</b><br>reciver<br> last message: ____;");
+      {% end %}
+
+      {% for server in _sql("SELECT server.id, server.name, server.lat, server.lon, server.type, server.text FROM server;") %}
+        var server{{server[0]}} = L.marker([{{server[2]}},{{server[3]}}]).addTo(map)
+        {% if server[4] == -2%}
+          server{{server[0]}}.setIcon(IconGraves)
+        {% elif server[4] == -1%}
+          server{{server[0]}}.setIcon(IconVor)
+        {% elif server[4] > 0%}
+          server{{server[0]}}.setIcon(IconType{{server[4]}})
+        {% end %}
+         server{{server[0]}}.bindPopup(" <b>{{server[1]}}</b><br>{{server[5]}}");
       {% end %}
 
 

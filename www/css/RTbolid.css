@@ -213,3 +213,24 @@ input[type="month"]{
     border-right-color: gray;
 
 }
+
+
+
+
+#ConfigWindow{
+	position: fixed;
+	vertical-align: auto;
+	top: 150px;
+	left: 200px;
+	min-width: 100px;
+	min-height: 100px;
+	padding: 10px;
+	background-color: #D0D0D0;
+	border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: gray;
+	border-right-width: 1px;
+    border-right-style: solid;
+    border-right-color: gray;
+    display: none;
+}

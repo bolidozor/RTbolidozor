@@ -191,10 +191,6 @@ class Browser(web.RequestHandler):
 
 
 
-
-
-
-
 class AstroTools(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
@@ -281,6 +277,59 @@ class AuthSettingHandler(web.RequestHandler):
     def get(self):
         self.render("www/layout/admin.html", title="Administration page", s_cookie=self.get_secure_cookie, _sql = _sql)
 
+class AuthUpdateHandler(web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self, type):
+        path = type.split('/')
+        print path
+        self.render("www/layout/adminUpdate.html", title="update page", s_cookie=self.get_secure_cookie, _sql = _sql, path=path)
+
+    #@tornado.web.asynchronous
+    def post(self, type):
+        print "GET", type
+        type = type.split('/')
+        print "new type data,", type
+        if type[0] == "update":
+            if type[1] == "observatory":
+                print ("UPDATE observatory SET name = '%s', lat = %f, lon = %f, alt = %f, text = '%s', id_owner = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), float(self.get_argument('alt', '-1')), self.get_argument('text', ''), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))   ))
+                print "ADD DATA:",  _sql("UPDATE observatory SET name = '%s', lat = %f, lon = %f, alt = %f, text = '%s', id_owner = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), float(self.get_argument('alt', '-1')), self.get_argument('text', ''), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))   ))
+                return self.write("done")
+
+            elif type[1] == "station":
+                print "ADD DATA:",  _sql("UPDATE station SET name = '%s', map = %i WHERE id = %i;" %( self.get_argument('name', ''), int(self.get_argument('map', '')), int(self.get_argument('id','')) ))
+                return self.write("done")
+
+            elif type[1] == "server":
+                print "ADD DATA:",  _sql("UPDATE server SET name = '%s', lat = %f, lon = %f, id_owner = %i, id_observatory = %i, id_astrozor = %i; WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_observatory', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))  ))
+                return self.write("done")
+            
+            elif type[1] == "user":
+                print "ADD DATA:", _sql("UPDATE user SET name = '%s', r_name = '%s', permission = %i, email = '%s', text = '%s', id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), self.get_argument('r_name', ''), int(self.get_argument('permission', '')), self.get_argument('email', ''), self.get_argument('text', ''), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id','')) ))
+                return self.write("done")
+
+            else:
+                return self.write("err")
+        if type[0] == "new":
+            if type[1] == "user":
+                print "ADD DATA:", _sql("INSERT INTO user (name, pass, r_name, email, text) VALUES ('%s', '%s', '%s', '%s', '%s')" %(self.get_argument('user', ''), self.get_argument('name', ''), self.get_argument('r_name', ''), self.get_argument('email', ''), self.get_argument('describe', '')))
+                return self.write("done")
+
+            elif type[1] == "observatory":
+                print "ADD DATA:",  _sql("INSERT INTO observatory (name, lat, lon, alt, id_owner, text, id_astrozor) VALUES ('%s', '%f', '%f', '%i', '%i', '%s', '%s')" %(self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('alt', '')), int(self.get_argument('owner', '')), self.get_argument('describe', ''), self.get_argument('link', '')))
+                return self.write("done")
+
+            elif type[1] == "station":
+                print "ADD DATA:",  _sql("INSERT INTO station (name, id_observatory, map) VALUES ('%s', '%i', '%s')" %(self.get_argument('name', ''), int(self.get_argument('observatory', '')), self.get_argument('describe', '')))
+                return self.write("done")
+            #self.dbc.execute('CREATE TABLE server (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30) UNIQUE KEY, lat FLOAT, lon FLOAT, alt FLOAT, type INT(3), text VARCHAR(255), id_owner INT, id_station INT, id_astrozor INT);')
+
+            elif type[1] == "server":
+                print "ADD DATA:",  _sql("INSERT INTO server (name, lat, lon, alt, type, text, id_owner, id_astrozor) VALUES ('%s', '%f', '%f', '%f', '%i', '%s', '%i', '%i')" %(self.get_argument('name', ''), float(self.get_argument('lat', 0)), float(self.get_argument('lon', 0)), float(self.get_argument('alt', -1)),  int(self.get_argument('type', 0)), self.get_argument('describe', ''), int(self.get_argument('id_owner', -1)), int(self.get_argument('id_astrozor', -1)) ))
+                return self.write("done")
+
+            else:
+                return self.write("err")
+
 class SocketHandler(websocket.WebSocketHandler): 
     def initialize(self):
         self.StationList = []
@@ -341,6 +390,7 @@ app = web.Application([
         (r"/auth/logout/", AuthLogoutHandler),
         (r"/auth/setting/", AuthSettingHandler),
         (r"/auth/new/(.*)", AuthNewHandler),
+        (r"/auth/update/(.*)", AuthUpdateHandler),
         (r'/js(.*)', JSweb),
         (r'/js', JSweb),
         
