@@ -1,11 +1,13 @@
 body {
-	min-width: 900px;
+	min-width: 100%;
+	min-height: 100%;
 	margin: 0px;
-	background-color: #eaedf1;
-	color: #383641;
+	padding: 0px;
 	font-family: Helvetica, Arial, sans-serif;
     background: url(/rmds02d_transparent.png) bottom right no-repeat fixed;
     background-size: 50% auto;
+	background-color: #eaedf1;
+	color: #383641;
 }
 
 #ahoj {

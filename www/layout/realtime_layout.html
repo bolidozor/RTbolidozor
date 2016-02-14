@@ -5,19 +5,22 @@
     <style type="text/css">
     #map{
       width: 100%;
-      min-height: 500px;
+      min-height: 600px;
       height: 100%;
     }
-    body{
-      padding: 0px;
-      margin: 0px;
-      height: 100%;
+    #mapbox{
+      top: -5px;
+      position:relative;
       width: 100%;
+      min-height: 600px;
+      height: 100%;
     }
     </style>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
     <script src="http://code.jquery.com/jquery.min.js"></script>
     <script>
+
+      
 
       function log (msg) {
         console.log(msg)
@@ -35,7 +38,7 @@
       }
 
       function hidemeteor(marker, duration){
-        setTimeout(function() {marker.setIcon(IconStation); },1000);
+        setTimeout(function() {marker.setIcon(IconStation); },2500);
       }
 
       function meteor(station, amplitude, duration, marker){
@@ -84,45 +87,63 @@
         </script>
 {% end %}
 {% block clear %}
-    
-    <div id="map">  </div>
+    <span id = "mapbox">
+      <div id="map"> </div>
+    </span>
        <script type="text/javascript">
 
+
       var IconStation = L.icon({
-          iconUrl: 'http://www.astrozor.cz/graphics/markers/_observatory-clouds_new.png',
-          iconSize: [40, 40],
-          iconAnchor: [20, 20],
+          iconUrl: '/ic_gps_fixed_black_24dp_1x.png',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
           popupAnchor: [-3, -76],
       });
-      
+
       var IconEvent = L.icon({
-          iconUrl: 'http://www.astrozor.cz/graphics/markers/observatory_new.png',
+          iconUrl: '/ic_flare_black_36dp_1x.png',
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+          popupAnchor: [-3, -76],
+      });
+
+      var IconGraves = L.icon({
+          iconUrl: '/ic_filter_tilt_shift_black_48dp_1x.png',
           iconSize: [40, 40],
           iconAnchor: [20, 20],
           popupAnchor: [-3, -76],
       });
+
+      var IconStationInactive = L.icon({
+          iconUrl: '/ic_gps_not_fixed_black_24dp_1x.png',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+          popupAnchor: [-3, -76],
+      });
+
 
       var map = L.map('map').setView([50, 14], 8);
 
-      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', { attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', { attribution: '&copy <b> <a href="">BOLIDOZOR</a></b> network, &copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);
 
 
-      var obsUpice = L.marker([51.5, -0.09]).addTo(map)
-          {% for event_group in _sql("SELECT station.id, station.name, observatory.lat, observatory.lon FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id") %}
-          var {{ CleanName(event_group[1])}} = L.marker([{{event_group[2]}},{{event_group[3]}}]).addTo(map)
-          {% end %}
+      var graves = L.marker([47.3480, 5.5151]).addTo(map)
+      graves.setIcon(IconGraves)
+      graves.bindPopup("<b>GRAVES RADAR</b><br>transmitter of radio signal");
+
+      {% for event_group in _sql("SELECT station.id, station.name, observatory.lat, observatory.lon FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id") %}
+        var {{ CleanName(event_group[1])}} = L.marker([{{event_group[2]}},{{event_group[3]}}]).addTo(map)
+        {{ CleanName(event_group[1])}}.setIcon(IconStationInactive)
+        {{ CleanName(event_group[1])}}.bindPopup("station <b>{{event_group[1]}}</b><br>reciver<br> last message: ____;");
+      {% end %}
 
 
       var greenIcon = L.icon({
           iconUrl: 'station.png',
-          //shadowUrl: 'leaf-shadow.png',
-
-          iconSize:     [38, 95], // size of the icon
-          //shadowSize:   [50, 64], // size of the shadow
-          iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
-          //shadowAnchor: [4, 62],  // the same for the shadow
-          popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+          iconSize:     [38, 95],
+          iconAnchor:   [22, 94],
+          popupAnchor:  [-3, -76]
       });
 
       function onMapClick(e) {popup
@@ -168,7 +189,10 @@
      
      
           });
+  $(window).on("resize", function() {
+    $("#map").height($(window).height()-$("#header").height()-5).width($(window).width());
+  map.invalidateSize();}).trigger("resize");
+  $("#map").height($(window).height()-$("#header").height()-5).width($(window).width());
   connect();
   </script>
-
 {% end %}

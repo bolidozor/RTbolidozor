@@ -1,11 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import sys
 import paramiko
 import MySQLdb as mdb
 import time
-import calendar
 import datetime
+import calendar
 
 class GetMeteors():
     def __init__(self, path=None, year=0, month=0, day=0, minDBDuration = 0.1, minDuration=1, minDurationBolid=20, use_unicode=True, charset="utf8"):
@@ -52,12 +53,25 @@ class GetMeteors():
         if year:
             self.year = year
 
+    def getYear(self):
+            return self.year
+
+    def set(self, year = None, month = None, day = None):
+        if year:
+            self.year = year
+        if month:
+            self.month = month
+        if day:
+            self.day = day
+
     def createDb(self):
         self.dbc.execute('SET CHARACTER SET utf8;')
         
         try:
             #self.dbc.execute('DROP TABLE IF EXISTS observatory;')
+            #self.dbc.execute('DROP TABLE IF EXISTS server;')
             #self.dbc.execute('DROP TABLE IF EXISTS station;')
+            self.dbc.execute('DROP TABLE IF EXISTS stationstatus;')
             self.dbc.execute('DROP TABLE IF EXISTS meta;')
             self.dbc.execute('DROP TABLE IF EXISTS metalink;')
             self.dbc.execute('DROP TABLE IF EXISTS snap;')
@@ -66,10 +80,12 @@ class GetMeteors():
             print e
         
         #self.dbc.execute('CREATE TABLE observatory (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30) UNIQUE KEY, lat FLOAT, lon FLOAT, alt FLOAT, text VARCHAR(255), id_owner INT, id_astrozor INT);')
+        #self.dbc.execute('CREATE TABLE server (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30) UNIQUE KEY, lat FLOAT, lon FLOAT, alt FLOAT, type INT(3), text VARCHAR(255), id_owner INT, id_station INT, id_astrozor INT);')
         #self.dbc.execute('CREATE TABLE station (id INT(6) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30), id_observatory INT(6), map BOOLEAN DEFAULT 0, handler VARCHAR(60));')
-        self.dbc.execute('CREATE TABLE meta (id INT(6) AUTO_INCREMENT PRIMARY KEY, time FLOAT(13,3), id_station INT(6), noise FLOAT, freq FLOAT, mag FLOAT, duration FLOAT, file VARCHAR(40) UNIQUE KEY, link INT DEFAULT 0, met_true INT DEFAULT 0, met_false INT DEFAULT 0, met_head INT DEFAULT 0);')
+        #self.dbc.execute('CREATE TABLE stationstatus (id_station INT(6) PRIMARY KEY, time INT(14), data VARCHAR(255));')
+        self.dbc.execute('CREATE TABLE meta (id INT(6) AUTO_INCREMENT PRIMARY KEY, time FLOAT(13,3), id_station INT(6), noise FLOAT, freq FLOAT, mag FLOAT, duration FLOAT, file VARCHAR(80) UNIQUE KEY, link INT DEFAULT 0, met_true INT DEFAULT 0, met_false INT DEFAULT 0, met_head INT DEFAULT 0);')
         self.dbc.execute('CREATE TABLE metalink (id INT(6) AUTO_INCREMENT PRIMARY KEY, master INT, link INT);')
-        self.dbc.execute('CREATE TABLE snap (id INT(6) AUTO_INCREMENT PRIMARY KEY, time FLOAT(13,3), id_station INT(6), file VARCHAR(40) UNIQUE KEY);')
+        self.dbc.execute('CREATE TABLE snap (id INT(6) AUTO_INCREMENT PRIMARY KEY, time FLOAT(13,3), id_station INT(6), file VARCHAR(80) UNIQUE KEY);')
         #self.dbc.execute('CREATE TABLE user (id INT(6) AUTO_INCREMENT PRIMARY KEY, permission TINYINT UNSIGNED DEFAULT 0, name VARCHAR(30) UNIQUE KEY, pass VARCHAR(30), r_name VARCHAR(30), email VARCHAR(30) UNIQUE KEY, text VARCHAR(30), id_astrozor INT);')
 
         
@@ -89,34 +105,35 @@ class GetMeteors():
                     for line in data:
                         d = line.split(';')
                         if "met" in line:
-                            if float(d[4]) > 0:
-                                try:
-                                    timestap =  str(calendar.timegm(time.strptime(d[0].split("_")[0][:15], "%Y%m%d%H%M%S%f"))+float(d[0].split("_")[0][14:])/1000)
-                                    self.dbc.execute("INSERT INTO meta (time, id_station, noise, freq, mag, duration, file) VALUES (%f, %i, %f, %f, %f, %f, '%s')"%(float(timestap), int(self.stationID), float(d[1]), float(d[2]), float(d[3]), float(d[4]), str(d[0])))
-                                except Exception, e:
-                                    #print e, "value probably exist"
-                                    pass
+                            #if float(d[4]) > 0:
+                            try:
+                                timestap =  str(calendar.timegm(time.strptime(d[0].split("_")[0][:15], "%Y%m%d%H%M%S%f"))+float(d[0].split("_")[0][14:])/1000)
+                                self.dbc.execute("INSERT INTO meta (time, id_station, noise, freq, mag, duration, file) VALUES (%f, %i, %f, %f, %f, %f, '%s')"%(float(timestap), int(self.stationID), float(d[1]), float(d[2]), float(d[3]), float(d[4]), str(d[0])))
+                            except Exception, e:
+                                #print e, "value probably exist"
+                                pass
                             #else:
                                #print "kratky"
                                #pass
                         elif "snap" in line:
-                                try:
-                                    timestap =  str(calendar.timegm(time.strptime(d[0].split("_")[0][:15], "%Y%m%d%H%M%S%f"))+float(d[0].split("_")[0][14:])/1000)
-                                    self.dbc.execute("INSERT INTO snap (time, id_station, file) VALUES (FROM_UNIXTIME(%f), %i, '%s');"%(float(timestap), int(self.stationID), str(d[0])))
-                                except Exception, e:
-                                    print e, "value probably exist"
-                                    pass
+                            try:
+                                timestap =  str(calendar.timegm(time.strptime(d[0].split("_")[0][:15], "%Y%m%d%H%M%S%f"))+float(d[0].split("_")[0][14:])/1000)
+                                self.dbc.execute("INSERT INTO snap (time, id_station, file) VALUES (%f, %i, '%s');"%(float(timestap), int(self.stationID), str(d[0])))
+                            except Exception, e:
+                                #print e, "value probably exist"
+                                pass
                 finally:
                     self.db.commit()
                     data.close()
 
-    def shoda(self):
-        print self.minDurationBolid
-        self.dbc.execute("SELECT time, duration FROM meta WHERE duration > "+str(self.minDurationBolid*1.0)+" ORDER BY meta.time;")  
+    def shoda(self, start = time.time()-86400*5.0, stop=time.time()):
+        print "Minimalni delka bolidu je stanovana na ", self.minDurationBolid, "s. Minimalni delka derivatu je", self.minDuration, "s"
+        sys.stdout.write("SELECT time, duration FROM meta WHERE duration > %i AND time > %i AND time < %i ORDER BY meta.time;" %(int(self.minDurationBolid*1.0), int(start), int(stop) ))  
+        self.dbc.execute("SELECT time, duration FROM meta WHERE duration > %i AND time > %i AND time < %i ORDER BY meta.time;" %(int(self.minDurationBolid*1.0), int(start), int(stop) ))  
         row = self.dbc.fetchall()
         print row
         for meteor in row:
-            err = 300.0 # casova  odchylka
+            err = 60.0 # casova  odchylka
             self.dbc.execute("SELECT * FROM meta WHERE time > "+str(meteor[0]-err)+" AND time <"+str(meteor[0]+err)+ " AND duration > "+ str(self.minDuration) +" GROUP BY id_station ORDER BY mag DESC;")
             n = self.dbc.fetchall()
             if len(n) >> 2:
@@ -126,9 +143,10 @@ class GetMeteors():
                     #self.dbc.execute("UPDATE meta SET link ="+str(refid)+" WHERE id ="+str(near[0])+";")
                     self.dbc.execute("INSERT INTO metalink (master, link) VALUES (%i, %i);"%(refid, near[0]))
                     print near
+                    self.db.commit()
+
             else:
-                print "pass"
-            self.db.commit()
+                sys.stdout.write("pass")
         self.db.commit()
 
     def cleanshoda(self):
@@ -148,7 +166,7 @@ class GetMeteors():
 
 
 def main():  
-    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", year=2015, month=12, day=1, minDBDuration = 0.1, minDuration=5, minDurationBolid=15)
+    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", year=0, month=0, day=0, minDBDuration = 0.1, minDuration=5, minDurationBolid=15)
     
     try:
         #meteors.createDb()
@@ -160,14 +178,43 @@ def main():
     #B=["bolidozor/ZVPP/ZVPP-R4/data", "bolidozor/OBSUPICE/OBSUPICE-R4/data", "bolidozor/svakov/SVAKOV-R7/data"]
     #C=["bolidozor/ZVPP/ZVPP-R4/data", "bolidozor/OBSUPICE/OBSUPICE-R4/data", "bolidozor/svakov/SVAKOV-R7/data", "bolidozor/svakov/TEST-R3/data", "bolidozor/ZEBRAK/ZEBRAK-R3/data", "bolidozor/nachodsko/NACHODSKO-R3/data", "bolidozor/ZVOLENEVES/ZVOLENEVES-R1/data"]
     
-    if 1:
-        for stat in meteors.stations():
-            path = "bolidozor/%s/%s/data" %(stat[0], stat[1])
-            stationID =  stat[2]
-            meteors.setPath("bolidozor/%s/%s/data" %(stat[0], stat[1]), stationID = stat[2])
+    BolidTimeErr = 60      #ZATIM NEFUNGUJE                 # maximalni cas mezi jednou udalosti na vice stanicich
+    MasterBolidLenght = 15                  # minimalni delka alespon jednoho bodidu ze skupiny
+    SlaveBolidLenght = 10                   # minimalni delka ostatnich bolidu
+    DelayDownload = 86400*5                 # pokud je automaticky vyber generovani databaze, jak dlouho zpet se obnovuje DB?
+    DelayMulti = 86400*5 + BolidTimeErr      # pokud je automaticky vyber generovani databaze, jak dlouho zpet se hleda multibolid?
+
+
+    if meteors.getYear() == 0:
+        for station in meteors.stations():
+        #for station in []:
+            try:
+                meteors.setPath("bolidozor/%s/%s/data" %(station[0], station[1]), stationID = station[2])
+                now = time.time()
+                start = int(now - DelayDownload)
+                stop = int(now)
+                for genTime in xrange(start, stop, 86400):
+                    try:
+                        meteors.set(year = datetime.datetime.fromtimestamp(int(genTime)).year, month = datetime.datetime.fromtimestamp(int(genTime)).month, day = datetime.datetime.fromtimestamp(int(genTime)).day)
+                        meteors.run()
+                    except Exception, e:
+                        print e
+
+            except Exception, e:
+                print "ERROR:", e
+        try:  
+            meteors.shoda()
+        except Exception, e:
+            print "SHODA", e
+    elif 1:
+        for station in [('ddmtrebic','DDMTREBIC-TEST-R1')]:
+            path = "bolidozor/%s/%s/data" %(station[0], station[1])
+            stationID =  station[2]
+            meteors.setPath("bolidozor/%s/%s/data" %(station[0], station[1]), stationID = station[2])
             #for month in xrange(1,1):
-            #meteors.setMonth(month)
-            for day in xrange(1,31):
+            meteors.setMonth(2)
+            meteors.setYear(2016)
+            for day in xrange(1,15):
                 try:
                     meteors.setDay(day)  
                     meteors.run()
@@ -177,10 +224,8 @@ def main():
             #meteors.cleanshoda()
             #meteors.shoda()
         #meteors.cleanDB
-    
-    
-    meteors.cleanshoda()
-    meteors.shoda()
+        meteors.cleanshoda()
+        meteors.shoda()
 if __name__ == '__main__':
     main()
 

@@ -1,17 +1,7 @@
-<!DOCTYPE html>
-<html>
 
-<head>
-  <meta charset='utf-8'>
-	<title>{{title}}</title>
-    <link rel="stylesheet" type="text/css" href="/style.css">
-    <link rel="stylesheet" type="text/css" href="/MB.css">
+{% extends "base.html" %}
+{% block container %}
 
-</head>
-<body>
-
-<div id="header"><img src="http://space.astro.cz/bolidozor/support/js9browser/header_logo.png"></img></div>
-<div class="container">
     <div class="parameters">
         aaa
     </div>
@@ -20,15 +10,15 @@
     <div class="parameters" id="header">
         Stanice:
     </div> 
-	{% set y = _sql("SELECT observatory.id, observatory.name, observatory.id_owner, user.r_name FROM observatory LEFT JOIN user ON user.id = observatory.id_owner;") %}
+	{% set y = _sql("SELECT observatory.id, observatory.name, observatory.id_owner, user.r_name, observatory.lat, observatory.lon FROM observatory LEFT JOIN user ON user.id = observatory.id_owner;") %}
   {% if y%}
 	{% for x in y%}
       <div class="event_group" id="observtory">
           <span class="eventGroupCell"> 
        		
-						#{{x[0]}}  stanica {{x[1]}}
+						#{{x[0]}}  stanica <b>{{x[1]}}</b> uživatele <b>{{x[3]}}</b>
 					
-          <span style="font-size: xx-small"> uživatele {{x[3]}}</span>
+          <span style="font-size: xx-small"> uživatele <b>{{x[3]}}</b>, Lat: <b>{{x[4]}}</b>, Lon: <b>{{x[5]}}</b></span>
         </span>
       </div>
       <table class="eventListTable" id="{{'aaa'}}" style="width:100%">
@@ -36,7 +26,7 @@
           {% for x2 in _sql("SELECT * FROM station WHERE id_observatory = "+str(x[0])+";")%}
           <tr> 
               <div class="event_list">
-                <td><span class="eventCell"> {{ x2 }} &#916 {{"round(event[0]-0)"}}s</span></td>
+                <td><span class="eventCell"> {{ x2 }} </span></td>
                 <td><span class="eventCell"> {{ "a"}}</span></td>
               </div>
           </tr>
@@ -120,10 +110,4 @@
       </form>
     </table>
 </div>
-<div id="foot">
-    Foot
-
-</div>
-
-</body>
-</html>
+{% end %}

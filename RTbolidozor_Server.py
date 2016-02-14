@@ -16,6 +16,7 @@ import json
 import MySQLdb as mdb
 import time
 import datetime
+import calendar
 import svgwrite
 
 
@@ -58,21 +59,28 @@ class ClientsHandler(web.RequestHandler):
 class MultiBolid(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
-        month = self.get_argument('month', None)
-        if not month:
-            month = datetime.datetime.utcnow().strftime('%Y-%m')
-            date_from = time.mktime(time.strptime(month, "%Y-%m"))
-            date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
-        elif month == "all":
-            date_from = 0
-            date_to = time.time()
-        else:
-            date_from = time.mktime(time.strptime(month, "%Y-%m"))
-            date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
+        MBtype = params.split('/')
+        if len(MBtype) <= 1:
+            month = self.get_argument('month', None)
+            if not month:
+                month = datetime.datetime.utcnow().strftime('%Y-%m')
+                date_from = time.mktime(time.strptime(month, "%Y-%m"))
+                date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
+            elif month == "all":
+                date_from = 0
+                date_to = time.time()
+            else:
+                date_from = time.mktime(time.strptime(month, "%Y-%m"))
+                date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
 
-        event = _sql("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s GROUP BY link ORDER BY time DESC;" %(str(date_from), str(date_to)))     # seznam jedtotlivých událostí
-        query = _sql("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s ORDER BY time DESC;" %(str(date_from), str(date_to)))    # seznam vsech udalosti
-        self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, parent=self)
+            event = _sql("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s GROUP BY link ORDER BY time DESC;" %(str(date_from), str(date_to)))     # seznam jedtotlivých událostí
+            query = _sql("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s ORDER BY time DESC;" %(str(date_from), str(date_to)))    # seznam vsech udalosti
+            self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, parent=self)
+        else:
+            if MBtype[1]=="event":
+                print "EVENT FOR "
+                id_event = int(MBtype[2])
+                self.render("www/layout/MultiBolid_one_event.html", title="Bloidozor multi-bolid database | EVENT", data=[id_event], _sql = _sql, parent=self)
 
 class ZooBolid(web.RequestHandler):
     @tornado.web.asynchronous
@@ -114,11 +122,11 @@ class Browser(web.RequestHandler):
     def get(self, params=None):
         d_month = self.get_argument('month', None)
 
-        self.maxVal = self.get_argument('max', 100)
-        self.color = self.get_argument('color', 1)
-        height = self.get_argument('height', 250)
-        width = self.get_argument('width', 700)
-        step = self.get_argument('step', 0)
+        self.maxVal = int(self.get_argument('max', 100))
+        self.color = int(self.get_argument('color', 1))
+        height = int(self.get_argument('height', 250))-20
+        width = int(self.get_argument('width', 700))
+        step = int(self.get_argument('step', 0))
 
         if 'plotJS' in params:
 
@@ -133,12 +141,12 @@ class Browser(web.RequestHandler):
 
             if d_month == "last" or d_month == "LAST":
                 today = datetime.datetime.now()
-                now = time.time()
+                now = time.time() + (86400-(int(time.time()) - calendar.timegm((today.replace(hour=0, minute=0, second=0, microsecond=0)).timetuple()) ))
                 # time.mktime(datetime.datetime.strptime(s, "%d/%m/%Y").timetuple())
                 #tomidnight = (86400000-(now - today.replace(hour=0, minute=0, second=0, microsecond=0).time().microsecond)/1000)
                 d_month = now-3600*24*(int((int(width)//int(int(height)/24)))-3)
                 date_from = d_month
-                date_to   = time.time()
+                date_to   = now
             elif not d_month and not d_from and not d_to:
                 d_month = time.time()
                 date_from = d_month
@@ -158,16 +166,19 @@ class Browser(web.RequestHandler):
             d = params.split('/')
             #print params, d
             
-            counts = _sql("select 3600*(meta.time div 3600), count(*) from meta LEFT JOIN station ON station.id = meta.id_station WHERE station.name = '%s' AND time > '%s' AND time < '%s' GROUP BY meta.time div 3600;" %(d[2], str(date_from), str(date_to)))
+            counts = _sql("select 3600*(meta.time div 3600), count(*) from meta LEFT JOIN station ON station.id = meta.id_station WHERE station.name = '%s' AND time > '%s' AND time < '%s' GROUP BY meta.time div 3600 ORDER BY time DESC;" %(d[2], str(date_from), str(date_to)))
             if counts:
                 self.maxVal = max(item[1] for item in counts)
-            svg = svgwrite.Drawing(size=(width,height))
+            svg = svgwrite.Drawing(size=(width,height+20))
             pixH = float(height)/24.0
-            pixW = float(width)/31.0
+            #pixW = float(width)/31.0
             pixW = pixH
+            maxday = (int(counts[0][0])//3600)//24
+            svg.add(svg.rect(insert=( 50, 50), size=(50, 50), stroke = "#303030", fill = "#303030" ))
+            
             for hour in counts:
                 dataTime = datetime.datetime.fromtimestamp(hour[0])
-                svg.add(svg.rect( insert=(pixW*((hour[0]-date_from)//86400), pixH*dataTime.hour-1), size=(pixW, pixH), stroke = self.calc_colour(hour[1]), fill = self.calc_colour(hour[1])) )
+                svg.add(svg.rect(insert=( int(width) - int(pixW) - int(pixW)*int((maxday-hour[0]//3600//24)), pixH*int(dataTime.hour)), size=(pixW, pixH), stroke = self.calc_colour(hour[1]), fill = self.calc_colour(hour[1])) )
             Ssvg = svg.tostring()
             #print Ssvg
 
@@ -262,7 +273,6 @@ class AuthSettingHandler(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
         self.render("www/layout/admin.html", title="Administration page", s_cookie=self.get_secure_cookie, _sql = _sql)
-        
 
 class SocketHandler(websocket.WebSocketHandler): 
     def initialize(self):
@@ -297,7 +307,7 @@ class SocketHandler(websocket.WebSocketHandler):
                 query = _sql("SELECT name FROM station WHERE handler = '"+str(self)+"';")[0]
                 print "EVENT", query[0]
                 for client in cl:
-                    client.write_message(u"$meta;" + str(query[0])+ ";" +"{aa}")
+                    client.write_message(u"$meta;" + str(query[0])+ ";" +"{message}")
         elif message[0] == '#':
             print "multicast"
             for client in cl:
