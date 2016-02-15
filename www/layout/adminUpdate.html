@@ -41,16 +41,10 @@
 		<table>
 			<tr><td>	id:				</td><td><input type="number" name="id"   			value="{{x[0]}}"></input> 	</td></tr>
 			<tr><td>	name:			</td><td><input type="text"   name="name" 			value="{{x[1]}}"></input> 		</td></tr>
-			<tr><td>	lat:			</td><td><input type="number" name="lat"   			value="{{x[2]}}"></input> 		</td></tr>
-			<tr><td>	lon:			</td><td><input type="number" name="lon"   			value="{{x[3]}}"></input> 		</td></tr>
-			<tr><td>    id_owner:   	</td><td><select name="id_owner">
-          										{% for y in _sql("SELECT id, name, r_name FROM user ORDER BY id=%i desc;" %(x[6]))[0]%}
-            										<option value="{{y[4]}}">{{str(y[1])}}</option>
-          										{% end %}<option value="-1">-1</option>							   </select></td></tr>
-			<tr><td>    id_observatory: </td><td><select name="id_observatory">
-          										{% for y in _sql("SELECT id, name FROM observatory ORDER BY id=%i desc;" %(x[2]))[0]%}
-            										<option value="{{y[5]}}">{{str(y[1])}}</option>
-          										{% end %} <option value="-1">-1</option>						   </select></td></tr>
+			<tr><td>	lat:			</td><td><input type="text" name="lat" 			value="{{x[2]}}"></input> 		</td></tr>
+			<tr><td>	lon:			</td><td><input type="text" name="lon" 			value="{{x[3]}}"></input> 		</td></tr>
+			<tr><td>    id_owner:   	</td><td><select name="id_owner"> <option value="-1">-1</option></select></td></tr>
+			<tr><td>    id_observatory: </td><td><select name="id_observatory"> <option value="-1">-1</option></select></td></tr>
 			<tr><td>	astrozor:		</td><td><input type="number" name="id_astrozor"   	value="{{x[6]}}"></input> </td></tr>
 			<tr><td>					</td><td><input type="submit" ></input> </td></tr>
 		</table>

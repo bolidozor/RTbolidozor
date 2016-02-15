@@ -69,13 +69,13 @@
     <div class="parameters" id="header">
         <a href=""><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Servery:
     </div>   
-    {% for x in _sql("SELECT id, name, type, text, id_astrozor FROM server;")%}
+    {% for x in _sql("SELECT id, name, type, lat, lon, text, id_astrozor FROM server;")%}
       <div class="event_group" id="observtory">
           <span class="eventGroupCell"> 
           
-            <a href="javascript:setting('server', {{x[0]}}, '{{x[1]}}')"><img src="/ic_create_black_18dp_1x.png"></a>#{{x[0]}}  Server {{x[1]}} ({{x[3]}}) typ {{x[2]}} Astrozor: {{x[4]}}.
+            <a href="javascript:setting('server', {{x[0]}}, '{{x[1]}}')"><img src="/ic_create_black_18dp_1x.png"></a>#{{x[0]}}  Server <b>{{x[1]}}</b> ({{x[5]}}) typ {{x[2]}}  <span style="font-size: xx-small"> Astrozor: {{x[6]}}. {{x[3]}}, {{x[4]}}
           
-          <span style="font-size: xx-small"> uživatele {{x[3]}}</span>
+         uživatele {{x[3]}}</span>
         </span>
       </div>
 

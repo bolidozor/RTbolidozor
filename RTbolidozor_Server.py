@@ -30,6 +30,7 @@ def _sql(query):
         #dbPath = 'bolid.db'
         #connection = sqlite3.connect(dbPath)
         #cursorobj = connection.cursor()
+        print ">>", query
         connection = mdb.connect(host="localhost", user="root", passwd="root", db="bolid", use_unicode=True, charset="utf8")
         cursorobj = connection.cursor()
         result = None
@@ -300,7 +301,7 @@ class AuthUpdateHandler(web.RequestHandler):
                 return self.write("done")
 
             elif type[1] == "server":
-                print "ADD DATA:",  _sql("UPDATE server SET name = '%s', lat = %f, lon = %f, id_owner = %i, id_observatory = %i, id_astrozor = %i; WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_observatory', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))  ))
+                print "ADD DATA:",  _sql("UPDATE server SET name = '%s', lat = %f, lon = %f, id_owner = %i, id_station = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_observatory', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))  ))
                 return self.write("done")
             
             elif type[1] == "user":
