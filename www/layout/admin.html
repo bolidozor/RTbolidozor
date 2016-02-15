@@ -22,14 +22,14 @@
 
 
     <div class="parameters" id="header">
-      <a href=""><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Stanice:
+      <a href="javascript:setting('ADDobservatory')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Stanice:
     </div> 
 	{% set y = _sql("SELECT observatory.id, observatory.name, observatory.id_owner, user.r_name, observatory.lat, observatory.lon FROM observatory LEFT JOIN user ON user.id = observatory.id_owner;") %}
   {% if y%}
 	{% for x in y%}
       <div class="event_group" id="observtory">
           <span class="eventGroupCell"> 
-       		<a href="javascript:setting('observatory', {{x[0]}}, '{{x[1]}}')"><img src="/ic_create_black_18dp_1x.png"></a><a href=""><img src="/ic_add_circle_outline_black_18dp_1x.png"></a>
+       		<a href="javascript:setting('observatory', {{x[0]}}, '{{x[1]}}')"><img src="/ic_create_black_18dp_1x.png"></a><a href="javascript:setting('ADDstation', {{x[0]}}, '{{x[1]}}')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a>
 						#{{x[0]}}  stanica <b>{{x[1]}}</b> uživatele <b>{{x[3]}}</b>
 					
           <span style="font-size: xx-small"> uživatele <b>{{x[3]}}</b>, Lat: <b>{{x[4]}}</b>, Lon: <b>{{x[5]}}</b></span>
@@ -40,8 +40,8 @@
           {% for x2 in _sql("SELECT station.id, station.name FROM station WHERE id_observatory = "+str(x[0])+";")%}
           <tr> 
               <div class="event_list">
-                <td><a href="javascript:setting('station', {{x2[0]}}, '{{x2[1]}}')"><img src="/ic_create_black_18dp_1x.png" style="left: 0px;"></a> <span class="eventCell"> {{ x2 }} </span></td>
-                <td><span class="eventCell"> {{ "a"}}</span></td>
+                <td><a href="javascript:setting('station', {{x2[0]}}, '{{x2[1]}}')"><img src="/ic_create_black_18dp_1x.png" style="left: 0px;"></a> <span class="eventCell"> #{{ x2[0] }}, <b>{{ x2[1] }}</b> </span></td>
+                <td><span class="eventCell"> </span></td>
                 
               </div>
           </tr>
@@ -52,7 +52,7 @@
 		{% end %}
 
     <div class="parameters" id="header">
-        <a href=""><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Uživatelé: 
+        <a href="javascript:setting('ADDuser')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Uživatelé: 
     </div>   
     {% for x in _sql("SELECT id, name, r_name, email, text, id_astrozor FROM user;")%}
       <div class="event_group" id="observtory">
@@ -67,7 +67,7 @@
     {% end %}
 
     <div class="parameters" id="header">
-        <a href=""><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Servery:
+        <a href="javascript:setting('ADDserver')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Servery:
     </div>   
     {% for x in _sql("SELECT id, name, type, lat, lon, text, id_astrozor FROM server;")%}
       <div class="event_group" id="observtory">
@@ -81,91 +81,7 @@
 
     {% end %}
 
-    <div class="parameters" id="header">
-        Přidat nový parametr:
-    </div> 
 
-    
-      <div class="event_group" id="observtory">
-           Add user:    --- !!!! zatím nepouzivat, heslo nezabezpeceno
-      </div>
-
-    <table class="eventListTable" style="width:100%">
-      <form  action="/auth/new/user" method="post" accept-charset="UTF-8">
-       <tr><td> User name: </td><td>    <input type="text" name="user" required></td><td></td></tr>
-  		 <tr><td> Pass: </td><td>         <input type="password" name="pass" required></td><td></td></tr>
-       <tr><td> Pass: </td><td>         <input type="password" name="repass"></td><td></td></tr>
-  		 <tr><td> Real name: </td><td>    <input type="text" name="r_name" required></td><td></td></tr>
-  		 <tr><td> Email: </td><td>        <input type="email" name="email" required></td><td></td></tr>
-  		 <tr><td> Astrozor id: </td><td>  <input type="number" name="describe" value="-1"  min="-1" step="1"></td><td></td></tr>
-  		 <tr><td> </td><td>               <input type="submit"></td><td></td></tr>
-      </form>
-    </table>
-
-    <div class="event_group" id="observtory">
-           Add observatory:
-      </div>
-    <table class="eventListTable" style="width:100%">
-      <form  action="/auth/new/observatory" method="post" accept-charset="UTF-8">
-        <tr><td> name: </td><td><input type="text" name="name"></td><td>(svakov, ZVPP, OBSUPICE)</td></tr>
-        <tr><td> Lat: </td><td><input type="number" value="0" name="lat"></td><td>(deg)</td></tr>
-        <tr><td> Lon: </td><td><input type="number" value="0" name="lon"></td><td>(deg)</td></tr>
-        <tr><td> Alt: </td><td><input type="number" value="-1" name="alt"></td><td>(m)</td></tr>
-        <tr><td> Owner: </td><td><select name="owner">
-            <option value="-1">-1</option>
-            {% for x in _sql("SELECT id, name, r_name FROM user;")%}
-                <option value="{{x[0]}}">{{x[2]}} ({{x[1]}})</option>
-            {% end %}
-        </select></td><td></td></tr>
-        <tr><td> Describe: </td><td><input type="text" name="describe"></td><td></td></tr>
-      <tr><td> Astrozor id: </td><td>  <input type="number" name="link" value="-1"  min="-1" step="1">(astrozor link)</td><td></td></tr>
-        <tr><td> </td><td><input type="submit"></td><td></td></tr>
-      </form>
-    </table>
-
-    <div class="event_group">
-        Add station:
-    </div>
-    <table class="eventListTable" style="width:100%">
-      <form  action="/auth/new/station" method="post" accept-charset="UTF-8">
-      <tr><td> name: </td><td><input type="text" name="name"> (svakov, ZVPP, OBSUPICE)</td><td></td></tr>
-      <tr><td> observatory: </td><td><select name="observatory">
-          <option value="-1">-1</option>
-          {% for x in _sql("SELECT id, name FROM observatory;")%}
-            <option value="{{x[0]}}">{{str(x[1])}}</option>
-          {% end %}
-      </select></td><td></td></tr>
-      <tr><td> describe: </td><td><input type="text" name="describe"></td><td></td></tr>
-      <tr><td> </td><td> <input type="submit"></td><td></td></tr>
-      </form>
-    </table>
-
-    <div class="event_group">
-        Add map location:
-    </div>
-    <table class="eventListTable" style="width:100%">
-      <form  action="/auth/new/server" method="post" accept-charset="UTF-8">
-      <tr><td> name: </td><td><input type="text" name="name"> </td><td></td></tr>
-      <tr><td> observatory: </td><td><select name="id_owner">
-          <option value="-1">-1</option>
-          {% for x in _sql("SELECT id, name FROM observatory;")%}
-            <option value="{{x[0]}}">{{str(x[1])}}</option>
-          {% end %}
-      </select></td><td></td></tr>
-      <tr><td> type: </td><td><select name="type">
-          <option value="1">Server</option>
-          <option value="-1">VOR</option>
-          <option value="-2">GRAVES</option>
-      </select></td><td></td></tr>
-      <tr><td> Lat: </td><td><input type="number" value="0" name="lat"></td><td>(deg)</td></tr>
-      <tr><td> Lon: </td><td><input type="number" value="0" name="lon"></td><td>(deg)</td></tr>
-      <tr><td> Alt: </td><td><input type="number" value="-1" name="alt"></td><td>(m)</td></tr>
-      <tr><td> describe: </td><td><input type="text" name="describe"></td><td></td></tr>
-      <tr><td> Astrozor id: </td><td>  <input type="number" name="id_astrozor" value="-1"  min="-1" step="1"></td><td></td></tr>
-      <tr><td> </td><td> <input type="submit"></td><td></td></tr>
-      </form>
-    </table>
-</div>
 
 <div id="ConfigWindow">
   <div id="ConfigWindewHeader"><span id="ConfigWindowName"></span> <a href="javascript:close('ConfigWindow')"><img src="/ic_clear_black_18dp_1x.png"></a></div>

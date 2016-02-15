@@ -310,13 +310,13 @@ class AuthUpdateHandler(web.RequestHandler):
 
             else:
                 return self.write("err")
-        if type[0] == "new":
+        if type[0] == "add":
             if type[1] == "user":
                 print "ADD DATA:", _sql("INSERT INTO user (name, pass, r_name, email, text) VALUES ('%s', '%s', '%s', '%s', '%s')" %(self.get_argument('user', ''), self.get_argument('name', ''), self.get_argument('r_name', ''), self.get_argument('email', ''), self.get_argument('describe', '')))
                 return self.write("done")
 
             elif type[1] == "observatory":
-                print "ADD DATA:",  _sql("INSERT INTO observatory (name, lat, lon, alt, id_owner, text, id_astrozor) VALUES ('%s', '%f', '%f', '%i', '%i', '%s', '%s')" %(self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('alt', '')), int(self.get_argument('owner', '')), self.get_argument('describe', ''), self.get_argument('link', '')))
+                print "ADD DATA:",  _sql("INSERT INTO observatory (name, lat, lon, alt, text, id_owner, id_astrozor) VALUES ('%s', '%f', '%f', '%i', '%s', '%i', '%i')" %(self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('alt', '')), self.get_argument('text', ''), int(self.get_argument('id_owner', '')), int(self.get_argument('id_astrozor', ''))) )
                 return self.write("done")
 
             elif type[1] == "station":

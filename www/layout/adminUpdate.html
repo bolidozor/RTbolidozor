@@ -3,7 +3,7 @@
 	{{x}}
 	<form action="/auth/update/update/observatory" method="post" accept-charset="UTF-8">
 		<table>
-			<tr><td>	id:			</td><td><input type="number" name="id"   value="{{x[0]}}"  step="1"></input> 			</td></tr>
+			<tr><td>	id:			</td><td><input type="number" name="id"   value="{{x[0]}}"   disabled></input> 			</td></tr>
 			<tr><td>	name:		</td><td><input type="text"   name="name" value="{{x[1]}}"></input> 					</td></tr>
 			<tr><td>	lat:		</td><td><input type="text"   name="lat"   value="{{x[2]}}"  step="any"> </input> 		</td></tr>
 			<tr><td>	lon:		</td><td><input type="text"   name="lon"   value="{{x[3]}}"  step="any"></input> 		</td></tr>
@@ -25,7 +25,7 @@
 	{{x}}
 	<form action="/auth/update/update/station" method="post" accept-charset="UTF-8">
 		<table>
-			<tr><td>	id:				</td><td><input type="number" name="id"   			value="{{x[0]}}"></input> 		</td></tr>
+			<tr><td>	id:				</td><td><input type="number" name="id"   			value="{{x[0]}}" disabled></input> 		</td></tr>
 			<tr><td>	name:			</td><td><input type="text"   name="name" 			value="{{x[1]}}"></input> 		</td></tr>
 			<tr><td>	map:			</td><td><input type="number" name="map"   			value="{{x[3]}}"></input> 		</td></tr>
 			<tr><td>	handler:		</td><td><input type="text"   name="handler"   		value="{{x[4]}}"></input> 		</td></tr>
@@ -39,7 +39,7 @@
 	{{x}}
 	<form action="/auth/update/update/server" method="post" accept-charset="UTF-8">
 		<table>
-			<tr><td>	id:				</td><td><input type="number" name="id"   			value="{{x[0]}}"></input> 	</td></tr>
+			<tr><td>	id:				</td><td><input type="number" name="id"   			value="{{x[0]}}" disabled></input> 	</td></tr>
 			<tr><td>	name:			</td><td><input type="text"   name="name" 			value="{{x[1]}}"></input> 		</td></tr>
 			<tr><td>	lat:			</td><td><input type="text" name="lat" 			value="{{x[2]}}"></input> 		</td></tr>
 			<tr><td>	lon:			</td><td><input type="text" name="lon" 			value="{{x[3]}}"></input> 		</td></tr>
@@ -57,7 +57,7 @@
 	{{x}}
 	<form action="/auth/update/update/user" method="post" accept-charset="UTF-8">
 		<table>
-			<tr><td>	id:				</td><td><input type="number" name="id"   			value="{{x[0]}}"></input> 	</td></tr>
+			<tr><td>	id:				</td><td><input type="number" name="id"   			value="{{x[0]}}" disabled></input> 	</td></tr>
 			<tr><td>	name:			</td><td><input type="text"   name="name" 			value="{{x[1]}}"></input> 		</td></tr>
 			<tr><td>	Real name:	    </td><td><input type="text"   name="r_name" 		value="{{x[2]}}"></input> 		</td></tr>
 			<tr><td>	permission:		</td><td><input type="number" name="permission"		value="{{x[3]}}"></input> 	</td></tr>
@@ -67,6 +67,82 @@
 			<tr><td>					</td><td><input type="submit" ></input> </td></tr>
 		</table>
 	</form>
+
+{% elif path[0] == 'ADDobservatory' %}
+	{% set x = _sql("SELECT id FROM observatory ORDER BY id DESC LIMIT 1")[0] %}
+	<form action="/auth/update/add/observatory" method="post" accept-charset="UTF-8">
+		<table>
+			<tr><td>	id:			</td><td><input type="number" name="id"   value="{{int(x[0])+1}}"   disabled></input> 			</td></tr>
+			<tr><td>	name:		</td><td><input type="text"   name="name" value=""></input> 					</td></tr>
+			<tr><td>	lat:		</td><td><input type="text"   name="lat"   value="0"> </input> 		</td></tr>
+			<tr><td>	lon:		</td><td><input type="text"   name="lon"   value="0"></input> 		</td></tr>
+			<tr><td>	alt:		</td><td><input type="number" name="alt"   value="-1"  step="any"></input> 		</td></tr>
+			<tr><td>	text:		</td><td><input type="text" name="text"   value=""></input> 					</td></tr>
+			<tr><td>    id_owner:   </td><td><select name="id_owner"><option value="-1">-1</option>
+          										{% for y in _sql("SELECT id, name, r_name FROM user;")%}
+            										<option value="{{y[0]}}">{{str(y[1])}}</option>
+          										{% end %}												     	</select></td></tr>
+			<tr><td>	astrozor:	</td><td><input type="number" name="id_astrozor"   value="-1"  step="1">	</input> </td></tr>
+			<tr><td>				</td><td><input type="submit" ></input> </td></tr>
+		</table>
+	</form>
+
+
+
+{% elif path[0] == 'ADDstation' %}
+	{% set x = _sql("SELECT id FROM station ORDER BY id DESC LIMIT 1")[0] %}
+	<form action="/auth/update/add/station" method="post" accept-charset="UTF-8">
+		<table>
+			<tr><td>	id:				</td><td><input type="number" name="id"   			value="{{x[0]+1}}" disabled></input> </td></tr>
+			<tr><td>	name:			</td><td><input type="text"   name="name" 			value=""></input> </td></tr>
+			<tr><td>	id_observatory:	</td><td><input type="number" name="id_observatory"	value="{{path[1]}}" disabled></input></td></tr>
+			<tr><td>	map:			</td><td><input type="number" name="map"   			value="0" disabled></input> Zatím nemá význam (BOOL)</td></tr>
+			<tr><td>	handler:		</td><td><input type="text"   name="handler"   		value="0" disabled></input> Tato hodnota se nastaví sama</td></tr>
+			<tr><td>					</td><td><input type="submit" ></input> </td></tr>
+		</table>
+	</form>
+
+
+{% elif path[0] == 'ADDserver' %}
+	{% set x = _sql("SELECT id FROM server ORDER BY id DESC LIMIT 1")[0] %}
+	<form action="/auth/update/add/server" method="post" accept-charset="UTF-8">
+		<table>
+			<tr><td>	id:				</td><td><input type="number" name="id"   			value="{{x[0]+1}}" disabled></input> 	</td></tr>
+			<tr><td>	name:			</td><td><input type="text"   name="name" 			value=""></input> 		</td></tr>
+			<tr><td>	describe:	</td><td><input type="text" name="text"   value="">	</input> </td></tr>
+			<tr><td>	lat:			</td><td><input type="text" name="lat" 			value="0"></input> 		</td></tr>
+			<tr><td>	lon:			</td><td><input type="text" name="lon" 			value="0"></input> 		</td></tr>
+			<tr><td>    id_owner:   </td><td><select name="id_owner"><option value="-1">-1</option>
+          										{% for y in _sql("SELECT id, name, r_name FROM user;")%}
+            										<option value="{{y[0]}}">{{str(y[1])}}</option>
+          										{% end %}												     	</select></td></tr>
+			<tr><td>    id_observatory:   </td><td><select name="id_observatory"><option value="-1">-1</option>
+          										{% for y in _sql("SELECT id, name FROM observatory;")%}
+            										<option value="{{y[0]}}">{{str(y[1])}}</option>
+          										{% end %}												     	</select></td></tr>
+			<tr><td>	astrozor:	</td><td><input type="number" name="id_astrozor"   value="-1"  step="1">	</input> </td></tr>
+			<tr><td>					</td><td><input type="submit" ></input> </td></tr>
+		</table>
+	</form>
+
+
+
+{% elif path[0] == 'ADDuser' %}
+	{% set x = _sql("SELECT id, name, r_name, permission, email, text, id_astrozor FROM user WHERE id = %i "%(int(path[1])))[0] %}
+	{{x}}
+	<form action="/auth/update/add/user" method="post" accept-charset="UTF-8">
+		<table>
+			<tr><td>	id:				</td><td><input type="number" name="id"   			value="{{x[0]}}" disabled></input> 	</td></tr>
+			<tr><td>	name:			</td><td><input type="text"   name="name" 			value="{{x[1]}}"></input> 		</td></tr>
+			<tr><td>	Real name:	    </td><td><input type="text"   name="r_name" 		value="{{x[2]}}"></input> 		</td></tr>
+			<tr><td>	permission:		</td><td><input type="number" name="permission"		value="{{x[3]}}"></input> 	</td></tr>
+			<tr><td>	email:	    	</td><td><input type="email"  name="email" 			value="{{x[4]}}"></input> 		</td></tr>
+			<tr><td>	text:	    	</td><td><input type="text"   name="text" 			value="{{x[5]}}"></input> 		</td></tr>
+			<tr><td>	id_astrozor:	</td><td><input type="number" name="id_astrozor"	value="{{x[6]}}"></input> 	</td></tr>
+			<tr><td>					</td><td><input type="submit" ></input> </td></tr>
+		</table>
+	</form>
+
 {% else %}
 Err
 {% end %}
