@@ -74,8 +74,8 @@ class MultiBolid(web.RequestHandler):
                 date_from = time.mktime(time.strptime(month, "%Y-%m"))
                 date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
 
-            event = _sql("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s GROUP BY link ORDER BY time DESC;" %(str(date_from), str(date_to)))     # seznam jedtotlivých událostí
-            query = _sql("SELECT * FROM meta WHERE link != 0 AND time > %s AND time < %s ORDER BY time DESC;" %(str(date_from), str(date_to)))    # seznam vsech udalosti
+            event = _sql("SELECT * FROM meta WHERE link != 0 AND (time/1000) > %s AND (time/1000) < %s GROUP BY link ORDER BY (time/1000) DESC;" %(str(date_from), str(date_to)))     # seznam jedtotlivých událostí
+            query = _sql("SELECT * FROM meta WHERE link != 0 AND (time/1000) > %s AND (time/1000) < %s ORDER BY (time/1000) DESC;" %(str(date_from), str(date_to)))    # seznam vsech udalosti
             self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, parent=self)
         else:
             if MBtype[1]=="event":
@@ -166,8 +166,12 @@ class Browser(web.RequestHandler):
                 date_to = d_to
             d = params.split('/')
             #print params, d
+            if d[2] == 'all':
+                counts = _sql("select 3600*(meta.time/1000 div 3600), count(*) from meta LEFT JOIN station ON station.id = meta.id_station WHERE time > '%s' AND time < '%s' GROUP BY meta.time/1000 div 3600 ORDER BY time DESC;" %(str(date_from*1000), str(date_to*1000)))
             
-            counts = _sql("select 3600*(meta.time div 3600), count(*) from meta LEFT JOIN station ON station.id = meta.id_station WHERE station.name = '%s' AND time > '%s' AND time < '%s' GROUP BY meta.time div 3600 ORDER BY time DESC;" %(d[2], str(date_from), str(date_to)))
+            else:
+                counts = _sql("select 3600*(meta.time/1000 div 3600), count(*) from meta LEFT JOIN station ON station.id = meta.id_station WHERE station.name = '%s' AND time > '%s' AND time < '%s' GROUP BY meta.time/1000 div 3600 ORDER BY time DESC;" %(d[2], str(date_from*1000), str(date_to*1000)))
+            
             if counts:
                 self.maxVal = max(item[1] for item in counts)
             svg = svgwrite.Drawing(size=(width,height+20))
@@ -381,6 +385,8 @@ app = web.Application([
         (r'/multibolid', MultiBolid),
         (r'/realtime(.*)', RTbolidozor),
         (r'/realtime', RTbolidozor),
+        (r'/map(.*)', RTbolidozor),
+        (r'/map', RTbolidozor),
         (r'/browser(.*)', Browser),
         (r'/browser', Browser),
         (r'/astrotools(.*)', AstroTools),
