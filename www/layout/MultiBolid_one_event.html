@@ -27,7 +27,7 @@
         </form>
     </div>
     
-{% set events = _sql("SELECT metalink.link, meta.time, meta.id_station, meta.noise, meta.freq, meta.mag, meta.duration, observatory.name, station.name, meta.file FROM metalink LEFT JOIN meta ON meta.id = metalink.link LEFT JOIN station ON station.id = meta.id_station LEFT JOIN observatory ON observatory.id = station.id_observatory WHERE metalink.master = "+str(data[0])+" GROUP BY meta.file;")%}
+{% set events = _sql("SELECT metalink.link, 1.0*meta.time/1000.0, meta.id_station, 1.0*meta.noise/10.0, 1.0*meta.freq/1000.0, 1.0*meta.mag/1000.0, 1.0*meta.duration/1000.0, observatory.name, station.name, meta.file FROM metalink LEFT JOIN meta ON meta.id = metalink.link LEFT JOIN station ON station.id = meta.id_station LEFT JOIN observatory ON observatory.id = station.id_observatory WHERE metalink.master = "+str(data[0])+";")%}
 
 <table class="eventListTable" id="{{events[1]}}" style="width:100%">
     <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
@@ -35,7 +35,7 @@
 {% for event in events %}
 {% try %}
     <tr> <div class="event_list">
-        <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(event[1]).strftime('%Y-%m-%d %X')}} &#916 {{event[1] - float(events[1][1])}}s</span></td>
+        <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(float(event[1])).strftime('%Y-%m-%d %X')}} &#916 {{float(event[1]) - float(events[1][1])}}s</span></td>
         <td><span class="eventCell"> {{event[8]}}</span></td>
         <td><span class="eventCell"> {{float(event[3])}}</span>
         <td><span class="eventCell"> {{float(event[4])}}</span></td>
@@ -56,7 +56,7 @@
 
 
     <div id="window">
-        <div style="text-align: left;"><a href="javascript:Close();">X</a></div>
+        <div style="text-align: left;"><a href="javascript:Close();"><img src="/ic_clear_black_18dp_1x.png"></a></div>
         <div class="JS9Menubar"></div>
         <div class="JS9"></div>
     </div>

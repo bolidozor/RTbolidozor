@@ -91,7 +91,7 @@ class GetMeteors():
         self.dbc.execute('CREATE TABLE snap (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, time BIGINT UNSIGNED, id_station SMALLINT UNSIGNED, file VARCHAR(80) UNIQUE KEY);')
         #self.dbc.execute('CREATE TABLE user (id INT(6) AUTO_INCREMENT PRIMARY KEY, permission TINYINT UNSIGNED DEFAULT 0, name VARCHAR(30) UNIQUE KEY, pass VARCHAR(30), r_name VARCHAR(30), email VARCHAR(30) UNIQUE KEY, text VARCHAR(30), id_astrozor INT);')
         self.db.commit()
-        
+        self.dbc.execute('CREATE INDEX index_meta_time ON meta (time);')
         self.dbc.execute('CREATE VIEW meteor AS SELECT meta.id met_id, meta.id_station obs_id, station.id stat_id, user.id user_id, meta.time/1000 time, meta.noise/1000 noise, meta.freq/10 freq, meta.mag/1000 mag, meta.duration/1000 duration, meta.file file FROM meta INNER JOIN station ON meta.id_station = station.id INNER JOIN observatory ON station.id_observatory = observatory.id INNER JOIN user ON observatory.id_owner = user.id;')
                                 # met_id, obs_id, stat_id, user_id, time, noise, freq, mag, duration, file
         self.db.commit()
@@ -133,14 +133,14 @@ class GetMeteors():
                     self.db.commit()
                     data.close()
 
-    def shoda(self, start = time.time()-86400*60, stop=time.time()):
+    def shoda(self, start = time.time()-86400*5, stop=time.time()):
         print "Minimalni delka bolidu je stanovana na ", self.minDurationBolid, "s. Minimalni delka derivatu je", self.minDuration, "s"
         sys.stdout.write("SELECT id, time, duration FROM meta WHERE duration > %i AND time > %i AND time < %i ORDER BY meta.duration DESC;" %(int(self.minDurationBolid*1000.0), int(start*1000), int(stop*1000) ))  
         self.dbc.execute("SELECT id, time, duration FROM meta WHERE duration > %i AND time > %i AND time < %i ORDER BY meta.duration DESC;" %(int(self.minDurationBolid*1000.0), int(start*1000), int(stop*1000) ))  
         row = self.dbc.fetchall()
         print row
+        err = 60.0 # casova  odchylka
         for meteor in row:
-            err = 60.0 # casova  odchylka
             self.dbc.execute("SELECT * FROM meta WHERE time > "+str(float((meteor[1])-err*1000))+" AND time <"+str(float((meteor[1])+err*1000))+ " AND duration > "+ str(self.minDuration*1000) +" GROUP BY id_station ORDER BY mag DESC;")
             n = self.dbc.fetchall()
             if len(n) >> 2:
@@ -148,7 +148,10 @@ class GetMeteors():
                 refid = n[0][0]
                 for near in n:
                     #self.dbc.execute("UPDATE meta SET link ="+str(refid)+" WHERE id ="+str(near[0])+";")
-                    self.dbc.execute("INSERT INTO metalink (master, link) VALUES (%i, %i);"%(refid, near[0]))
+                    try:
+                        self.dbc.execute("INSERT INTO metalink (master, link) VALUES (%i, %i);"%(refid, near[0]))
+                    except Exception, e:
+                        print "Existuje", refid, near[0]
                     print near
                     self.db.commit()
 
@@ -186,7 +189,7 @@ def main():
     #B=["bolidozor/ZVPP/ZVPP-R4/data", "bolidozor/OBSUPICE/OBSUPICE-R4/data", "bolidozor/svakov/SVAKOV-R7/data"]
     #C=["bolidozor/ZVPP/ZVPP-R4/data", "bolidozor/OBSUPICE/OBSUPICE-R4/data", "bolidozor/svakov/SVAKOV-R7/data", "bolidozor/svakov/TEST-R3/data", "bolidozor/ZEBRAK/ZEBRAK-R3/data", "bolidozor/nachodsko/NACHODSKO-R3/data", "bolidozor/ZVOLENEVES/ZVOLENEVES-R1/data"]
     
-    days = 60
+    days = 4
     BolidTimeErr = 60      #ZATIM NEFUNGUJE                 # maximalni cas mezi jednou udalosti na vice stanicich
     MasterBolidLenght = 15                  # minimalni delka alespon jednoho bodidu ze skupiny
     SlaveBolidLenght = 10                   # minimalni delka ostatnich bolidu
