@@ -27,7 +27,7 @@
             <input type="submit">
         </form>
     </div>
-    {{("SELECT metalink.id, metalink.master, meta.time FROM metalink LEFT JOIN meta ON meta.id = metalink.link WHERE meta.time > "+str(range[0])+" AND meta.time < "+str(range[1])+" GROUP BY metalink.master ORDER BY meta.time DESC ;")}}
+
     {% if 0 %} 
         <div class="parameters" id="error">
         Error: 0 výsledků ... Zkus jiný datum {{len(data[0])}}

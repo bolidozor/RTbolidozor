@@ -1,0 +1,38 @@
++---------------+------------+-----------------+
+| Table Name    | Rows Count | Table Size (MB) |
++---------------+------------+-----------------+
+| snap          |    577 791 |           89.30 |
+| meta          |    398 137 |           77.23 |
+| metalink      |      2 074 |            0.11 |
+| observatory   |          9 |            0.03 |
+| server        |          2 |            0.03 |
+| station       |          9 |            0.02 |
+| stationstatus |          0 |            0.02 |
+| user          |          2 |            0.05 |
++---------------+------------+-----------------+
+
+
+
+mysql> UPDATE meta SET time = time*1000;
+Query OK, 396330 rows affected, 65535 warnings (30.64 sec)
+Rows matched: 396331  Changed: 396330  Warnings: 396330
+
+
+cca 63 dnů @ 7 stanic (9) ... data jsou ulozena celociselne
+
+mysql> SELECT table_name AS `Table`, table_rows AS rows, round(((data_length + index_length) / 1024 / 1024), 2) `Size in MB` FROM information_schema.TABLES WHERE table_schema = 'bolid' ORDER BY (data_length+ index_length) DESC;
+
+
++---------------+--------+------------+
+| Table         | rows   | Size in MB |
++---------------+--------+------------+
+| snap          | 533377 |      82.23 |
+| meta          | 314649 |      68.70 |
+| user          |      4 |       0.05 |
+| metalink      |    134 |       0.05 |
+| server        |      2 |       0.03 |
+| observatory   |      9 |       0.03 |
+| stationstatus |      0 |       0.02 |
+| station       |      9 |       0.02 |
+| meteor        |   NULL |       NULL |
++---------------+--------+------------+

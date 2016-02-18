@@ -5,7 +5,7 @@
     <div class="parameters">
         Stanice
     </div>
-    {% for station in _sql("SELECT station.name, observatory.name, user.r_name, user.email FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id LEFT JOIN user ON user.id = observatory.id_owner;")%}
+    {% for station in _sql("SELECT station.name, observatory.name, user.r_name, user.email FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id LEFT JOIN user ON user.id = observatory.id_owner WHERE station.map = True;")%}
     
     <div class="block_header">
         {{station[0]}} <span style="size: small;"> @ {{station[1]}} </span>

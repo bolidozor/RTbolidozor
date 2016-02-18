@@ -26,7 +26,7 @@ def wwwCleanName(string):
     return ''.join( c for c in string if c not in '?:!/;-_#$%^!@' )
 
 
-def _sql(query):
+def _sql(query, read=False):
         #dbPath = 'bolid.db'
         #connection = sqlite3.connect(dbPath)
         #cursorobj = connection.cursor()
@@ -37,7 +37,8 @@ def _sql(query):
         try:
                 cursorobj.execute(query)
                 result = cursorobj.fetchall()
-                connection.commit()
+                if not read:
+                    connection.commit()
         except Exception, e:
                 print "Err", e
         connection.close()
@@ -73,10 +74,7 @@ class MultiBolid(web.RequestHandler):
             else:
                 date_from = time.mktime(time.strptime(month, "%Y-%m"))
                 date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
-
-            event = _sql("SELECT * FROM meta WHERE link != 0 AND (time/1000) > %s AND (time/1000) < %s GROUP BY link ORDER BY (time/1000) DESC;" %(str(date_from), str(date_to)))     # seznam jedtotlivých událostí
-            query = _sql("SELECT * FROM meta WHERE link != 0 AND (time/1000) > %s AND (time/1000) < %s ORDER BY (time/1000) DESC;" %(str(date_from), str(date_to)))    # seznam vsech udalosti
-            self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], data=[event, query], _sql = _sql, parent=self)
+            self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], _sql = _sql, parent=self)
         else:
             if MBtype[1]=="event":
                 print "EVENT FOR "
@@ -167,18 +165,15 @@ class Browser(web.RequestHandler):
             d = params.split('/')
             #print params, d
             if d[2] == 'all':
-                counts = _sql("select 3600*(meta.time/1000 div 3600), count(*) from meta LEFT JOIN station ON station.id = meta.id_station WHERE time > '%s' AND time < '%s' GROUP BY meta.time/1000 div 3600 ORDER BY time DESC;" %(str(date_from*1000), str(date_to*1000)))
-            
+                counts = _sql("select 3600*(meta.time div 3600000), count(*) from meta JOIN station ON station.id = meta.id_station WHERE time > '%s' AND time < '%s' GROUP BY meta.time div 3600000 ORDER BY time DESC;" %(str(date_from*1000), str(date_to*1000)), True)
             else:
-                counts = _sql("select 3600*(meta.time/1000 div 3600), count(*) from meta LEFT JOIN station ON station.id = meta.id_station WHERE station.name = '%s' AND time > '%s' AND time < '%s' GROUP BY meta.time/1000 div 3600 ORDER BY time DESC;" %(d[2], str(date_from*1000), str(date_to*1000)))
-            
+                counts = _sql("select 3600*(meta.time div 3600000), count(*) from meta JOIN station ON station.id = meta.id_station WHERE station.name = '%s' AND time > '%s' AND time < '%s' GROUP BY meta.time div 3600000 ORDER BY time DESC;" %(d[2], str(date_from*1000), str(date_to*1000)), True)
             if counts:
                 self.maxVal = max(item[1] for item in counts)
             svg = svgwrite.Drawing(size=(width,height+20))
             pixH = float(height)/24.0
             #pixW = float(width)/31.0
             pixW = pixH
-            #maxday = (int(counts[0][0])//3600)//24
             maxday = ((int(time.time())//3600)//24)+1
             print maxday
             svg.add(svg.rect(insert=( 50, 50), size=(50, 50), stroke = "#303030", fill = "#303030" ))
@@ -301,6 +296,7 @@ class AuthUpdateHandler(web.RequestHandler):
                 return self.write("done")
 
             elif type[1] == "station":
+                print "----------------", self.get_argument('name', ''), (self.get_argument('map', '')), (self.get_argument('id','')) 
                 print "ADD DATA:",  _sql("UPDATE station SET name = '%s', map = %i WHERE id = %i;" %( self.get_argument('name', ''), int(self.get_argument('map', '')), int(self.get_argument('id','')) ))
                 return self.write("done")
 
@@ -361,7 +357,6 @@ class SocketHandler(websocket.WebSocketHandler):
             elif m_type == "stanica":       # inicializacializacni sprava od stanice (obsahoje o sobe informace)
                 jsonstation = json.loads(message.split(";")[1])
                 print "type stanica", jsonstation['ident']
-                print("UPDATE station SET handler = '" + str(self)+"' WHERE name='"+jsonstation['ident']+"';")
                 _sql("UPDATE station SET handler = '" + str(self)+"' WHERE name='"+jsonstation['ident']+"';")
             elif m_type == "event":
                 print "type event", message

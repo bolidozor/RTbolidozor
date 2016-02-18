@@ -21,13 +21,14 @@
 
 
 {% elif path[0] == 'station' %}
-	{% set x = _sql("SELECT id, name, id_observatory, map, handler FROM station WHERE id = %i "%(int(path[1])))[0] %}
+	{% set x = _sql("SELECT id, name, id_observatory, map, handler, status FROM station WHERE id = %i "%(int(path[1])))[0] %}
 	{{x}}
 	<form action="/auth/update/update/station" method="post" accept-charset="UTF-8">
 		<table>
-			<tr><td>	id:				</td><td><input type="number" name="id"   			value="{{x[0]}}" disabled></input> 		</td></tr>
+			<tr><td>	id:				</td><td><input type="number" name="id"   			value="{{x[0]}}"></input> 		</td></tr>
 			<tr><td>	name:			</td><td><input type="text"   name="name" 			value="{{x[1]}}"></input> 		</td></tr>
 			<tr><td>	map:			</td><td><input type="number" name="map"   			value="{{x[3]}}"></input> 		</td></tr>
+			<tr><td>	status:			</td><td><input type="number" name="status"   		value="{{x[5]}}"></input> 		</td></tr>
 			<tr><td>	handler:		</td><td><input type="text"   name="handler"   		value="{{x[4]}}"></input> 		</td></tr>
 			<tr><td>					</td><td><input type="submit" ></input> </td></tr>
 		</table>

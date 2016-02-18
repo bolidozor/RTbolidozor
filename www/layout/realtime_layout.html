@@ -157,7 +157,7 @@
       graves.setIcon(IconGraves)
       graves.bindPopup("<b>GRAVES RADAR</b><br>transmitter of radio signal");
 
-      {% for event_group in _sql("SELECT station.id, station.name, observatory.lat, observatory.lon FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id") %}
+      {% for event_group in _sql("SELECT station.id, station.name, observatory.lat, observatory.lon FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id WHERE station.map = True") %}
         var {{ CleanName(event_group[1])}} = L.marker([{{event_group[2]}},{{event_group[3]}}]).addTo(map)
         {{ CleanName(event_group[1])}}.setIcon(IconStationInactive)
         {{ CleanName(event_group[1])}}.bindPopup("station <b>{{event_group[1]}}</b><br>reciver<br> last message: ____;");

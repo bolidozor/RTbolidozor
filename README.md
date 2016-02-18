@@ -10,8 +10,7 @@ A real-time meteor event visualiser in web browser.
 mkdir ~/repos && cd ~/repos
 sudo apt-get install python-websocket
 git clone https://github.com/bolidozor/RTbolidozor.git RTstation
-cd RTstation
-git checkout station
+cd RTstation && git checkout station
 
 ### uprava radio-observeru:
 

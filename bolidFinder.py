@@ -84,15 +84,16 @@ class GetMeteors():
         
         #self.dbc.execute('CREATE TABLE observatory (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30) UNIQUE KEY, lat FLOAT, lon FLOAT, alt FLOAT, text VARCHAR(255), id_owner INT, id_astrozor INT);')
         #self.dbc.execute('CREATE TABLE server (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30) UNIQUE KEY, lat FLOAT, lon FLOAT, alt FLOAT, type INT(3), text VARCHAR(255), id_owner INT, id_station INT, id_astrozor INT);')
-        #self.dbc.execute('CREATE TABLE station (id INT(6) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30), id_observatory INT(6), map BOOLEAN DEFAULT 0, handler VARCHAR(60));')
+        #self.dbc.execute('CREATE TABLE station (id INT(6) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30), id_observatory INT(6), status TINYINT UNSIGNED, map BOOLEAN DEFAULT 1, handler VARCHAR(60));')
         #self.dbc.execute('CREATE TABLE stationstatus (id_station INT(6) PRIMARY KEY, time INT(14), data VARCHAR(255));')
-        self.dbc.execute('CREATE TABLE meta (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, time BIGINT UNSIGNED, id_station SMALLINT UNSIGNED, noise MEDIUMINT UNSIGNED, freq MEDIUMINT UNSIGNED, mag MEDIUMINT UNSIGNED, duration MEDIUMINT UNSIGNED, file VARCHAR(80) UNIQUE KEY, link INT UNSIGNED DEFAULT 0, met_true BOOLEAN DEFAULT 0, met_false BOOLEAN DEFAULT 0, met_head BOOLEAN DEFAULT 0);')
+        self.dbc.execute('CREATE TABLE meta (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, time BIGINT UNSIGNED, id_station SMALLINT UNSIGNED, noise MEDIUMINT UNSIGNED, freq MEDIUMINT UNSIGNED, mag MEDIUMINT UNSIGNED, duration MEDIUMINT UNSIGNED, file VARCHAR(80) UNIQUE KEY, link INT UNSIGNED DEFAULT 0, time_prec TINYINT UNSIGNED, met_true BOOLEAN DEFAULT 0, met_false BOOLEAN DEFAULT 0, met_head BOOLEAN DEFAULT 0);')
         self.dbc.execute('CREATE TABLE metalink (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, master INT UNSIGNED, link INT UNSIGNED);')
         self.dbc.execute('CREATE TABLE snap (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, time BIGINT UNSIGNED, id_station SMALLINT UNSIGNED, file VARCHAR(80) UNIQUE KEY);')
         #self.dbc.execute('CREATE TABLE user (id INT(6) AUTO_INCREMENT PRIMARY KEY, permission TINYINT UNSIGNED DEFAULT 0, name VARCHAR(30) UNIQUE KEY, pass VARCHAR(30), r_name VARCHAR(30), email VARCHAR(30) UNIQUE KEY, text VARCHAR(30), id_astrozor INT);')
         self.db.commit()
         self.dbc.execute('CREATE INDEX index_meta_time ON meta (time);')
-        self.dbc.execute('CREATE VIEW meteor AS SELECT meta.id met_id, meta.id_station obs_id, station.id stat_id, user.id user_id, meta.time/1000 time, meta.noise/1000 noise, meta.freq/10 freq, meta.mag/1000 mag, meta.duration/1000 duration, meta.file file FROM meta INNER JOIN station ON meta.id_station = station.id INNER JOIN observatory ON station.id_observatory = observatory.id INNER JOIN user ON observatory.id_owner = user.id;')
+        self.dbc.execute('CREATE VIEW _meta AS SELECT id, time/1000, id_station, noise/1000, freq/10, mag/1000, duration/1000, file, link from meta;')
+        self.dbc.execute('CREATE VIEW meteor AS SELECT meta.id met_id, meta.id_station stat_id, observatory.id obs_id, user.id user_id, meta.time/1000 time, meta.noise/1000 noise, meta.freq/10 freq, meta.mag/1000 mag, meta.duration/1000 duration, meta.file file FROM meta INNER JOIN station ON meta.id_station = station.id INNER JOIN observatory ON station.id_observatory = observatory.id LEFT OUTER JOIN user ON observatory.id_owner = user.id;')
                                 # met_id, obs_id, stat_id, user_id, time, noise, freq, mag, duration, file
         self.db.commit()
 
@@ -133,7 +134,7 @@ class GetMeteors():
                     self.db.commit()
                     data.close()
 
-    def shoda(self, start = time.time()-86400*5, stop=time.time()):
+    def shoda(self, start = time.time()-86400*10, stop=time.time()):
         print "Minimalni delka bolidu je stanovana na ", self.minDurationBolid, "s. Minimalni delka derivatu je", self.minDuration, "s"
         sys.stdout.write("SELECT id, time, duration FROM meta WHERE duration > %i AND time > %i AND time < %i ORDER BY meta.duration DESC;" %(int(self.minDurationBolid*1000.0), int(start*1000), int(stop*1000) ))  
         self.dbc.execute("SELECT id, time, duration FROM meta WHERE duration > %i AND time > %i AND time < %i ORDER BY meta.duration DESC;" %(int(self.minDurationBolid*1000.0), int(start*1000), int(stop*1000) ))  
