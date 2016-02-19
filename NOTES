@@ -22,7 +22,8 @@ cca 63 dnů @ 7 stanic (9) ... data jsou ulozena celociselne
 
 mysql> SELECT table_name AS `Table`, table_rows AS rows, round(((data_length + index_length) / 1024 / 1024), 2) `Size in MB` FROM information_schema.TABLES WHERE table_schema = 'bolid' ORDER BY (data_length+ index_length) DESC;
 
-
++-------------------------------------+
+| # 2016-02-17						  |
 +---------------+--------+------------+
 | Table         | rows   | Size in MB |
 +---------------+--------+------------+
@@ -36,3 +37,75 @@ mysql> SELECT table_name AS `Table`, table_rows AS rows, round(((data_length + i
 | station       |      9 |       0.02 |
 | meteor        |   NULL |       NULL |
 +---------------+--------+------------+
+
+
+mysql> SELECT table_name AS `Table`, table_rows AS rows, round(((data_length + index_length) / 1024 / 1024), 4) `Size in MB` FROM information_schema.TABLES WHERE table_schema = 'RTbolidozor' ORDER BY (data_length+ index_length) DESC;
+
+
+
++--------------------------------------+
+| # 2016-02-20						   |
++------------------+------+------------+
+| Table            | rows | Size in MB |
++------------------+------+------------+
+| meta             |    0 |       0.03 |
+| user             |    2 |       0.03 |
+| station          |    0 |       0.03 |
+| snap             |    0 |       0.03 |
+| observatory      |    0 |       0.03 |
+| metalink         |    0 |       0.02 |
+| file_location    |    0 |       0.02 |
+| user_observatory |    0 |       0.02 |
+| station_type     |    0 |       0.02 |
+| station_status   |    0 |       0.02 |
++------------------+------+------------+
+
++---------------------------------------+
+| # 2016-02-20						    |
++------------------+-------+------------+
+| Table            | rows  | Size in MB |
++------------------+-------+------------+
+| snap             | 16810 |       3.03 |
+| meta             |  7678 |       3.03 |
+| user             |     2 |       0.03 |
+| station          |     4 |       0.03 |
+| observatory      |     3 |       0.03 |
+| user_observatory |     0 |       0.02 |
+| station_type     |     0 |       0.02 |
+| station_status   |     0 |       0.02 |
+| metalink         |     0 |       0.02 |
+| file_location    |     0 |       0.02 |
++------------------+-------+------------+
+
++---------------------------------------+
+| # 2016-02-20						    |
++------------------+-------+------------+
+| Table            | rows  | Size in MB |
++------------------+-------+------------+
+| snap             | 15688 |       3.03 |
+| meta             |  7755 |       3.03 |
+| user             |     2 |       0.03 |
+| station          |     4 |       0.03 |
+| observatory      |     3 |       0.03 |
+| user_observatory |     0 |       0.02 |
+| station_type     |     0 |       0.02 |
+| station_status   |     0 |       0.02 |
+| metalink         |     0 |       0.02 |
+| file_location    |     0 |       0.02 |
++------------------+-------+------------+
+
++------------------+--------+------------+
+| Table            | rows   | Size in MB | # tohle je presne 65 dnu ze tri stanic
++------------------+--------+------------+
+| snap             | 111468 |    19.0781 |
+| meta             |  55234 |    11.0313 |
+| user             |      2 |     0.0313 |
+| station          |      4 |     0.0313 |
+| observatory      |      3 |     0.0313 |
+| user_observatory |      0 |     0.0156 |
+| station_type     |      0 |     0.0156 |
+| station_status   |      0 |     0.0156 |
+| metalink         |      0 |     0.0156 |
+| file_location    |      0 |     0.0156 |
++------------------+--------+------------+
+
