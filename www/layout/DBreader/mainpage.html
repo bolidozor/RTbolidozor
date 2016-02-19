@@ -1,0 +1,41 @@
+{% extends "../base.html" %}
+{% block meta%}
+<script type="text/javascript">
+	
+function ListRenew() {
+	log('aaa');
+	document.getElementById("ConfigWindowName").innerHTML = '<img src="/ic_refresh_black_48dp_1x.png">';
+    $('#ConfigWindowExternal').load('database/data');
+}
+
+</script>
+{% end %}{% block container %}
+
+
+    <div class="parameters">
+  		From:
+  		<input type="date" name="from_date">
+  		<input type="time" name="from_time" disabled><br>
+  		To:
+  		<input type="date" name="to_date">
+  		<input type="time" name="to_time" disabled><br>
+  		Stanice: 
+  		{% for stanice in _sql("SELECT station.id, station.name, observatory.name FROM station JOIN observatory ON station.id_observatory = observatory.id;")%}
+  			<input type="checkbox" name="stanice" value="{{ stanice[0] }}" checked>{{ stanice[0] }} {{ stanice[1] }} ({{ stanice[2] }}),<br>
+  		{% end %}
+  		min lenght:
+  		<input type="number" name="min_lenght"><br>
+  		<a href="javascript:ListRenew();"><input type="submit"></a>
+
+    </div>
+    
+    <div id="folder">
+    	<img src="/ic_refresh_black_48dp_1x.png">
+    </div>
+    
+
+{% end %}{% block header%}
+
+
+
+{% end %}

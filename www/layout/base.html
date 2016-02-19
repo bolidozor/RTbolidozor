@@ -13,6 +13,14 @@
 		ga('create', 'UA-73663589-1', 'auto');
 		ga('send', 'pageview');
 	</script>
+  <script type="text/javascript">
+  function log (msg) {
+        var d = new Date();
+        var dNow = new Date();
+        var s = dNow.getHours() + ':' + dNow.getMinutes() + ">> ";
+        console.log(s+msg)
+  }
+  </script> 
 {% block meta %}{% end %}
   </head>
   <body>

@@ -5,7 +5,8 @@
     <div class="parameters">
         Stanice
     </div>
-    {% for station in _sql("SELECT station.name, observatory.name, user.r_name, user.email FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id LEFT JOIN user ON user.id = observatory.id_owner WHERE station.map = True;")%}
+    
+    {% for station in _sql("SELECT station.name, observatory.name FROM station JOIN observatory ON station.id_observatory = observatory.id;") %}
     
     <div class="block_header">
         {{station[0]}} <span style="size: small;"> @ {{station[1]}} </span>
@@ -13,7 +14,7 @@
     </div>
     
     <div class="block_content">
-        Správce: <a href="mailto:{{station[3]}}">{{station[2]}}</a>
+        Správce: <a href="mailto:{{station[0]}}">{{station[0]}}</a>
         <div>
             <object type="image/svg+xml" data="/browser/plotJS/{{station[0]}}/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="300" border="0"></object>
         </div>

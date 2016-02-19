@@ -12,9 +12,9 @@ import calendar
 ##**************************************
 ##
 ##
-days = 65
-gento = time.time()
-genfrom = gento - 86400*days
+    days = 65
+    gento = time.time()
+    genfrom = gento - 86400*days
 ##
 ##
 ##**************************************
@@ -80,7 +80,6 @@ class GetMeteors():
         self.dbc.execute('SET CHARACTER SET utf8;')
         
         try:
-
             self.dbc.execute('DROP TABLE IF EXISTS user;')
             self.dbc.execute('DROP TABLE IF EXISTS observatory;')
             self.dbc.execute('DROP TABLE IF EXISTS station;')

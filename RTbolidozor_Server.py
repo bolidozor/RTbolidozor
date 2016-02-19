@@ -119,14 +119,19 @@ class Browser(web.RequestHandler):
                 blue = 255
 
             elif val < self.maxVal/3*2:    #    1/3 ... 2/3
-                red = val*3 * 255.0/self.maxVal
+                red = 0
                 green = 255
                 blue = (self.maxVal*3.0 - val*3.0) * 255.0/self.maxVal - 254
 
-            else:                               #    2/3 ... 3/3
-                red = 255
+            elif val < self.maxVal:                               #    2/3 ... 3/3
+                red = val*3 * 255.0/self.maxVal
                 green = (self.maxVal*3.0 - val*3.0)*255.0/self.maxVal
                 blue = 0
+
+            else:
+                red = 100
+                green = 100
+                blue = 100
         else:
             red = val*255/self.maxVal
             green = val*255/self.maxVal
@@ -201,15 +206,40 @@ class Browser(web.RequestHandler):
 
             self.write(Ssvg)
         else:
-            self.render("www/layout/browser.html", title="Bloidozor data browser", _sql = _sqlo, parent=self)
+            self.render("www/layout/browser.html", title="Bloidozor data browser", _sql = _sql, parent=self)
 
+
+
+######################################################################################################################
+######################################################################################################################
+########
+######################################################################################################################
+######################################################################################################################
+
+
+class DBreader(web.RequestHandler):
+    def get(self, params=None):
+        print params, params.split('/')
+        if 'data' in params:
+            if self.get_argument('from_date', '') != '':
+                from_date = time.mktime(time.strptime(self.get_argument('from_date', ''), "%Y-%m-%d")),
+            else:
+                from_date = time.time()-3600*24
+
+            if self.get_argument('to_date', '') != '':
+                to_date = time.mktime(time.strptime(self.get_argument('to_date', ''), "%Y-%m-%d")),
+            else:
+                to_date = time.time()
+
+            print from_date, to_date
+        else:
+            self.render("www/layout/DBreader/mainpage.html", title="DBreader", _sql=_sql, parent=self)
 
 
 
 class AstroTools(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
-        items = ["Item 1", "Item 2", "Item 3"]
         self.render("www/layout/AstroTools/index.html", title="Astro tools")
 
 class RTbolidozor(web.RequestHandler):
@@ -398,7 +428,9 @@ app = web.Application([
         (r'/map(.*)', RTbolidozor),
         (r'/map', RTbolidozor),
         (r'/browser(.*)', Browser),
-        (r'/browser', Browser),
+        (r'/browser', DBreader),
+        (r'/database(.*)', DBreader),
+        (r'/database', Browser),
         (r'/astrotools(.*)', AstroTools),
         (r'/astrotools', AstroTools),
         (r'/zoo', ZooBolid),
