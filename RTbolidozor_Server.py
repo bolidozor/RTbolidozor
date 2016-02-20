@@ -320,7 +320,7 @@ class AuthNewHandler(web.RequestHandler):
 class AuthSettingHandler(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
-        self.render("www/layout/admin.html", title="Administration page", s_cookie=self.get_secure_cookie, _sql = _sqlo)
+        self.render("www/layout/admin.html", title="Administration page", s_cookie=self.get_secure_cookie, _osql = _sqlo, _sql = _sql)
 
 class AuthUpdateHandler(web.RequestHandler):
     @tornado.web.asynchronous

@@ -117,6 +117,7 @@ class GetMeteors():
                             'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
                             'name VARCHAR(32) UNIQUE KEY, '
                             'id_obstype SMALLINT UNSIGNED DEFAULT 1 NOT NULL, '
+                            'id_user SMALLINT UNSIGNED DEFAULT 0, '
                             'lat DECIMAL(8,5), '
                             'lon DECIMAL(8,5), '
                             'alt SMALLINT, '
@@ -124,10 +125,10 @@ class GetMeteors():
                         ');')
 
         self.dbc.execute('INSERT INTO observatory'
-                            '(name, id_obstype, lat, lon, alt, text) VALUES'
-                            '("svakov", 1, 14.59, 48.34, 450, "Sobeslav"),'
-                            '("ZVPP", 1, 14.8, 49.0, 400, "Ceske Budejovice"),'
-                            '("ONDREJOV", 1, 15, 50.34, 450, "Ondrejov")'
+                            '(name, id_obstype, id_user, lat, lon, alt, text) VALUES'
+                            '("svakov", 1, 2, 14.59, 48.34, 450, "Sobeslav"),'
+                            '("ZVPP", 1, 1, 14.8, 49.0, 400, "Ceske Budejovice"),'
+                            '("ONDREJOV", 1, NULL, 15, 50.34, 450, "Ondrejov")'
                         ';')
         
 
@@ -185,12 +186,22 @@ class GetMeteors():
         
         self.dbc.execute('CREATE TABLE station_type ('
                             'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
+                            'cfg TINYINT,'
                             'name VARCHAR(64), '
                             'text VARCHAR(500)'
                         ');')
 
+        self.dbc.execute('INSERT INTO station_type'
+                            '(name, text) VALUES'
+                            '("RMDS02B", "RMDS02B"), '
+                            '("server", "server storage"), '
+                            '("server", "server data processing"), '
+                            '("RMDS02D", "RMDS02D")'
+                        ';')
+
         self.dbc.execute('CREATE TABLE station_status ('
                             'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
+                            'cfg TINYINT,'
                             'name VARCHAR(64), '
                             'text VARCHAR(500)'
                         ');')

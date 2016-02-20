@@ -16,31 +16,25 @@
 {% end %}
 {% block container %}
 
-    <div class="parameters">
-        aaa
-    </div>
-
 
     <div class="parameters" id="header">
-      <a href="javascript:setting('ADDobservatory')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Stanice:
-    </div> 
-	{% set y = _sql("SELECT observatory.id, observatory.name, observatory.id_owner, user.r_name, observatory.lat, observatory.lon FROM observatory LEFT JOIN user ON user.id = observatory.id_owner;") %}
-  {% if y%}
-	{% for x in y%}
-      <div class="event_group" id="observtory">
+      <a href="javascript:setting('ADDobservatory')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Places:
+    </div>
+    {% for observatory in _sql("SELECT observatory.id, observatory.name, observatory.text, observatory.lat, observatory.lon, observatory.alt, observatory.id_user, user.name FROM observatory LEFT JOIN user ON observatory.id_user = user.id;")%}
+        <div class="event_group" id="observtory">
           <span class="eventGroupCell"> 
-       		<a href="javascript:setting('observatory', {{x[0]}}, '{{x[1]}}')"><img src="/ic_create_black_18dp_1x.png"></a><a href="javascript:setting('ADDstation', {{x[0]}}, '{{x[1]}}')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a>
-						#{{x[0]}}  stanica <b>{{x[1]}}</b> uživatele <b>{{x[3]}}</b>
-					
-          <span style="font-size: xx-small"> uživatele <b>{{x[3]}}</b>, Lat: <b>{{x[4]}}</b>, Lon: <b>{{x[5]}}</b></span>
+          <a href="javascript:setting('observatory', {{"x[0]"}}, '{{"x[1]"}}')"><img src="/ic_create_black_18dp_1x.png"></a><a href="javascript:setting('ADDstation', {{"x[0]"}}, '{{"x[1]"}}')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a>
+            #{{observatory[0]}}  stanica <b>{{observatory[1]}}</b> uživatele <b>{{observatory[6]}} {{observatory[7]}}</b>
+          
+          <span style="font-size: xx-small"> uživatele <b>{{observatory[0]}}</b>, Lat: <b>{{observatory[3]}}</b>, Lon: <b>{{observatory[4]}}</b></span>
         </span>
       </div>
       <table class="eventListTable" id="{{'aaa'}}" style="width:100%">
       <div>
-          {% for x2 in _sql("SELECT station.id, station.name FROM station WHERE id_observatory = "+str(x[0])+";")%}
+          {% for station in _sql("SELECT station.id, station.name, station.text FROM station WHERE station.id_observatory = %i;" %(observatory[0]))%}
           <tr> 
               <div class="event_list">
-                <td><a href="javascript:setting('station', {{x2[0]}}, '{{x2[1]}}')"><img src="/ic_create_black_18dp_1x.png" style="left: 0px;"></a> <span class="eventCell"> #{{ x2[0] }}, <b>{{ x2[1] }}</b> </span></td>
+                <td><a href="javascript:setting('station', {{"x2[0]"}}, '{{"x2[1]"}}')"><img src="/ic_create_black_18dp_1x.png" style="left: 0px;"></a> <span class="eventCell"> #{{ station[0] }}, <b>{{ station[1] }}</b> {{ station[2] }}</span></td>
                 <td><span class="eventCell"> </span></td>
                 
               </div>
@@ -48,46 +42,33 @@
           {% end %}
       </div>
       </table>
-		{% end %}
-		{% end %}
-
-    <div class="parameters" id="header">
-        <a href="javascript:setting('ADDuser')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Uživatelé: 
-    </div>   
-    {% for x in _sql("SELECT id, name, r_name, email, text, id_astrozor FROM user;")%}
-      <div class="event_group" id="observtory">
-          <span class="eventGroupCell"> 
-          
-            <a href="javascript:setting('user', {{x[0]}}, '{{x[1]}}')"><img src="/ic_create_black_18dp_1x.png"></a>#{{x[0]}}  Uživatel {{x[1]}} se jménem {{x[2]}}. Email: {{x[3]}}. Na astrozoru jako uživatel číslo {{x[5]}}.
-          
-          <span style="font-size: xx-small"> uživatele {{x[3]}}</span>
-        </span>
-      </div>
-
-    {% end %}
-
-    <div class="parameters" id="header">
-        <a href="javascript:setting('ADDserver')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Servery:
-    </div>   
-    {% for x in _sql("SELECT id, name, type, lat, lon, text, id_astrozor FROM server;")%}
-      <div class="event_group" id="observtory">
-          <span class="eventGroupCell"> 
-          
-            <a href="javascript:setting('server', {{x[0]}}, '{{x[1]}}')"><img src="/ic_create_black_18dp_1x.png"></a>#{{x[0]}}  Server <b>{{x[1]}}</b> ({{x[5]}}) typ {{x[2]}}  <span style="font-size: xx-small"> Astrozor: {{x[6]}}. {{x[3]}}, {{x[4]}}
-          
-         uživatele {{x[3]}}</span>
-        </span>
-      </div>
-
     {% end %}
 
 
-
-<div id="ConfigWindow">
-  <div id="ConfigWindewHeader"><span id="ConfigWindowName"></span> <a href="javascript:close('ConfigWindow')"><img src="/ic_clear_black_18dp_1x.png"></a></div>
-  <div id="ConfigWindowExternal">
-    
-  </div>
-
-</div>
+    <div class="parameters" id="header">
+      <a href="javascript:setting('ADDobservatory')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Users:
+    </div>
+    {% for user in _sql("SELECT user.id, user.name, user.r_name, user.email, user.www, user.text FROM user;")%}
+        <div class="event_group" id="observtory">
+          <span class="eventGroupCell"> 
+          <a href="javascript:setting('observatory', {{"x[0]"}}, '{{"x[1]"}}')"><img src="/ic_create_black_18dp_1x.png"></a><a href="javascript:setting('ADDstation', {{"x[0]"}}, '{{"x[1]"}}')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a>
+            #{{user[0]}}  stanica <b>{{user[1]}}</b> uživatele <b>{{user[0]}}</b>
+          
+          <span style="font-size: xx-small"> uživatele <b>{{user[0]}}</b>, Lat: <b>{{user[3]}}</b>, Lon: <b>{{user[4]}}</b></span>
+        </span>
+      </div>
+      <table class="eventListTable" id="{{'aaa'}}" style="width:100%">
+      <div>
+          {% for station in _sql("SELECT station.id, station.name, station.text FROM station WHERE station.id_observatory = %i;" %(0))%}
+          <tr> 
+              <div class="event_list">
+                <td><a href="javascript:setting('station', {{x2[0]}}, '{{x2[1]}}')"><img src="/ic_create_black_18dp_1x.png" style="left: 0px;"></a> <span class="eventCell"> #{{ station[0] }}, <b>{{ station[1] }}</b> {{ station[2] }}</span></td>
+                <td><span class="eventCell"> </span></td>
+                
+              </div>
+          </tr>
+          {% end %}
+      </div>
+      </table>
+    {% end %}
 {% end %}
