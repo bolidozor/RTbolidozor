@@ -102,6 +102,7 @@ class GetMeteors():
                             'r_name VARCHAR(32), '
                             'email VARCHAR(128), '
                             'pass VARCHAR(128), '
+                            'id_permission SMALLINT UNSIGNED, '
                             'id_astrozor TINYINT UNSIGNED, '
                             'www VARCHAR(255),'
                             'text VARCHAR(500)'

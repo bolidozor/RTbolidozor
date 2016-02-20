@@ -4,7 +4,7 @@
 <script type="text/javascript">
   function setting(type, id, name) {
     document.getElementById("ConfigWindow").style.display = 'block';
-    document.getElementById("ConfigWindowName").innerHTML = '#'+id+'  <b>'+name+'</b>';
+    document.getElementById("ConfigWindowName").innerHTML = '';
     $('#ConfigWindowExternal').load('/auth/update/'+type+'/'+id);
 
   }
@@ -18,12 +18,12 @@
 
 
     <div class="parameters" id="header">
-      <a href="javascript:setting('ADDobservatory')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Places:
+      <a href="javascript:setting('ADDobservatory')"><img src="/ic_add_circle_outline_black_18dp_1x.png" style="float: right;"></a> Places:
     </div>
     {% for observatory in _sql("SELECT observatory.id, observatory.name, observatory.text, observatory.lat, observatory.lon, observatory.alt, observatory.id_user, user.name FROM observatory LEFT JOIN user ON observatory.id_user = user.id;")%}
         <div class="event_group" id="observtory">
           <span class="eventGroupCell"> 
-          <a href="javascript:setting('observatory', {{"x[0]"}}, '{{"x[1]"}}')"><img src="/ic_create_black_18dp_1x.png"></a><a href="javascript:setting('ADDstation', {{"x[0]"}}, '{{"x[1]"}}')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a>
+          <a href="javascript:setting('observatory', {{"x[0]"}}, '{{"x[1]"}}')"><img src="/ic_create_black_18dp_1x.png"></a><a href="javascript:setting('ADDstation', {{observatory[0]}}, '{{observatory[1]}}')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a>
             #{{observatory[0]}}  stanica <b>{{observatory[1]}}</b> uživatele <b>{{observatory[6]}} {{observatory[7]}}</b>
           
           <span style="font-size: xx-small"> uživatele <b>{{observatory[0]}}</b>, Lat: <b>{{observatory[3]}}</b>, Lon: <b>{{observatory[4]}}</b></span>
@@ -46,12 +46,12 @@
 
 
     <div class="parameters" id="header">
-      <a href="javascript:setting('ADDobservatory')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a> Users:
+      <a href="javascript:setting('ADDuser')"><img src="/ic_add_circle_outline_black_18dp_1x.png" style="float: right;"></a> Users:
     </div>
     {% for user in _sql("SELECT user.id, user.name, user.r_name, user.email, user.www, user.text FROM user;")%}
-        <div class="event_group" id="observtory">
+        <div class="event_group" id="user">
           <span class="eventGroupCell"> 
-          <a href="javascript:setting('observatory', {{"x[0]"}}, '{{"x[1]"}}')"><img src="/ic_create_black_18dp_1x.png"></a><a href="javascript:setting('ADDstation', {{"x[0]"}}, '{{"x[1]"}}')"><img src="/ic_add_circle_outline_black_18dp_1x.png"></a>
+          <a href="javascript:setting('user', {{"x[0]"}}, '{{"x[1]"}}')"><img src="/ic_create_black_18dp_1x.png"></a>
             #{{user[0]}}  stanica <b>{{user[1]}}</b> uživatele <b>{{user[0]}}</b>
           
           <span style="font-size: xx-small"> uživatele <b>{{user[0]}}</b>, Lat: <b>{{user[3]}}</b>, Lon: <b>{{user[4]}}</b></span>
@@ -71,4 +71,9 @@
       </div>
       </table>
     {% end %}
+
+<div id="ConfigWindow">
+  <div id="ConfigWindewHeader"><span id="ConfigWindowName"></span> <a href="javascript:close('ConfigWindow')"><img src="/ic_clear_black_18dp_1x.png" style="float: right;"></a></div>
+  <div id="ConfigWindowExternal"></div>
+</div>
 {% end %}

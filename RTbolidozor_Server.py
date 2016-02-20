@@ -18,6 +18,7 @@ import time
 import datetime
 import calendar
 import svgwrite
+import crypt
 
 
 cl = []
@@ -327,7 +328,7 @@ class AuthUpdateHandler(web.RequestHandler):
     def get(self, type):
         path = type.split('/')
         print path
-        self.render("www/layout/adminUpdate.html", title="update page", s_cookie=self.get_secure_cookie, _sql = _sqlo, path=path)
+        self.render("www/layout/adminUpdate.html", title="update page", s_cookie=self.get_secure_cookie, _sql = _sql, path=path)
 
     #@tornado.web.asynchronous
     def post(self, type):
@@ -337,40 +338,44 @@ class AuthUpdateHandler(web.RequestHandler):
         if type[0] == "update":
             if type[1] == "observatory":
                 print ("UPDATE observatory SET name = '%s', lat = %f, lon = %f, alt = %f, text = '%s', id_owner = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), float(self.get_argument('alt', '-1')), self.get_argument('text', ''), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))   ))
-                print "ADD DATA:",  _sqlo("UPDATE observatory SET name = '%s', lat = %f, lon = %f, alt = %f, text = '%s', id_owner = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), float(self.get_argument('alt', '-1')), self.get_argument('text', ''), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))   ))
+                print "ADD DATA:",  _sql("UPDATE observatory SET name = '%s', lat = %f, lon = %f, alt = %f, text = '%s', id_owner = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), float(self.get_argument('alt', '-1')), self.get_argument('text', ''), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))   ))
                 return self.write("done")
 
             elif type[1] == "station":
                 print "----------------", self.get_argument('name', ''), (self.get_argument('map', '')), (self.get_argument('id','')) 
-                print "ADD DATA:",  _sqlo("UPDATE station SET name = '%s', map = %i WHERE id = %i;" %( self.get_argument('name', ''), int(self.get_argument('map', '')), int(self.get_argument('id','')) ))
+                print "ADD DATA:",  _sql("UPDATE station SET name = '%s', map = %i WHERE id = %i;" %( self.get_argument('name', ''), int(self.get_argument('map', '')), int(self.get_argument('id','')) ))
                 return self.write("done")
 
             elif type[1] == "server":
-                print "ADD DATA:",  _sqlo("UPDATE server SET name = '%s', lat = %f, lon = %f, id_owner = %i, id_station = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_observatory', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))  ))
+                print "ADD DATA:",  _sql("UPDATE server SET name = '%s', lat = %f, lon = %f, id_owner = %i, id_station = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_observatory', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))  ))
                 return self.write("done")
             
             elif type[1] == "user":
-                print "ADD DATA:", _sqlo("UPDATE user SET name = '%s', r_name = '%s', permission = %i, email = '%s', text = '%s', id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), self.get_argument('r_name', ''), int(self.get_argument('permission', '')), self.get_argument('email', ''), self.get_argument('text', ''), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id','')) ))
+                print "ADD DATA:", _sql("UPDATE user SET name = '%s', r_name = '%s', permission = %i, email = '%s', text = '%s', id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), self.get_argument('r_name', ''), int(self.get_argument('permission', '')), self.get_argument('email', ''), self.get_argument('text', ''), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id','')) ))
                 return self.write("done")
 
             else:
                 return self.write("err")
+        
         if type[0] == "add":
-            if type[1] == "user":
-                print "ADD DATA:", _sqlo("INSERT INTO user (name, pass, r_name, email, text) VALUES ('%s', '%s', '%s', '%s', '%s')" %(self.get_argument('user', ''), self.get_argument('name', ''), self.get_argument('r_name', ''), self.get_argument('email', ''), self.get_argument('describe', '')))
-                return self.write("done")
+            if type[1] == "user":#IrehaxnRinFzbyxbinwrfhcreQvixn
+                if self.get_argument('pass', '')==self.get_argument('passv', ''):
+                    passv = crypt.crypt(self.get_argument('pass', ''), "IrehaxnRinFzbyxbinwrfhcreQvixn")
+                    print "ADD DATA:", _sql("INSERT INTO user (name, r_name, email, pass, id_permission, id_astrozor, www, text) VALUES ('%s', '%s', '%s', '%s', %s, '%s', '%s', '%s')" %(self.get_argument('name', ''), self.get_argument('r_name', ''), self.get_argument('email', ''), passv, self.get_argument('id_permission', ''), self.get_argument('id_astrozor', ''), self.get_argument('www', ''), self.get_argument('text', '')))
+                    return self.write("done")
+                else:
+                    return self.write("Hesla se neshodují")
 
             elif type[1] == "observatory":
-                print "ADD DATA:",  _sqlo("INSERT INTO observatory (name, lat, lon, alt, text, id_owner, id_astrozor) VALUES ('%s', '%f', '%f', '%i', '%s', '%i', '%i')" %(self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('alt', '')), self.get_argument('text', ''), int(self.get_argument('id_owner', '')), int(self.get_argument('id_astrozor', ''))) )
+                print "ADD DATA:",  _sql("INSERT INTO observatory (name, id_obstype, id_user, lat, lon, alt, text) VALUES ('%s', %s, %s, '%s', '%s', '%s', '%s')" %(self.get_argument('name', ''), self.get_argument('id_obstype', ''), self.get_argument('id_user', ''), self.get_argument('lat', ''), self.get_argument('lon', ''), self.get_argument('alt', ''), self.get_argument('text', '')) )
                 return self.write("done")
 
             elif type[1] == "station":
-                print "ADD DATA:",  _sqlo("INSERT INTO station (name, id_observatory, map) VALUES ('%s', '%i', '%s')" %(self.get_argument('name', ''), int(self.get_argument('observatory', '')), self.get_argument('describe', '')))
+                print "ADD DATA:",  _sql("INSERT INTO station (name, id_observatory, id_stationstat, id_stationtype, handler, text) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')" %(self.get_argument('name', ''), self.get_argument('id_observatory', ''), self.get_argument('id_stationstat', ''), self.get_argument('id_stationtype', ''), self.get_argument('handler', ''), self.get_argument('text', '')))
                 return self.write("done")
-            #self.dbc.execute('CREATE TABLE server (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30) UNIQUE KEY, lat FLOAT, lon FLOAT, alt FLOAT, type INT(3), text VARCHAR(255), id_owner INT, id_station INT, id_astrozor INT);')
 
             elif type[1] == "server":
-                print "ADD DATA:",  _sqlo("INSERT INTO server (name, lat, lon, alt, type, text, id_owner, id_astrozor) VALUES ('%s', '%f', '%f', '%f', '%i', '%s', '%i', '%i')" %(self.get_argument('name', ''), float(self.get_argument('lat', 0)), float(self.get_argument('lon', 0)), float(self.get_argument('alt', -1)),  int(self.get_argument('type', 0)), self.get_argument('describe', ''), int(self.get_argument('id_owner', -1)), int(self.get_argument('id_astrozor', -1)) ))
+                print "ADD DATA:",  _sql("INSERT INTO server (name, lat, lon, alt, type, text, id_owner, id_astrozor) VALUES ('%s', '%f', '%f', '%f', '%i', '%s', '%i', '%i')" %(self.get_argument('name', ''), float(self.get_argument('lat', 0)), float(self.get_argument('lon', 0)), float(self.get_argument('alt', -1)),  int(self.get_argument('type', 0)), self.get_argument('describe', ''), int(self.get_argument('id_owner', -1)), int(self.get_argument('id_astrozor', -1)) ))
                 return self.write("done")
 
             else:
@@ -402,10 +407,10 @@ class SocketHandler(websocket.WebSocketHandler):
             elif m_type == "stanica":       # inicializacializacni sprava od stanice (obsahoje o sobe informace)
                 jsonstation = json.loads(message.split(";")[1])
                 print "type stanica", jsonstation['ident']
-                _sqlo("UPDATE station SET handler = '" + str(self)+"' WHERE name='"+jsonstation['ident']+"';")
+                _sql("UPDATE station SET handler = '" + str(self)+"' WHERE name='"+jsonstation['ident']+"';")
             elif m_type == "event":
                 print "type event", message
-                query = _sqlo("SELECT name FROM station WHERE handler = '"+str(self)+"';")[0]
+                query = _sql("SELECT name FROM station WHERE handler = '"+str(self)+"';")[0]
                 print "EVENT", query[0]
                 for client in cl:
                     client.write_message(u"$meta;" + str(query[0])+ ";" +"{message}")
