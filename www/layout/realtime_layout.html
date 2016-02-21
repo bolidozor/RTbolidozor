@@ -22,12 +22,7 @@
 
       
 
-      function log (msg) {
-        var d = new Date();
-        var dNow = new Date();
-        var s = dNow.getHours() + ':' + dNow.getMinutes() + ">> ";
-        console.log(s+msg)
-      }
+      
 
       var snd = new Audio("meteor.wav"); // buffers automatically when created
       
@@ -157,21 +152,15 @@
       graves.setIcon(IconGraves)
       graves.bindPopup("<b>GRAVES RADAR</b><br>transmitter of radio signal");
 
-      {% for event_group in _sql("SELECT station.id, station.name, observatory.lat, observatory.lon FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id WHERE station.map = True") %}
+      {% for event_group in _sql("SELECT station.id, station.name, observatory.lat, observatory.lon FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id WHERE station.id_stationtype = 1 OR station.id_stationtype = 4;") %}
         var {{ CleanName(event_group[1])}} = L.marker([{{event_group[2]}},{{event_group[3]}}]).addTo(map)
         {{ CleanName(event_group[1])}}.setIcon(IconStationInactive)
         {{ CleanName(event_group[1])}}.bindPopup("station <b>{{event_group[1]}}</b><br>reciver<br> last message: ____;");
       {% end %}
 
-      {% for server in _sql("SELECT server.id, server.name, server.lat, server.lon, server.type, server.text FROM server;") %}
+      {% for server in _sql("SELECT station.id, station.name, observatory.lat, observatory.lon, station.id_stationtype, station.text FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id WHERE station.id_stationtype = 2 OR station.id_stationtype = 3;") %}
         var server{{server[0]}} = L.marker([{{server[2]}},{{server[3]}}]).addTo(map)
-        {% if server[4] == -2%}
-          server{{server[0]}}.setIcon(IconGraves)
-        {% elif server[4] == -1%}
-          server{{server[0]}}.setIcon(IconVor)
-        {% elif server[4] > 0%}
-          server{{server[0]}}.setIcon(IconType{{server[4]}})
-        {% end %}
+          server{{server[0]}}.setIcon(IconType0)
          server{{server[0]}}.bindPopup(" <b>{{server[1]}}</b><br>{{server[5]}}");
       {% end %}
 

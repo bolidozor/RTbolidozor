@@ -12,9 +12,9 @@ import calendar
 ##**************************************
 ##
 ##
-    days = 65
-    gento = time.time()
-    genfrom = gento - 86400*days
+days = 65
+gento = time.time()
+genfrom = gento - 86400*days
 ##
 ##
 ##**************************************
@@ -302,7 +302,6 @@ def main():
         print "CHYBA V CREATE DB ..... ", e, " <<<<"
 
 
-    days = 4
     BolidTimeErr = 60      #ZATIM NEFUNGUJE                 # maximalni cas mezi jednou udalosti na vice stanicich
     MasterBolidLenght = 15                  # minimalni delka alespon jednoho bodidu ze skupiny
     SlaveBolidLenght = 10                   # minimalni delka ostatnich bolidu

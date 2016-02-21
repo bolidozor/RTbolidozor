@@ -24,7 +24,7 @@ import crypt
 cl = []
 
 def wwwCleanName(string):
-    return ''.join( c for c in string if c not in '?:!/;-_#$%^!@' )
+    return ''.join( c for c in string if c not in '?:!/;-_#$%^!@., (){}[]' )
 
 
 def _sqlo(query, read=False):
@@ -246,7 +246,7 @@ class AstroTools(web.RequestHandler):
 class RTbolidozor(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
-        self.render("www/layout/realtime_layout.html", title="Bloidozor multi-bolid database", _sql = _sqlo, parent=self, CleanName = wwwCleanName)
+        self.render("www/layout/realtime_layout.html", title="Bloidozor multi-bolid database", _sql = _sql, parent=self, CleanName = wwwCleanName)
 
 class JSweb(web.RequestHandler):
     @tornado.web.asynchronous
