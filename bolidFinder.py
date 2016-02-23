@@ -12,7 +12,7 @@ import calendar
 ##**************************************
 ##
 ##
-days = 65
+days = 30
 gento = time.time()
 genfrom = gento - 86400*days
 ##
@@ -207,6 +207,13 @@ class GetMeteors():
                             'text VARCHAR(500)'
                         ');')
 
+        self.dbc.execute('insert into station_status (name, text) VALUES'
+                            '("working","Station works fine"), '
+                            '("bad_data","Station gives bad datas"), '
+                            '("blocked", "Station is blocked by administrator of Bolidozor"), '
+                            '("distabled","Station is disabled")'
+                        ';')
+
         self.dbc.execute('CREATE TABLE user_observatory ('
                             'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
                             'id_user INT UNSIGNED NOT NULL, '
@@ -262,13 +269,13 @@ class GetMeteors():
 
     def shoda(self, start = time.time()-86400*10, stop=time.time()):
         print "Minimalni delka bolidu je stanovana na ", self.minDurationBolid, "s. Minimalni delka derivatu je", self.minDuration, "s"
-        sys.stdout.write("SELECT id, time, duration FROM meta WHERE duration > %i AND time > %i AND time < %i ORDER BY meta.duration DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
-        self.dbc.execute("SELECT id, time, duration FROM meta WHERE duration > %i AND time > %i AND time < %i ORDER BY meta.duration DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
+        sys.stdout.write("SELECT id, time, duration FROM meta WHERE duration > %i AND time BETWEEN %i AND %i ORDER BY meta.duration DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
+        self.dbc.execute("SELECT id, time, duration FROM meta WHERE duration > %i AND time BETWEEN %i AND %i ORDER BY meta.duration DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
         row = self.dbc.fetchall()
         print row
         err = 60.0 # casova  odchylka
         for meteor in row:
-            self.dbc.execute("SELECT * FROM meta WHERE time > "+str(float(meteor[1])-err)+" AND time <"+str(float(meteor[1])+err)+ " AND duration > "+ str(self.minDuration) +" GROUP BY id_station ORDER BY mag DESC;")
+            self.dbc.execute("SELECT * FROM meta WHERE time BETWEEN "+str(float(meteor[1])-err)+" AND "+str(float(meteor[1])+err)+ " AND duration > "+ str(self.minDuration) +" GROUP BY id_station ORDER BY mag DESC;")
             n = self.dbc.fetchall()
             if len(n) >> 2:
                 print "-------", n[0][0] ,float(meteor[1]), datetime.datetime.fromtimestamp(float(meteor[1])).strftime('%Y-%m-%d %X'), float(meteor[2])
@@ -288,7 +295,7 @@ class GetMeteors():
         self.db.commit()
 
     def stations(self):
-        self.dbc.execute("SELECT observatory.name, station.name, station.id FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id WHERE station.id_stationtype = 1;")
+        self.dbc.execute("SELECT observatory.name, station.name, station.id FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id WHERE station.id_stationtype = 4 OR  station.id_stationtype = 4;")
         return self.dbc.fetchall()
 
 
@@ -312,8 +319,8 @@ def main():
     print meteors.stations()
 
     if meteors.getYear() == 0:
-        for station in meteors.stations():
-        #for station in []:
+        #for station in meteors.stations():
+        for station in []:
             try:
                 meteors.setPath("bolidozor/%s/%s/data" %(station[0], station[1]), stationID = station[2])
                 start = int(genfrom)

@@ -90,12 +90,12 @@ class MultiBolid(web.RequestHandler):
             else:
                 date_from = time.mktime(time.strptime(month, "%Y-%m"))
                 date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
-            self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], _sql = _sqlo, parent=self)
+            self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], _sql = _sql, parent=self)
         else:
             if MBtype[1]=="event":
                 print "EVENT FOR "
                 id_event = int(MBtype[2])
-                self.render("www/layout/MultiBolid_one_event.html", title="Bloidozor multi-bolid database | EVENT", data=[id_event], _sql = _sqlo, parent=self)
+                self.render("www/layout/MultiBolid_one_event.html", title="Bloidozor multi-bolid database | EVENT", data=[id_event], _sql = _sql, parent=self)
 
 class ZooBolid(web.RequestHandler):
     @tornado.web.asynchronous
@@ -342,9 +342,9 @@ class AuthUpdateHandler(web.RequestHandler):
                 return self.write("done")
 
             elif type[1] == "station":
-                print "----------------", self.get_argument('name', ''), (self.get_argument('map', '')), (self.get_argument('id','')) 
-                print "ADD DATA:",  _sql("UPDATE station SET name = '%s', map = %i WHERE id = %i;" %( self.get_argument('name', ''), int(self.get_argument('map', '')), int(self.get_argument('id','')) ))
-                return self.write("done")
+                # id, name, id_observatory, id_stationstat, id_stationtype, handler, text
+                out = _sql("UPDATE station SET name = '%s', id_stationstat = '%s', id_stationtype = '%s', handler = '%s', text = '%s' WHERE id = %i;" %( self.get_argument('name', ''), str(self.get_argument('id_stationstat', '')), str(self.get_argument('id_stationtype','')), str(self.get_argument('handler','')), str(self.get_argument('text','')), int(self.get_argument('id','')) ))
+                return self.write("done Station update" + str(out))
 
             elif type[1] == "server":
                 print "ADD DATA:",  _sql("UPDATE server SET name = '%s', lat = %f, lon = %f, id_owner = %i, id_station = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_observatory', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))  ))

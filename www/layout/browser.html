@@ -1,12 +1,22 @@
 {% extends "base.html" %}
 {% block container %}
-
-
-    <div class="parameters">
-        Stanice
+ 
+    <div class="block_header">
+        All <span style="size: small;"> @ bolidozor</span>
+        
     </div>
     
-    {% for station in _sql("SELECT station.name, observatory.name FROM station JOIN observatory ON station.id_observatory = observatory.id;") %}
+    <div class="block_content">
+        <div>
+            <object type="image/svg+xml" data="/browser/plotJS/all/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="300" border="0"></object>
+        </div>
+    </div>
+
+    <div class="block_header">
+        Jednotlive stanice
+    </div>
+    
+    {% for station in _sql("SELECT station.name, observatory.name FROM station JOIN observatory ON station.id_observatory = observatory.id WHERE station.id_stationtype = 1 OR  station.id_stationtype = 4;") %}
     
     <div class="block_header">
         {{station[0]}} <span style="size: small;"> @ {{station[1]}} </span>
@@ -22,16 +32,7 @@
 
     {% end %}
 
-    <div class="block_header">
-        All <span style="size: small;"> @ bolidozor</span>
-        
-    </div>
-    
-    <div class="block_content">
-        <div>
-            <object type="image/svg+xml" data="/browser/plotJS/all/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="300" border="0"></object>
-        </div>
-    </div>
+   
 
 {% end %}{% block header%}
 

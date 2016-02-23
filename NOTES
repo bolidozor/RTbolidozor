@@ -109,3 +109,19 @@ mysql> SELECT table_name AS `Table`, table_rows AS rows, round(((data_length + i
 | file_location    |      0 |     0.0156 |
 +------------------+--------+------------+
 
++----------------------------------------+
+| # 2016-02-21						     | # tohle je presne 65 dnu ze vsech stanic
++------------------+--------+------------+
+| Table            | rows   | Size in MB |
++------------------+--------+------------+
+| snap             | 698284 |   109.3438 |
+| meta             | 578534 |   101.2813 |
+| observatory      |     12 |     0.0313 |
+| user             |      2 |     0.0313 |
+| station          |     13 |     0.0313 |
+| metalink         |      0 |     0.0156 |
+| file_location    |      0 |     0.0156 |
+| user_observatory |      0 |     0.0156 |
+| station_type     |      4 |     0.0156 |
+| station_status   |      0 |     0.0156 |
++------------------+--------+------------+

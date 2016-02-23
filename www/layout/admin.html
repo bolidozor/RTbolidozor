@@ -31,10 +31,10 @@
       </div>
       <table class="eventListTable" id="{{'aaa'}}" style="width:100%">
       <div>
-          {% for station in _sql("SELECT station.id, station.name, station.text FROM station WHERE station.id_observatory = %i;" %(observatory[0]))%}
+          {% for station in _sql("SELECT station.id, station.name, station.text, station_status.text  FROM station INNER JOIN station_status ON (station.id_stationstat = station_status.id) WHERE station.id_observatory = %i;" %(observatory[0]))%}
           <tr> 
               <div class="event_list">
-                <td><a href="javascript:setting('station', {{"x2[0]"}}, '{{"x2[1]"}}')"><img src="/ic_create_black_18dp_1x.png" style="left: 0px;"></a> <span class="eventCell"> #{{ station[0] }}, <b>{{ station[1] }}</b> {{ station[2] }}</span></td>
+                <td><a href="javascript:setting('EDITstation', {{station[0]}}, '{{station[1]}}')"><img src="/ic_create_black_18dp_1x.png" style="left: 0px;"></a> <span class="eventCell"> #{{ station[0] }}, <b>{{ station[1] }}</b> {{ station[2] }}  {{ station[3] }}</span></td>
                 <td><span class="eventCell"> </span></td>
                 
               </div>
