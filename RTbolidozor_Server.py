@@ -251,7 +251,7 @@ class RTbolidozor(web.RequestHandler):
 class JSweb(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
-        self.render("www/layout/js.html", title="Bloidozor multi-bolid database", _sql = _sqlo, parent=self)
+        self.render("www/layout/js.html", title="Bloidozor multi-bolid database", _sql = _sql, parent=self)
 
 class AuthLoginHandler(web.RequestHandler):
     @tornado.web.asynchronous

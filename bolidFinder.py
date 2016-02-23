@@ -12,7 +12,7 @@ import calendar
 ##**************************************
 ##
 ##
-days = 30
+days = 60
 gento = time.time()
 genfrom = gento - 86400*days
 ##
@@ -225,8 +225,9 @@ class GetMeteors():
         self.dbc.execute('CREATE TABLE metalink ( '
                             'id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
                             'master INT UNSIGNED NOT NULL, '
-                            'link INT UNSIGNED NOT NULL'
+                            'link INT  UNIQUE KEY UNSIGNED NOT NULL'
                         ');')
+        
         
         self.db.commit()
         
@@ -246,17 +247,18 @@ class GetMeteors():
                         d = line.split(';')
                         if "met" in line:
                             try:
-                                timestap =  str(calendar.timegm(time.strptime(d[0].split("_")[0][:15], "%Y%m%d%H%M%S%f"))+float(d[0].split("_")[0][14:]))
+                                timestap =  str(calendar.timegm(time.strptime(d[0].split("_")[0][:15], "%Y%m%d%H%M%S%f"))+float(d[0].split("_")[0][14:])/10.0**len(str(d[0].split("_")[0][14:])))
                                 self.dbc.execute("INSERT INTO meta (time, id_station, noise, freq, mag, duration, file) VALUES (%f, %f, %f, %f, %f, %f, '%s')"%(float(timestap), float(self.stationID), float(d[1]), float(d[2]), float(d[3]), float(d[4]), str(d[0])))
                             except Exception, e:
                                 #print e, "value probably exist"
+
                                 pass
                             #else:
                                #print "kratky"
                                #pass
                         elif "snap" in line:
                             try:
-                                timestap =  str(calendar.timegm(time.strptime(d[0].split("_")[0][:15], "%Y%m%d%H%M%S%f"))+float(d[0].split("_")[0][14:]))
+                                timestap =  str(calendar.timegm(time.strptime(d[0].split("_")[0][:15], "%Y%m%d%H%M%S%f"))+float(d[0].split("_")[0][14:])/10.0**len(str(d[0].split("_")[0][14:])))
                                 self.dbc.execute("INSERT INTO snap (time, id_station, noise, file) VALUES (%f, %f, %f, '%s');"%(float(timestap), float(self.stationID), float(d[1]), str(d[0])))
                             except Exception, e:
                                 #print e, "value probably exist"
@@ -268,20 +270,23 @@ class GetMeteors():
 
 
     def shoda(self, start = time.time()-86400*10, stop=time.time()):
+        i = 0
         print "Minimalni delka bolidu je stanovana na ", self.minDurationBolid, "s. Minimalni delka derivatu je", self.minDuration, "s"
-        sys.stdout.write("SELECT id, time, duration FROM meta WHERE duration > %i AND time BETWEEN %i AND %i ORDER BY meta.duration DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
-        self.dbc.execute("SELECT id, time, duration FROM meta WHERE duration > %i AND time BETWEEN %i AND %i ORDER BY meta.duration DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
+        #sys.stdout.write("SELECT meta.id, meta.time, meta.duration FROM meta JOIN station ON meta.id_station = station.id WHERE (meta.duration) > %i AND (time BETWEEN %i AND %i) AND (station.id_stationstat = 1)  ORDER BY meta.time DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
+        self.dbc.execute("SELECT meta.id, meta.time, meta.duration FROM meta JOIN station ON meta.id_station = station.id WHERE (meta.duration > %i) AND (meta.time BETWEEN %i AND %i) AND (station.id_stationstat = 1) ORDER BY meta.mag DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
         row = self.dbc.fetchall()
-        print row
+        lenrow = len(row)
+        print row, len(row)
+        print ""
         err = 60.0 # casova  odchylka
         for meteor in row:
-            self.dbc.execute("SELECT * FROM meta WHERE time BETWEEN "+str(float(meteor[1])-err)+" AND "+str(float(meteor[1])+err)+ " AND duration > "+ str(self.minDuration) +" GROUP BY id_station ORDER BY mag DESC;")
+            #self.dbc.execute("SELECT * FROM meta LEFT OUTER JOIN metalink ON metalink.link = meta.id WHERE (metalink.link IS NULL) AND (meta.time BETWEEN %f AND %f) AND (meta.duration > %f)  GROUP BY meta.id_station ORDER BY meta.mag DESC;" %(float(meteor[1])-err, float(meteor[1])+err, float(self.minDuration)))
+            self.dbc.execute("SELECT meta.id FROM meta JOIN station ON meta.id_station = station.id WHERE (meta.time > %f) AND (meta.time < %f) AND (meta.duration > %f) AND (station.id_stationstat = 1) GROUP BY meta.id_station ORDER BY meta.mag DESC;" %(float(meteor[1])-err, float(meteor[1])+err, float(self.minDuration)))
             n = self.dbc.fetchall()
-            if len(n) >> 2:
+            if len(n) > 3:
                 print "-------", n[0][0] ,float(meteor[1]), datetime.datetime.fromtimestamp(float(meteor[1])).strftime('%Y-%m-%d %X'), float(meteor[2])
                 refid = n[0][0]
                 for near in n:
-                    #self.dbc.execute("UPDATE meta SET link ="+str(refid)+" WHERE id ="+str(near[0])+";")
                     try:
                         self.dbc.execute("INSERT INTO metalink (master, link) VALUES (%i, %i);"%(refid, near[0]))
                     except Exception, e:
@@ -290,17 +295,17 @@ class GetMeteors():
                     self.db.commit()
 
             else:
-                sys.stdout.write("pass ")
+                sys.stdout.write("#")
                 sys.stdout.flush()
         self.db.commit()
 
     def stations(self):
-        self.dbc.execute("SELECT observatory.name, station.name, station.id FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id WHERE station.id_stationtype = 4 OR  station.id_stationtype = 4;")
+        self.dbc.execute("SELECT observatory.name, station.name, station.id FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id WHERE (station.id_stationtype = 1 OR  station.id_stationtype = 4) AND station.id_stationstat = 1;")
         return self.dbc.fetchall()
 
 
 def main():  
-    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", year=0, month=0, day=0, minDBDuration = 0.1, minDuration=5, minDurationBolid=15)
+    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", year=0, month=0, day=0, minDBDuration = 0.1, minDuration=5, minDurationBolid=10)
     
     try:
         #meteors.createDb()
@@ -310,8 +315,8 @@ def main():
 
 
     BolidTimeErr = 60      #ZATIM NEFUNGUJE                 # maximalni cas mezi jednou udalosti na vice stanicich
-    MasterBolidLenght = 15                  # minimalni delka alespon jednoho bodidu ze skupiny
-    SlaveBolidLenght = 10                   # minimalni delka ostatnich bolidu
+    MasterBolidLenght = 10                  # minimalni delka alespon jednoho bodidu ze skupiny
+    SlaveBolidLenght = 5                   # minimalni delka ostatnich bolidu
     DelayDownload = 86400*days                 # pokud je automaticky vyber generovani databaze, jak dlouho zpet se obnovuje DB?
     DelayMulti = 86400*days + BolidTimeErr      # pokud je automaticky vyber generovani databaze, jak dlouho zpet se hleda multibolid?
 
@@ -319,21 +324,23 @@ def main():
     print meteors.stations()
 
     if meteors.getYear() == 0:
-        #for station in meteors.stations():
-        for station in []:
-            try:
-                meteors.setPath("bolidozor/%s/%s/data" %(station[0], station[1]), stationID = station[2])
-                start = int(genfrom)
-                stop = int(gento+86400)
-                for genTime in xrange(start, stop, 86400):
-                    try:
-                        meteors.set(year = datetime.datetime.fromtimestamp(int(genTime)).year, month = datetime.datetime.fromtimestamp(int(genTime)).month, day = datetime.datetime.fromtimestamp(int(genTime)).day)
-                        meteors.run()
-                    except Exception, e:
-                        print e
+        if not "noget" in sys.argv:
+            for station in meteors.stations():
+                try:
+                    meteors.setPath("bolidozor/%s/%s/data" %(station[0], station[1]), stationID = station[2])
+                    start = int(genfrom)
+                    stop = int(gento+86400)
+                    for genTime in xrange(start, stop, 86400):
+                        try:
+                            meteors.set(year = datetime.datetime.fromtimestamp(int(genTime)).year, month = datetime.datetime.fromtimestamp(int(genTime)).month, day = datetime.datetime.fromtimestamp(int(genTime)).day)
+                            meteors.run()
+                        except Exception, e:
+                            print e
 
-            except Exception, e:
-                print "ERROR:", e
+                except Exception, e:
+                    print "ERROR:", e
+        else:
+            print "skipping get"
         try:  
             meteors.shoda()
         except Exception, e:
