@@ -34,10 +34,10 @@ function ListRenew() {
     <div class="parameters">
     <form method="get" name="form">
   		From:
-  		<input type="date" name="from_date" value="{{argv('from_date','time.strftime("%Y-%m-%d", time.time()-3600*24)')}}">
+  		<input type="date" name="from_date" value="{{argv('from_date',time.strftime("%Y-%m-%d", time.localtime()))}}">
   		<input type="time" name="from_time" value="{{argv('from_time','00-00-00')}}" distabled>
-  		To:
-  		<input type="date" name="to_date" value="{{argv('to_date','time.strftime("%Y-%m-%d", time.time())')}}">
+  		To: {{time.strftime("%Y-%m-%d", time.localtime())}}
+  		<input type="date" name="to_date" value="{{argv('to_date',time.strftime("%Y-%m-%d", time.localtime()))}}">
   		<input type="time" name="to_time" value="{{argv('to_time','00-00-00')}}" distabled><br>
   		Status stanice: 
   		<select name="id_stationtype">
@@ -55,7 +55,6 @@ function ListRenew() {
     <div id="folder">
 
         {% set d_from = time.mktime(time.strptime(argv('from_date', '2017-01-01'), "%Y-%m-%d")) %}
-        {% set d_to = time.mktime(time.strptime(argv('to_date', '2015-01-01'), "%Y-%m-%d")) %}
         {% set d_to = time.mktime(time.strptime(argv('to_date', '2015-01-01'), "%Y-%m-%d")) %}
         {% set min_lenght = int(str(argv('min_lenght', '1'))) %}
         {% set rows = _sql("SELECT meta.time, meta.id_station, meta.noise, meta.freq, meta.mag, meta.duration, observatory.name, station.name, meta.file FROM meta INNER JOIN station ON station.id = meta.id_station INNER JOIN observatory ON observatory.id = station.id_observatory WHERE (meta.time BETWEEN %f AND %f) AND meta.duration > %f ORDER BY meta.time;" %(float(d_from), float(d_to), float(min_lenght))) %}
