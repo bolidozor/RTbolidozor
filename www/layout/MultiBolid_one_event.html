@@ -27,11 +27,11 @@
         </form>
     </div>
     
-{% set events = _sql("SELECT metalink.link, meta.time, meta.id_station, meta.noise, meta.freq, meta.mag, meta.duration, observatory.name, station.name, meta.file FROM metalink LEFT JOIN meta ON meta.id = metalink.link LEFT JOIN station ON station.id = meta.id_station LEFT JOIN observatory ON observatory.id = station.id_observatory WHERE metalink.master = "+str(data[0])+";")%}
+{% set events = _sql("SELECT metalink.link, meta.time, meta.id_station, meta.noise, meta.freq, meta.mag, meta.duration, observatory.name, station.name, meta.file FROM metalink LEFT JOIN meta ON meta.id = metalink.link LEFT JOIN station ON station.id = meta.id_station LEFT JOIN observatory ON observatory.id = station.id_observatory WHERE metalink.master = "+str(data[0])+" ORDER BY meta.duration;")%}
 
 <table class="eventListTable" id="{{events[1]}}" style="width:100%">
     <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
-
+{% set Mtime = events[0][1] %}
 {% for event in events %}
 {% try %}
     <tr> <div class="event_list">
@@ -52,7 +52,33 @@
 </table>
 
 
+    <div class="parameters">
+        <form style="margin: 0px; padding: 0px; display: in-line; max-width: 90%;">
+            Close data (in 5min)
+        </form>
+    </div>
 
+
+<table class="eventListTable" id="{{events[1]}}" style="width:100%">
+    <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
+{% for event in _sql("SELECT meta.time, meta.id_station, meta.noise, meta.freq, meta.mag, meta.duration, observatory.name, station.name, meta.file FROM meta INNER JOIN station ON station.id = meta.id_station INNER JOIN observatory ON observatory.id = station.id_observatory WHERE (meta.time BETWEEN %f AND %f) AND meta.duration > 1 ORDER BY meta.time;" %(float(Mtime)-300.0, float(Mtime)+300.0)) %}
+{% try %}
+    <tr>
+        <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(float(event[0])).strftime('%Y-%m-%d %X')}} &#916 {{float(event[0]) - float(Mtime)}}s</span></td>
+        <td><span class="eventCell"> {{event[7]}}</span></td>
+        <td><span class="eventCell"> {{float(event[2])}}</span>
+        <td><span class="eventCell"> {{float(event[3])}}</span></td>
+        <td><span class="eventCell"> {{float(event[4])}}</span></td>
+        <td><span class="eventCell"> {{event[5]}}</span></td>
+        <td><span class="eventCell">  <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/{{event[6]}}/{{event[7]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[8]}}"><img src="/prw.png" style="max-width: 20px;"></a>
+                                      <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/{{event[6]}}/{{event[7]}}/meteors/{{datetime.datetime.fromtimestamp(event[0]).strftime('%Y/%m/%d/%H')}}/{{event[8]}}"><img src="/sun.png" style="max-width: 20px;"></a>
+                                      <a href="javascript:Open('http://space.astro.cz/bolidozor/{{event[6]}}/{{event[7]}}/meteors/{{datetime.datetime.fromtimestamp(event[0]).strftime('%Y/%m/%d/%H')}}/{{event[8]}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img></a></td>
+    </tr>
+{% except %}
+    <td> Err </td><td></td><td></td><td></td><td></td><td></td> </tr>
+{% end %}
+{% end %}
+</table>
 
 
     <div id="window">
