@@ -12,7 +12,7 @@ import calendar
 ##**************************************
 ##
 ##
-days = 60
+days = 5
 gento = time.time()
 genfrom = gento - 86400*days
 ##
@@ -251,7 +251,6 @@ class GetMeteors():
                                 self.dbc.execute("INSERT INTO meta (time, id_station, noise, freq, mag, duration, file) VALUES (%f, %f, %f, %f, %f, %f, '%s')"%(float(timestap), float(self.stationID), float(d[1]), float(d[2]), float(d[3]), float(d[4]), str(d[0])))
                             except Exception, e:
                                 #print e, "value probably exist"
-
                                 pass
                             #else:
                                #print "kratky"

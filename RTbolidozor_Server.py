@@ -234,7 +234,7 @@ class DBreader(web.RequestHandler):
 
             print from_date, to_date
         else:
-            self.render("www/layout/DBreader/mainpage.html", title="DBreader", _sql=_sql, parent=self)
+            self.render("www/layout/DBreader/mainpage.html", title="DBreader", _sql=_sql, parent=self, argv = self.get_argument)
 
 
 

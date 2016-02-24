@@ -41,7 +41,7 @@ mysql> SELECT table_name AS `Table`, table_rows AS rows, round(((data_length + i
 
 mysql> SELECT table_name AS `Table`, table_rows AS rows, round(((data_length + index_length) / 1024 / 1024), 4) `Size in MB` FROM information_schema.TABLES WHERE table_schema = 'RTbolidozor' ORDER BY (data_length+ index_length) DESC;
 
-
+mysql> select count(*), id_station, station.name from meta JOIN station ON meta.id_station = station.id group by id_station order by count(*) DESC;
 
 +--------------------------------------+
 | # 2016-02-20						   |
@@ -125,3 +125,48 @@ mysql> SELECT table_name AS `Table`, table_rows AS rows, round(((data_length + i
 | station_type     |      4 |     0.0156 |
 | station_status   |      0 |     0.0156 |
 +------------------+--------+------------+
+
++----------+------------+-------------------+
+| count(*) | id_station | name              |
++----------+------------+-------------------+
+|   180789 |         14 | HPHK-R2           |
+|   108189 |         12 | ZEBRAK-R3         |
+|    82668 |         11 | ZVOLENEVES-R1     |
+|    68011 |          8 | OBSUPICE-R4       |
+|    47780 |         13 | OBSJAROMER-R2     |
+|    34789 |          1 | SVAKOV-R7         |
+|    17974 |          2 | ZVPP-R3           |
+|    14886 |         15 | BPB-R1            |
+|    11567 |          9 | NACHODSKO-R3      |
+|     5765 |          3 | ZVPP-R4           |
+|     1193 |         10 | DDMTREBIC-TEST-R1 |
++----------+------------+-------------------+
+
++----------------------------------------+
+| # 2016-02-21						     | # tohle je presne 60 dnu
++------------------+--------+------------+
+| Table            | rows   | Size in MB |
++------------------+--------+------------+
+| snap             | 713805 |   113.3594 |
+| meta             | 310438 |    74.7656 |
+| user             |      2 |     0.0313 |
+| station          |     13 |     0.0313 |
+| observatory      |     12 |     0.0313 |
+| metalink         |    209 |     0.0313 |
+| user_observatory |      0 |     0.0156 |
+| station_type     |      4 |     0.0156 |
+| station_status   |      4 |     0.0156 |
+| file_location    |      0 |     0.0156 |
++------------------+--------+------------+
++----------+------------+-------------------+
+| count(*) | id_station | name              |
++----------+------------+-------------------+
+|    97606 |         12 | ZEBRAK-R3         |
+|    76281 |         11 | ZVOLENEVES-R1     |
+|    60416 |          8 | OBSUPICE-R4       |
+|    37940 |          1 | SVAKOV-R7         |
+|    15759 |         15 | BPB-R1            |
+|    10119 |          9 | NACHODSKO-R3      |
+|     6798 |          3 | ZVPP-R4           |
+|     1254 |         10 | DDMTREBIC-TEST-R1 |
++----------+------------+-------------------+

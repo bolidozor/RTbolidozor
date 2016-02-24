@@ -1,5 +1,9 @@
+
 {% extends "../base.html" %}
 {% block meta%}
+{% import datetime %}
+{% import time %}
+{% import math %}
 <script type="text/javascript">
 	
 function ListRenew() {
@@ -7,30 +11,79 @@ function ListRenew() {
 	document.getElementById("ConfigWindowName").innerHTML = '<img src="/ic_refresh_black_48dp_1x.png">';
     $('#ConfigWindowExternal').load('database/data');
 }
-
 </script>
+
+<link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9support.css">
+<link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9.css">
+<script type="text/javascript" src="http://space.astro.cz/bolidozor/support/js9browser/js9support.min.js"></script>
+<script type="text/javascript" src="http://js9.si.edu/js9/js9.min.js"></script>
+<script type="text/javascript" src="http://js9.si.edu/js9/js9plugins.js"></script>
+<script type="text/javascript">
+    function Open(args) {
+        JS9.Load.apply(this, arguments)
+        document.getElementById("window").style.display = 'block';
+    }
+    function Close() {
+        document.getElementById("window").style.display = 'none';
+    }
+</script>
+
 {% end %}{% block container %}
 
 
     <div class="parameters">
+    <form method="get" name="form">
   		From:
-  		<input type="date" name="from_date">
-  		<input type="time" name="from_time" disabled><br>
+  		<input type="date" name="from_date" value="{{argv('from_date','time.strftime("%Y-%m-%d", time.time()-3600*24)')}}">
+  		<input type="time" name="from_time" value="{{argv('from_time','00-00-00')}}" distabled>
   		To:
-  		<input type="date" name="to_date">
-  		<input type="time" name="to_time" disabled><br>
-  		Stanice: 
-  		{% for stanice in _sql("SELECT station.id, station.name, observatory.name FROM station JOIN observatory ON station.id_observatory = observatory.id;")%}
-  			<input type="checkbox" name="stanice" value="{{ stanice[0] }}" checked>{{ stanice[0] }} {{ stanice[1] }} ({{ stanice[2] }}),<br>
-  		{% end %}
+  		<input type="date" name="to_date" value="{{argv('to_date','time.strftime("%Y-%m-%d", time.time())')}}">
+  		<input type="time" name="to_time" value="{{argv('to_time','00-00-00')}}" distabled><br>
+  		Status stanice: 
+  		<select name="id_stationtype">
+                        {% for y in _sql("SELECT id, name, text FROM station_status ORDER BY id;") %}
+                          <option value="{{y[0]}}">{{str(y[1])}} - {{str(y[2])}}</option>
+                        {% end %}</select distabled>
   		min lenght:
-  		<input type="number" name="min_lenght"><br>
-  		<a href="javascript:ListRenew();"><input type="submit"></a>
+  		<input type="number" name="min_lenght" value="{{argv('min_lenght','1')}}"><br>
+  		<a href="javascript:ListRenew();"><input type="button" value="test"></a>
+      <input type="submit">
+    </form>
 
     </div>
     
     <div id="folder">
-    	<img src="/ic_refresh_black_48dp_1x.png">
+
+        {% set d_from = time.mktime(time.strptime(argv('from_date', '2017-01-01'), "%Y-%m-%d")) %}
+        {% set d_to = time.mktime(time.strptime(argv('to_date', '2015-01-01'), "%Y-%m-%d")) %}
+        {% set d_to = time.mktime(time.strptime(argv('to_date', '2015-01-01'), "%Y-%m-%d")) %}
+        {% set min_lenght = int(str(argv('min_lenght', '1'))) %}
+        {% set rows = _sql("SELECT meta.time, meta.id_station, meta.noise, meta.freq, meta.mag, meta.duration, observatory.name, station.name, meta.file FROM meta INNER JOIN station ON station.id = meta.id_station INNER JOIN observatory ON observatory.id = station.id_observatory WHERE (meta.time BETWEEN %f AND %f) AND meta.duration > %f ORDER BY meta.time;" %(float(d_from), float(d_to), float(min_lenght))) %}
+      {{len(rows)}}
+    <table class="eventListTable" id="{{0}}" style="width:100%">
+    <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
+        {% for row in rows %}
+        <tr>
+            <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(float(row[0])).strftime('%Y-%m-%d %X')}} </span></td>
+            <td><span class="eventCell"> {{row[7]}}</span></td>
+            <td><span class="eventCell"> {{float(row[2])}}</span>
+            <td><span class="eventCell"> {{float(row[3])}}</span></td>
+            <td><span class="eventCell"> {{float(row[4])}}</span></td>
+            <td><span class="eventCell"> {{row[5]}}</span></td>
+            <td><span class="eventCell">  <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/{{row[6]}}/{{row[7]}}/meteors/{{datetime.datetime.fromtimestamp(row[1]).strftime('%Y/%m/%d/%H')}}/{{row[8]}}"><img src="/prw.png" style="max-width: 20px;"></a>
+                                          <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/{{row[6]}}/{{row[7]}}/meteors/{{datetime.datetime.fromtimestamp(row[0]).strftime('%Y/%m/%d/%H')}}/{{row[8]}}"><img src="/sun.png" style="max-width: 20px;"></a>
+                                          <a href="javascript:Open('http://space.astro.cz/bolidozor/{{row[6]}}/{{row[7]}}/meteors/{{datetime.datetime.fromtimestamp(row[0]).strftime('%Y/%m/%d/%H')}}/{{row[8]}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img></a></td>
+        </tr>
+
+        {% end %}
+    </table>
+
+    </div>
+
+    <div id="window">
+        <div style="text-align: left;"><a href="javascript:Close();"><img src="/ic_clear_black_18dp_1x.png"></a></div>
+        <div class="JS9Menubar"></div>
+        <div class="JS9"></div>
     </div>
     
 
