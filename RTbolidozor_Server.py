@@ -19,6 +19,15 @@ import datetime
 import calendar
 import svgwrite
 import crypt
+import numpy as np
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+
+import mpld3
+from mpld3 import plugins, utils
+from matplotlib.dates import MONDAY
+from matplotlib.dates import MonthLocator, WeekdayLocator, DateFormatter
 
 
 cl = []
@@ -140,13 +149,15 @@ class Browser(web.RequestHandler):
         return "rgb(%i,%i,%i)"%(int(red), int(green), int(blue))
 
     def get(self, params=None):
-        d_month = self.get_argument('month', None)
+        pwr_start_time = time.time()
+        d_month = self.get_argument('month', 'last')
 
         self.maxVal = int(self.get_argument('max', 100))
         self.color = int(self.get_argument('color', 1))
         height = int(self.get_argument('height', 250))-20
         width = int(self.get_argument('width', 700))
         step = int(self.get_argument('step', 0))
+        print params, d_month
 
         if 'plotJS' in params:
 
@@ -161,11 +172,12 @@ class Browser(web.RequestHandler):
 
             if d_month == "last" or d_month == "LAST":
                 today = datetime.datetime.now()
-                now = time.time() + (86400-(int(time.time()) - calendar.timegm((today.replace(hour=0, minute=0, second=0, microsecond=0)).timetuple()) )) + 86400
+                now = time.time() + (86400-(int(time.time()) - calendar.timegm((today.replace(hour=0, minute=0, second=0, microsecond=0)).timetuple()) )) + 86400 # cas dnesni pulnoci
+                print "dnes bude datum", now
                 # time.mktime(datetime.datetime.strptime(s, "%d/%m/%Y").timetuple())
                 #tomidnight = (86400000-(now - today.replace(hour=0, minute=0, second=0, microsecond=0).time().microsecond)/1000)
-                d_month = now-3600*24*(int((int(width)//int(int(height)/24)))-3)
-                date_from = d_month
+                #d_month = now-3600*24*60
+                date_from = now-3600*24*60
                 date_to   = now
             elif not d_month and not d_from and not d_to:
                 d_month = time.time()
@@ -186,26 +198,130 @@ class Browser(web.RequestHandler):
             d = params.split('/')
             #print params, d
             if d[2] == 'all':
-                counts = _sql("select 3600*(meta.time div 3600), count(*) from meta JOIN station ON station.id = meta.id_station WHERE time > '%s' AND time < '%s' GROUP BY meta.time div 3600 ORDER BY time DESC;" %(str(date_from), str(date_to)), True)
+                print "aaa", float(date_from), float(date_to)
+                counts = np.array(_sql("select (meta.time div 3600), count(*) from meta JOIN station ON station.id = meta.id_station WHERE (time BETWEEN %f AND %f) GROUP BY meta.time div 3600 ORDER BY time DESC;" %(float(date_from), float(date_to)), True))
             else:
-                counts = _sql("select 3600*(meta.time div 3600), count(*) from meta JOIN station ON station.id = meta.id_station WHERE station.name = '%s' AND time > '%s' AND time < '%s' GROUP BY meta.time div 3600 ORDER BY time DESC;" %(d[2], str(date_from), str(date_to)), True)
-            if counts:
-                self.maxVal = max(item[1] for item in counts)
+                counts = np.array(_sql("select (meta.time div 3600), count(*) from meta JOIN station ON station.id = meta.id_station WHERE station.name = '%s' AND (time BETWEEN %f AND %f) GROUP BY meta.time div 3600 ORDER BY time DESC;" %(d[2], float(date_from), float(date_to)), True))
+            
+            #if counts:
+            '''
+            xmax, ymax = np.amax(counts, axis=0)
+            self.maxVal = ymax
+            print counts.shape
+            #counts = counts.reshape((counts.shape[0]/24, 24))
             svg = svgwrite.Drawing(size=(width,height+20))
             pixH = float(height)/24.0
             #pixW = float(width)/31.0
             pixW = pixH
             maxday = ((int(time.time())//3600)//24)+1
-            print maxday
-            svg.add(svg.rect(insert=( 50, 50), size=(50, 50), stroke = "#303030", fill = "#303030" ))
             
-            for hour in counts:
+            for hour in np.nditer(counts):
+                #print hour
                 dataTime = datetime.datetime.fromtimestamp(hour[0])
                 svg.add(svg.rect(insert=( int(width) - int(pixW) - int(pixW)*int((maxday-hour[0]//3600//24)), pixH*int(dataTime.hour)), size=(pixW, pixH), stroke = self.calc_colour(hour[1]), fill = self.calc_colour(hour[1])) )
             Ssvg = svg.tostring()
             #print Ssvg
-
+            print "################ CAS ....", pwr_start_time-time.time()
             self.write(Ssvg)
+            '''
+            # every monday
+            mondays = WeekdayLocator(MONDAY)
+
+            # every 3rd month
+            months = MonthLocator(range(1, 13), bymonthday=1, interval=3)
+            monthsFmt = DateFormatter("%b '%y")
+  
+            maxday = ((int(time.time())//3600)//24)+1
+            size = (24,  int(maxday-counts[0][0]//86400))
+            #data = np.array.null(size=size)
+            data = np.zeros(size)
+
+            print "velikosti", np.amin(counts,axis=0)[0], np.amax(counts,axis=0)[0]
+            mini = np.amin(counts,axis=0)[0]
+            for x in range (np.amin(counts,axis=0)[0], np.amax(counts,axis=0)[0]):
+                try:
+                    k = x-mini
+                    a = counts[k][0]
+                    b = counts[k][1]
+                    print k-(k//24)*24, (k//24)*24, k//24, k, a, b, x
+                    data[k-(k//24)*24][k]=b
+                except Exception, e:
+                    pass
+            print "velikosti", np.amin(counts,axis=0)[0], np.amax(counts,axis=0)[0], size
+            
+            
+            #print counts.shape
+            #print dates
+
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.imshow(data, cmap=plt.cm.jet, interpolation='nearest', aspect='auto')
+            ax.grid(color='white', linestyle='solid')
+            ax.xaxis.set_major_locator(months)
+            ax.xaxis.set_major_formatter(monthsFmt)
+            ax.xaxis.set_minor_locator(mondays)
+            fig.autofmt_xdate()
+            
+            self.write(mpld3.fig_to_html(fig))
+
+
+        elif "yeartrend" in params:
+            d = params.split('/')
+
+            #now = datetime.datetime.utcnow()
+            
+            start_time = time.mktime(datetime.date(2016, 1, 1).timetuple())
+            end_time = time.mktime(datetime.date(2017, 1, 1).timetuple())
+            if d[2] == 'all':
+                counts = np.array(_sql("select (86400)*(meta.time div (86400)), count(*) from meta JOIN station ON station.id = meta.id_station WHERE (time BETWEEN %f AND %f) GROUP BY meta.time div (86400) ORDER BY time;" %(float(start_time), float(end_time)), True))
+            else:
+                counts = np.array(_sql("select (86400)*(meta.time div (86400)), count(*) from meta JOIN station ON station.id = meta.id_station WHERE (station.name = '%s') AND (time BETWEEN %f AND %f) GROUP BY meta.time div (86400) ORDER BY time;" %(d[2], float(start_time), float(end_time)), True))
+            xmax, ymax = np.amax(counts, axis=0)
+            self.maxVal = ymax
+
+            svg = svgwrite.Drawing(size=(width,height+20))
+            pointH = float(height)/ymax
+            poinW = float(width)/(366)
+
+            
+            #svg.add(svg.rect(insert=( 190, 100), size=(50, 50), stroke = "#101010", fill = "#707070" ))
+            """
+            for hour in counts:
+                dataTime = datetime.datetime.fromtimestamp(int(hour[0]))
+                #svg.add(svg.rect(insert=( int(width) - int(pixW) - int(pixW)*int((maxday-hour[0]//3600//24)), pixH*int(dataTime.hour)), size=(pixW, pixH), stroke = self.calc_colour(hour[1]), fill = self.calc_colour(hour[1])) )
+                x=(int(hour[0])-start_time)/48600*poinW
+                y=height-int(hour[1])*pointH
+                try:
+                    svg.add(svg.line((x_o, y_o),(x, y), style="stroke:rgb(255,0,0);stroke-width:2"))
+                except Exception, e:
+                    pass
+                x_o = x
+                y_o = y
+            Ssvg = svg.tostring()
+            print "################ CAS ....", pwr_start_time-time.time()
+            """
+            # every monday
+            mondays = WeekdayLocator(MONDAY)
+
+            # every 3rd month
+            months = MonthLocator(range(1, 13), bymonthday=1, interval=3)
+            monthsFmt = DateFormatter("%b '%y")
+
+            dates = [q[0] for q in counts]
+            values = [q[1] for q in counts]
+
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.plot(dates, values)
+            ax.set_xlim([start_time,end_time])
+            ax.grid(color='white', linestyle='solid')
+            ax.xaxis.set_major_locator(months)
+            ax.xaxis.set_major_formatter(monthsFmt)
+            ax.xaxis.set_minor_locator(mondays)
+            fig.autofmt_xdate()
+
+            self.write(mpld3.fig_to_html(fig))
+
         else:
             self.render("www/layout/browser.html", title="Bloidozor data browser", _sql = _sql, parent=self)
 

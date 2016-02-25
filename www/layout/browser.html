@@ -8,7 +8,10 @@
     
     <div class="block_content">
         <div>
-            <object type="image/svg+xml" data="/browser/plotJS/all/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="300" border="0"></object>
+            <object type="image/svg+xml" data="/browser/plotJS/all/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>
+        </div>
+        <div>
+            <object type="image/svg+xml" data="/browser/yeartrend/all/?width=690&height=100&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>
         </div>
     </div>
 
@@ -26,7 +29,10 @@
     <div class="block_content">
         Správce: <a href="mailto:{{station[0]}}">{{station[0]}}</a>
         <div>
-            <object type="image/svg+xml" data="/browser/plotJS/{{station[0]}}/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="300" border="0"></object>
+            <object type="image/svg+xml" data="/browser/plotJS/{{station[0]}}/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>
+        </div>
+        <div>
+            <object type="image/svg+xml" data="/browser/yeartrend/{{station[0]}}/?width=690&height=100&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>
         </div>
     </div>
 
