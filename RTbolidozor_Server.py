@@ -199,9 +199,9 @@ class Browser(web.RequestHandler):
             #print params, d
             if d[2] == 'all':
                 print "aaa", float(date_from), float(date_to)
-                counts = np.array(_sql("select (meta.time div 3600), count(*) from meta JOIN station ON station.id = meta.id_station WHERE (time BETWEEN %f AND %f) GROUP BY meta.time div 3600 ORDER BY time DESC;" %(float(date_from), float(date_to)), True))
+                counts = np.array(_sql("select (meta.time div 3600), count(*) from meta JOIN station ON station.id = meta.id_station WHERE (time BETWEEN %f AND %f) GROUP BY meta.time div 3600 ORDER BY time;" %(float(date_from), float(date_to)), True))
             else:
-                counts = np.array(_sql("select (meta.time div 3600), count(*) from meta JOIN station ON station.id = meta.id_station WHERE station.name = '%s' AND (time BETWEEN %f AND %f) GROUP BY meta.time div 3600 ORDER BY time DESC;" %(d[2], float(date_from), float(date_to)), True))
+                counts = np.array(_sql("select (meta.time div 3600), count(*) from meta JOIN station ON station.id = meta.id_station WHERE station.name = '%s' AND (time BETWEEN %f AND %f) GROUP BY meta.time div 3600 ORDER BY time;" %(d[2], float(date_from), float(date_to)), True))
             
             #if counts:
             '''
@@ -231,32 +231,37 @@ class Browser(web.RequestHandler):
             months = MonthLocator(range(1, 13), bymonthday=1, interval=3)
             monthsFmt = DateFormatter("%b '%y")
   
-            maxday = ((int(time.time())//3600)//24)+1
-            size = (24,  int(maxday-counts[0][0]//86400))
+            #maxday = ((int(time.time())//3600)//24)+1
+            maxday = (int(date_to)//3600)
+            minday = (int(date_from)//3600)
+            size = (24,  (int(maxday-minday)//24))
             #data = np.array.null(size=size)
-            data = np.zeros(size)
+            data = np.ones(size)
 
-            print "velikosti", np.amin(counts,axis=0)[0], np.amax(counts,axis=0)[0]
             mini = np.amin(counts,axis=0)[0]
-            for x in range (np.amin(counts,axis=0)[0], np.amax(counts,axis=0)[0]):
+            #for x in range (minday, maxday):
+            mindaybase = minday//24
+            for x in range (0, len(counts)):
                 try:
-                    k = x-mini
-                    a = counts[k][0]
-                    b = counts[k][1]
-                    print k-(k//24)*24, (k//24)*24, k//24, k, a, b, x
-                    data[k-(k//24)*24][k]=b
+                    a = counts[x][0] # hodina
+                    b = counts[x][1] # pocet
+                    k = b-minday
+                    l = a-minday
+                    data[a-(a//24)*24][a//24 - mindaybase]=b
+                    #print x, k ,"-", a-(a//24)*24, (a//24)- mindaybase, (a-(a//24)), b, a
                 except Exception, e:
-                    pass
-            print "velikosti", np.amin(counts,axis=0)[0], np.amax(counts,axis=0)[0], size
+                    print e
+                    #print x, k ,"-", k-(k//24)*24, k-(k-(k//24)), b, a
+            print "velikosti", np.amin(counts,axis=0)[0], np.amax(counts,axis=0)[0], size, maxday, minday, maxday-minday
             
-            
-            #print counts.shape
-            #print dates
+        
 
             fig = plt.figure()
             ax = fig.add_subplot(111)
-            ax.imshow(data, cmap=plt.cm.jet, interpolation='nearest', aspect='auto')
-            ax.grid(color='white', linestyle='solid')
+            img = ax.imshow(data, cmap=plt.cm.jet, interpolation='nearest', aspect='auto', shape=size, extent=(0, 60, 0, 24))
+            ax.set_xlim(0,(int(maxday-minday)//24)+1)
+            plt.colorbar(img, ax=ax)
+            plt.tight_layout()
             ax.xaxis.set_major_locator(months)
             ax.xaxis.set_major_formatter(monthsFmt)
             ax.xaxis.set_minor_locator(mondays)
@@ -315,6 +320,7 @@ class Browser(web.RequestHandler):
             ax.plot(dates, values)
             ax.set_xlim([start_time,end_time])
             ax.grid(color='white', linestyle='solid')
+            plt.tight_layout()
             ax.xaxis.set_major_locator(months)
             ax.xaxis.set_major_formatter(monthsFmt)
             ax.xaxis.set_minor_locator(mondays)
