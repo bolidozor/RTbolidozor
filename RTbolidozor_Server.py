@@ -99,18 +99,18 @@ class MultiBolid(web.RequestHandler):
             else:
                 date_from = time.mktime(time.strptime(month, "%Y-%m"))
                 date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
-            self.render("www/layout/MultiBolid.html", title="Bloidozor multi-bolid database", range=[date_from, date_to], _sql = _sql, parent=self)
+            self.render("www/layout/MultiBolid.html", title="Bolidozor multi-bolid database", range=[date_from, date_to], _sql = _sql, parent=self)
         else:
             if MBtype[1]=="event":
                 print "EVENT FOR "
                 id_event = int(MBtype[2])
-                self.render("www/layout/MultiBolid_one_event.html", title="Bloidozor multi-bolid database | EVENT", data=[id_event], _sql = _sql, parent=self)
+                self.render("www/layout/MultiBolid_one_event.html", title="Bolidozor multi-bolid database | EVENT", data=[id_event], _sql = _sql, parent=self)
 
 class ZooBolid(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
         items = ["Item 1", "Item 2", "Item 3"]
-        self.render("www/layout/ZooBolid.html", title="Bloidozor game")
+        self.render("www/layout/ZooBolid.html", title="Bolidozor game")
 
 
 ######################################################################################################################
