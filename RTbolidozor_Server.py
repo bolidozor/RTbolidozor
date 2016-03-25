@@ -23,6 +23,7 @@ import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 import mpld3
 from mpld3 import plugins, utils
@@ -121,6 +122,8 @@ class ZooBolid(web.RequestHandler):
 
 
 class Browser(web.RequestHandler):
+    #@tornado.web.asynchronous
+
     def calc_colour(self, val):
         if self.color == 1:
             if val < self.maxVal/3:    #    0/3 ... 1/3
@@ -205,24 +208,24 @@ class Browser(web.RequestHandler):
             
             #if counts:
             '''
-            xmax, ymax = np.amax(counts, axis=0)
-            self.maxVal = ymax
-            print counts.shape
+            #xmax, ymax = np.amax(counts, axis=0)
+            #self.maxVal = ymax
+            #print counts.shape
             #counts = counts.reshape((counts.shape[0]/24, 24))
-            svg = svgwrite.Drawing(size=(width,height+20))
-            pixH = float(height)/24.0
+            #svg = svgwrite.Drawing(size=(width,height+20))
+            #pixH = float(height)/24.0
             #pixW = float(width)/31.0
-            pixW = pixH
-            maxday = ((int(time.time())//3600)//24)+1
+            #pixW = pixH
+            #maxday = ((int(time.time())//3600)//24)+1
             
-            for hour in np.nditer(counts):
-                #print hour
-                dataTime = datetime.datetime.fromtimestamp(hour[0])
-                svg.add(svg.rect(insert=( int(width) - int(pixW) - int(pixW)*int((maxday-hour[0]//3600//24)), pixH*int(dataTime.hour)), size=(pixW, pixH), stroke = self.calc_colour(hour[1]), fill = self.calc_colour(hour[1])) )
-            Ssvg = svg.tostring()
+            #for hour in np.nditer(counts):
+            #    #print hour
+            #    dataTime = datetime.datetime.fromtimestamp(hour[0])
+            #    svg.add(svg.rect(insert=( int(width) - int(pixW) - int(pixW)*int((maxday-hour[0]//3600//24)), pixH*int(dataTime.hour)), size=(pixW, pixH), stroke = self.calc_colour(hour[1]), fill = self.calc_colour(hour[1])) )
+            #Ssvg = svg.tostring()
             #print Ssvg
-            print "################ CAS ....", pwr_start_time-time.time()
-            self.write(Ssvg)
+            #print "################ CAS ....", pwr_start_time-time.time()
+            #self.write(Ssvg)
             '''
             # every monday
             mondays = WeekdayLocator(MONDAY)
@@ -244,23 +247,31 @@ class Browser(web.RequestHandler):
             for x in range (0, len(counts)):
                 try:
                     a = counts[x][0] # hodina
-                    b = counts[x][1] # pocet
-                    k = b-minday
-                    l = a-minday
-                    data[a-(a//24)*24][a//24 - mindaybase]=b
+                    #b = counts[x][1] # pocet
+                    #k = b-minday
+                    #l = a-minday
+                    data[a-(a//24)*24][a//24 - mindaybase] = counts[x][1]
                     #print x, k ,"-", a-(a//24)*24, (a//24)- mindaybase, (a-(a//24)), b, a
                 except Exception, e:
                     print e
                     #print x, k ,"-", k-(k//24)*24, k-(k-(k//24)), b, a
-            print "velikosti", np.amin(counts,axis=0)[0], np.amax(counts,axis=0)[0], size, maxday, minday, maxday-minday
+            #print "velikosti", np.amin(counts,axis=0)[0], np.amax(counts,axis=0)[0], size, maxday, minday, maxday-minday
             
         
 
             fig = plt.figure()
             ax = fig.add_subplot(111)
-            img = ax.imshow(data, cmap=plt.cm.jet, interpolation='nearest', aspect='auto', shape=size, extent=(0, 60, 0, 24))
+            cmap = plt.cm.jet
+            #cmap.set_bad('#FAFAFA', 1)
+            cmap.set_under('#FAFAFA', 1)
+            norm = mpl.colors.Normalize(vmin=1.1, vmax=np.amax(data))
+            #norm = mpl.colors.Normalize(vmin=0, vmax=100)
+            #img = ax.imshow(data, cmap=plt.cm.jet, interpolation='nearest', aspect='auto', shape=size, extent=(0, 60, 0, 24))
+            img = ax.imshow(data, cmap=cmap, interpolation='nearest', aspect='auto', shape=size, extent=(0, 60, 0, 24), norm=norm)
+            
             ax.set_xlim(0,(int(maxday-minday)//24)+1)
-            plt.colorbar(img, ax=ax)
+            #plt.colorbar(img, cmap=plt.cm.jet, norm=norm, ax=ax)
+            plt.colorbar(img)
             plt.tight_layout()
             ax.xaxis.set_major_locator(months)
             ax.xaxis.set_major_formatter(monthsFmt)
@@ -354,9 +365,12 @@ class DBreader(web.RequestHandler):
             else:
                 to_date = time.time()
 
-            print from_date, to_date
+
+            print from_date, to_date, table
+            table = self.get_argument('table', 'snap')
         else:
-            self.render("www/layout/DBreader/mainpage.html", title="DBreader", _sql=_sql, parent=self, argv = self.get_argument)
+            table = self.get_argument('table', 'snap')
+            self.render("www/layout/DBreader/mainpage.html", title="DBreader", _sql=_sql, parent=self, argv = self.get_argument, table=table)
 
 
 

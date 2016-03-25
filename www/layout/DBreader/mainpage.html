@@ -20,8 +20,8 @@ function ListRenew() {
 <script type="text/javascript" src="http://js9.si.edu/js9/js9plugins.js"></script>
 <script type="text/javascript">
     function Open(args) {
-        JS9.Load.apply(this, arguments)
         document.getElementById("window").style.display = 'block';
+        JS9.Load.apply(this, arguments)
     }
     function Close() {
         document.getElementById("window").style.display = 'none';
@@ -39,11 +39,11 @@ function ListRenew() {
   		To: {{time.strftime("%Y-%m-%d", time.localtime())}}
   		<input type="date" name="to_date" value="{{argv('to_date',time.strftime("%Y-%m-%d", time.localtime()))}}">
   		<input type="time" name="to_time" value="{{argv('to_time','00-00-00')}}" distabled><br>
-  		Status stanice: 
-  		<select name="id_stationtype">
-                        {% for y in _sql("SELECT id, name, text FROM station_status ORDER BY id;") %}
-                          <option value="{{y[0]}}">{{str(y[1])}} - {{str(y[2])}}</option>
-                        {% end %}</select distabled>
+  		Data: 
+  		<select name="table">
+            <option value="meta">Meteor</option>
+            <option value="snap">Náhledy</option>
+      </select>
   		min lenght:
   		<input type="number" name="min_lenght" value="{{argv('min_lenght','1')}}"><br>
   		<a href="javascript:ListRenew();"><input type="button" value="test"></a>
@@ -52,6 +52,8 @@ function ListRenew() {
 
     </div>
     
+
+    {% if table=='meta' %}
     <div id="folder">
 
         {% set d_from = time.mktime(time.strptime(argv('from_date', '2017-01-01'), "%Y-%m-%d")) %}
@@ -76,8 +78,31 @@ function ListRenew() {
 
         {% end %}
     </table>
-
     </div>
+    {% elif table=='snap' %}
+    <div id="folder">
+        {% set d_from = time.mktime(time.strptime(argv('from_date', '2017-01-01'), "%Y-%m-%d")) %}
+        {% set d_to = time.mktime(time.strptime(argv('to_date', '2015-01-01'), "%Y-%m-%d")) %}
+        {% set rows = _sql("SELECT snap.time, snap.id_station, snap.noise, observatory.name, station.name, snap.file FROM snap INNER JOIN station ON station.id = snap.id_station INNER JOIN observatory ON observatory.id = station.id_observatory WHERE (snap.time BETWEEN %f AND %f) ORDER BY snap.time;" %(float(d_from), float(d_to))) %}
+      {{len(rows)}}
+    <table class="eventListTable" id="{{0}}" style="width:100%">
+    <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>link</td></tr>
+        {% for row in rows %}
+        <tr>
+            <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(float(row[0])).strftime('%Y-%m-%d %X')}} </span></td>
+            <td><span class="eventCell"> {{row[4]}}</span></td>
+            <td><span class="eventCell"> {{row[2]}}</span></td>
+            <td><span class="eventCell">  <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/{{row[3]}}/{{row[4]}}/snapshots/{{datetime.datetime.fromtimestamp(float(row[0])).strftime('%Y/%m/%d/%H')}}/{{row[5]}}"><img src="/prw.png" style="max-width: 20px;"></a>
+                                      <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/{{row[3]}}/{{row[4]}}/snapshots/{{datetime.datetime.fromtimestamp(float(row[0])).strftime('%Y/%m/%d/%H')}}/{{row[5]}}"><img src="/sun.png" style="max-width: 20px;"></a>
+                                      <a href="javascript:Open('http://space.astro.cz/bolidozor/{{row[3]}}/{{row[4]}}/snapshots/{{datetime.datetime.fromtimestamp(float(row[0])).strftime('%Y/%m/%d/%H')}}/{{row[5]}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img></a></span></td>
+        </tr>
+
+        {% end %}
+    </table>
+    </div>
+    {% else %}
+      Chyba v parametru
+    {% end %}
 
     <div id="window">
         <div style="text-align: left;"><a href="javascript:Close();"><img src="/ic_clear_black_18dp_1x.png"></a></div>

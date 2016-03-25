@@ -81,6 +81,31 @@
 </table>
 
 
+    <div class="parameters">
+        <form style="margin: 0px; padding: 0px; display: in-line; max-width: 90%;">
+            Close snapshots (in 5min)
+        </form>
+    </div>
+
+<table class="eventListTable" id="{{events[1]}}" style="width:100%">
+    <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>link</td></tr>
+{% for event in _sql("SELECT snap.time, snap.id_station, snap.noise, observatory.name, station.name, snap.file FROM snap INNER JOIN station ON station.id = snap.id_station INNER JOIN observatory ON observatory.id = station.id_observatory WHERE (snap.time BETWEEN %f AND %f) ORDER BY snap.time;" %(float(Mtime)-300.0, float(Mtime)+300.0)) %}
+{% try %}
+    <tr>
+        <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(float(event[0])).strftime('%Y-%m-%d %X')}} &#916 {{float(event[0]) - float(Mtime)}}s</span></td>
+        <td><span class="eventCell"> {{event[4]}}</span></td>
+        <td><span class="eventCell"> {{event[2]}}</span></td>
+        <td><span class="eventCell"> <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/{{event[3]}}/{{event[4]}}/snapshots/{{datetime.datetime.fromtimestamp(float(event[0])).strftime('%Y/%m/%d/%H')}}/{{event[5]}}"><img src="/prw.png" style="max-width: 20px;"></a>
+                                      <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/{{event[3]}}/{{event[4]}}/snapshots/{{datetime.datetime.fromtimestamp(float(event[0])).strftime('%Y/%m/%d/%H')}}/{{event[5]}}"><img src="/sun.png" style="max-width: 20px;"></a>
+                                      <a href="javascript:Open('http://space.astro.cz/bolidozor/{{event[3]}}/{{event[4]}}/snapshots/{{datetime.datetime.fromtimestamp(float(event[0])).strftime('%Y/%m/%d/%H')}}/{{event[5]}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img></a></span></td>
+    </tr>
+{% except %}
+    <td> Err </td><td></td><td></td><td></td><td></td><td></td> </tr>
+{% end %}
+{% end %}
+</table>
+
+
     <div id="window">
         <div style="text-align: left;"><a href="javascript:Close();"><img src="/ic_clear_black_18dp_1x.png"></a></div>
         <div class="JS9Menubar"></div>
