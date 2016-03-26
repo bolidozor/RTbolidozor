@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block container %}
+    <script type="text/javascript">
+$(window).ready(function () {
+    console.log("done")
+});
+    </script>
  
     <div class="block_header">
         All <span style="size: small;"> @ bolidozor</span>
@@ -19,7 +24,7 @@
         Jednotlive stanice
     </div>
     
-    {% for station in _sql("SELECT station.name, observatory.name FROM station JOIN observatory ON station.id_observatory = observatory.id WHERE station.id_stationtype = 1 OR  station.id_stationtype = 4;") %}
+    {% for station in _sql("SELECT station.name, observatory.name FROM station JOIN observatory ON station.id_observatory = observatory.id WHERE (station.id_stationtype = 1 OR station.id_stationtype = 4) AND station.id_stationstat = 1;") %}
     
     <div class="block_header">
         {{station[0]}} <span style="size: small;"> @ {{station[1]}} </span>
@@ -38,9 +43,20 @@
 
     {% end %}
 
+
    
 
 {% end %}{% block header%}
+<div id="tocitko" style="float: right;"> Ahoj!!! chvili pockej, tady bude tocitko </div>
+
+
+
+{% end %}{% block script %}
+
+
+    setTimeout(function(){
+        document.getElementById('tocitko').style.display = 'none';
+    }, 35000);
 
 
 

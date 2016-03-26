@@ -170,3 +170,23 @@ mysql> select count(*), id_station, station.name from meta JOIN station ON meta.
 |     6798 |          3 | ZVPP-R4           |
 |     1254 |         10 | DDMTREBIC-TEST-R1 |
 +----------+------------+-------------------+
+
+
+
+
++----------+------------+-----------------+
+| count(*) | id_station | name            |
++------------------+---------+------------+
+| Table            | rows    | Size in MB |
++------------------+---------+------------+
+| snap             | 1337956 |   215.6094 |
+| meta             |  753550 |   180.9844 |
+| user             |       2 |     0.0313 |
+| station          |      14 |     0.0313 |
+| observatory      |      13 |     0.0313 |
+| metalink         |     422 |     0.0313 |
+| station_type     |       4 |     0.0156 |
+| station_status   |       4 |     0.0156 |
+| file_location    |       0 |     0.0156 |
+| user_observatory |       0 |     0.0156 |
++------------------+---------+------------+

@@ -70,13 +70,11 @@ def _sql(query, read=False):
         connection.close()
         return result
 
-
-
 class WebHandler(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, addres=None):
         print "web", addres
-        self.render("www/layout/index.html", title="My title", user=self.get_secure_cookie("name"))
+        self.render("www/layout/index.html", title="Bolidozor", user=self.get_secure_cookie("name"))
 
 class ClientsHandler(web.RequestHandler):
     @tornado.web.asynchronous
@@ -100,12 +98,12 @@ class MultiBolid(web.RequestHandler):
             else:
                 date_from = time.mktime(time.strptime(month, "%Y-%m"))
                 date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
-            self.render("www/layout/MultiBolid.html", title="Bolidozor multi-bolid database", range=[date_from, date_to], _sql = _sql, parent=self)
+            self.render("www/layout/MultiBolid.html", title="Bolidozor | multi-bolid database", range=[date_from, date_to], _sql = _sql, parent=self)
         else:
             if MBtype[1]=="event":
                 print "EVENT FOR "
                 id_event = int(MBtype[2])
-                self.render("www/layout/MultiBolid_one_event.html", title="Bolidozor multi-bolid database | EVENT", data=[id_event], _sql = _sql, parent=self)
+                self.render("www/layout/MultiBolid_one_event.html", title="Bolidozor | multi-bolid database | EVENT", data=[id_event], _sql = _sql, parent=self)
 
 class ZooBolid(web.RequestHandler):
     @tornado.web.asynchronous
@@ -122,7 +120,7 @@ class ZooBolid(web.RequestHandler):
 
 
 class Browser(web.RequestHandler):
-    #@tornado.web.asynchronous
+    @tornado.web.asynchronous
 
     def calc_colour(self, val):
         if self.color == 1:
@@ -340,7 +338,7 @@ class Browser(web.RequestHandler):
             self.write(mpld3.fig_to_html(fig))
 
         else:
-            self.render("www/layout/browser.html", title="Bloidozor data browser", _sql = _sql, parent=self)
+            self.render("www/layout/browser.html", title="Bolidozor | meteor counts", _sql = _sql, parent=self)
 
 
 
@@ -382,12 +380,12 @@ class AstroTools(web.RequestHandler):
 class RTbolidozor(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
-        self.render("www/layout/realtime_layout.html", title="Bloidozor multi-bolid database", _sql = _sql, parent=self, CleanName = wwwCleanName)
+        self.render("www/layout/realtime_layout.html", title="Bolidozor | Real-time map", _sql = _sql, parent=self, CleanName = wwwCleanName)
 
 class JSweb(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
-        self.render("www/layout/js.html", title="Bloidozor multi-bolid database", _sql = _sql, parent=self)
+        self.render("www/layout/js.html", title="Bolidozor multi-bolid database", _sql = _sql, parent=self)
 
 class AuthLoginHandler(web.RequestHandler):
     @tornado.web.asynchronous
@@ -569,7 +567,8 @@ app = web.Application([
         (r'/map(.*)', RTbolidozor),
         (r'/map', RTbolidozor),
         (r'/browser(.*)', Browser),
-        (r'/browser', DBreader),
+        (r'/counts(.*)', Browser),
+        #(r'/browser', DBreader),
         (r'/database(.*)', DBreader),
         (r'/database', Browser),
         (r'/astrotools(.*)', AstroTools),
