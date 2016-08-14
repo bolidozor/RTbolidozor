@@ -28,7 +28,7 @@
         </form>
     </div>
 
-        {% set event_groups = _sql("SELECT metalink.id, metalink.master, meta.time FROM metalink LEFT JOIN meta ON meta.id = metalink.link WHERE meta.time > "+str(range[0])+" AND meta.time < "+str(range[1])+" GROUP BY metalink.master ORDER BY meta.time DESC ;") %}<!-- META - 0 id, 1 time, 2 id_station, 3 noise, 4 freq, 5 mag, 6 duration, 7 file , 8 link, 9 met_true, 10 met_false, 11 met_head -->
+        {% set event_groups = _sql("SELECT bz_event_met.id, bz_event_met.id_event, bz_met.obstime FROM bz_event_met LEFT JOIN bz_met ON bz_met.id = bz_event_met.id_event WHERE bz_met.obstime > "+str(range[0])+" AND bz_met.obstime < "+str(range[1])+" GROUP BY bz_event_met.id_event ORDER BY bz_met.obstime DESC ;") %}<!-- META - 0 id, 1 time, 2 id_station, 3 noise, 4 freq, 5 mag, 6 duration, 7 file , 8 link, 9 met_true, 10 met_false, 11 met_head -->
 
         {% if len(event_groups) == 0 %} 
             <div class="parameters" id="error">
@@ -37,11 +37,19 @@
         {% end %}
         {% for event_group in event_groups %}
 
-            {% set links = _sql("SELECT metalink.link, meta.time, meta.id_station, meta.noise, meta.freq, meta.mag, meta.duration, observatory.name, station.name, meta.file FROM metalink LEFT JOIN meta ON meta.id = metalink.link LEFT JOIN station ON station.id = meta.id_station LEFT JOIN observatory ON observatory.id = station.id_observatory WHERE metalink.master = "+str(event_group[1])+" GROUP BY metalink.link; ") %}
+            {% set links = _sql("""
+                SELECT bz_event_met.id_event, bz_met.obstime, file_index.id_station, bz_met.noise, bz_met.freq, bz_met.mag, bz_met.duration, observatory.name, station.name, file_index.filename_original FROM bz_event_met 
+
+                INNER JOIN bz_met ON bz_met.id = bz_event_met.id_file
+                INNER JOIN file_index ON file_index.id = bz_met.id_file
+                INNER JOIN station ON file_index.id_station = station.id 
+                INNER JOIN observatory ON observatory.id = station.id_observatory
+
+                WHERE bz_event_met.id_event = """ +str(event_group[1])+";") %}
+
             <div class="event_group" id="{{event_group[1]}}">
                 <span > <a href="/multibolid/event/{{event_group[1] }}/"><img src="/ic_share_black_18dp_1x.png"> #{{event_group[1] }}</a></span>
                 <span class="eventGroupCell">{{datetime.datetime.fromtimestamp(event_group[2]).strftime('%Y-%m-%d %X')}} </span>
-
             </div>
             <table class="eventListTable" id="{{event_group[1]}}" style="width:100%">
                 <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>

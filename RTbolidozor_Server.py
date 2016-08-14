@@ -350,6 +350,7 @@ class Browser(web.RequestHandler):
 
 
 class DBreader(web.RequestHandler):
+    @tornado.web.asynchronous
     def get(self, params=None):
         print params, params.split('/')
         if 'data' in params:
@@ -575,6 +576,7 @@ class SocketHandler(websocket.WebSocketHandler):
 
 
 class RTbolidozorAPI(web.RequestHandler):
+    @tornado.web.asynchronous
     def get(self, params=None):
         params = params.split('/')
         print params

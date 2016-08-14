@@ -27,7 +27,15 @@
         </form>
     </div>
     
-{% set events = _sql("SELECT metalink.link, meta.time, meta.id_station, meta.noise, meta.freq, meta.mag, meta.duration, observatory.name, station.name, meta.file FROM metalink LEFT JOIN meta ON meta.id = metalink.link LEFT JOIN station ON station.id = meta.id_station LEFT JOIN observatory ON observatory.id = station.id_observatory WHERE metalink.master = "+str(data[0])+" ORDER BY meta.duration;")%}
+{% set events = _sql("""
+                    SELECT bz_event_met.id_event, bz_met.obstime, file_index.id_station, bz_met.noise, bz_met.freq, bz_met.mag, bz_met.duration, observatory.name, station.name, file_index.filename_original FROM bz_event_met
+
+                    INNER JOIN bz_met ON bz_met.id = bz_event_met.id_file
+                    INNER JOIN file_index ON file_index.id = bz_met.id_file
+                    INNER JOIN station ON file_index.id_station = station.id 
+                    INNER JOIN observatory ON observatory.id = station.id_observatory
+
+                    WHERE bz_event_met.id_event = """+str(data[0])+" ORDER BY bz_met.duration;")%}
 
 <table class="eventListTable" id="{{events[1]}}" style="width:100%">
     <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
