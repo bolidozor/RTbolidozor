@@ -80,6 +80,7 @@ class GetMeteors():
         self.dbc.execute('SET CHARACTER SET utf8;')
         
         try:
+            '''
             self.dbc.execute('DROP TABLE IF EXISTS user;')
             self.dbc.execute('DROP TABLE IF EXISTS observatory;')
             self.dbc.execute('DROP TABLE IF EXISTS station;')
@@ -90,6 +91,7 @@ class GetMeteors():
             self.dbc.execute('DROP TABLE IF EXISTS station_status;')
             self.dbc.execute('DROP TABLE IF EXISTS user_observatory;')
             self.dbc.execute('DROP TABLE IF EXISTS metalink;')
+            '''
 
             self.db.commit()
         except Exception, e:

@@ -372,6 +372,24 @@ class DBreader(web.RequestHandler):
 
 
 
+
+
+class SimpleData(web.RequestHandler):
+    def get(self, params = None):
+        parametry = params.split('/')
+        if "txt" in parametry:
+            self.write("hi, jak je? "+ repr(parametry))
+            day = self.get_argument('date', '')
+        else:
+            self.write("hi, jak je?")
+
+
+
+
+
+
+
+
 class AstroTools(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
@@ -556,6 +574,29 @@ class SocketHandler(websocket.WebSocketHandler):
             print "Prijata zprava: ", message
 
 
+class RTbolidozorAPI(web.RequestHandler):
+    def get(self, params=None):
+        params = params.split('/')
+        print params
+        if 'DataUpload' == params[1]:
+            filename = self.get_argument('filename', None)
+            filelocation = self.get_argument('filelocation', None)
+            filename_original = self.get_argument('filename_original', filename)
+            checksum = self.get_argument('checksum', None)
+            station = self.get_argument('station', None)
+            server = self.get_argument('server', 5) # 5 je space.astro.cz
+            uploadtime = self.get_argument('uploadtime', time.time())
+
+            query = _sql("REPLACE INTO file_index (`filename`, `filename_original`, `filepath`, `checksum`, `id_station`, `id_server`, `uploadtime`) VALUES ('%s', '%s', '%s', '%s', (SELECT id FROM station where name = '%s'), '%s', '%s');" %(filename, filename_original, filelocation, checksum, station, server, uploadtime))
+
+            self.write("ACK")
+        else:
+            self.write("Neznama funkce: " + repr(params))
+
+            
+         
+
+
 app = web.Application([
         (r'/', WebHandler),
         (r'/ws', SocketHandler),
@@ -573,6 +614,10 @@ app = web.Application([
         (r'/database', Browser),
         (r'/astrotools(.*)', AstroTools),
         (r'/astrotools', AstroTools),
+        (r'/data(.*)', SimpleData),
+        (r'/data', SimpleData),
+        (r'/api(.*)', RTbolidozorAPI),
+        (r'/api', RTbolidozorAPI),
         (r'/zoo', ZooBolid),
         (r'/zoo(.*)', ZooBolid),
         (r"/auth/login/", AuthLoginHandler),

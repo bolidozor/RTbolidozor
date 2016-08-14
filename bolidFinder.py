@@ -1,12 +1,28 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+
+
+#
+
+#
+
+#
+
+# UPDATE file_index INNER JOIN bz_snap ON bz_snap.id_file = file_index.id SET indextime = 0 where bz_snap.obstime = 0;
+# UPDATE file_index INNER JOIN bz_snap ON bz_met.id_file = file_index.id SET indextime = 0 where bz_met.obstime = 0;
+#
+#
+
 import sys
 import paramiko
 import MySQLdb as mdb
 import time
 import datetime
 import calendar
+import pandas as pd
+import os
+import pyfits
 
 ##**************************************
 ##**************************************
@@ -20,14 +36,29 @@ genfrom = gento - 86400*days
 ##**************************************
 ##**************************************
 
+def _sql(query, read=False):
+    print "#>", query
+    connection = mdb.connect(host="localhost", user="root", passwd="root", db="RTbolidozor", use_unicode=True, charset="utf8")
+    cursorobj = connection.cursor()
+    result = None
+    try:
+            cursorobj.execute(query)
+            result = cursorobj.fetchall()
+            if not read:
+                connection.commit()
+    except Exception, e:
+            print "Err", e
+    connection.close()
+    return result
+
 class GetMeteors():
     def __init__(self, path=None, year=0, month=0, day=0, minDBDuration = 0.1, minDuration=1, minDurationBolid=20, use_unicode=True, charset="utf8"):
-        self.db = mdb.connect(host="localhost", user="root", passwd="root", db="RTbolidozor")
-        self.dbc = self.db.cursor()
+        #self.db = mdb.connect(host="localhost", user="root", passwd="root", db="RTbolidozor")
+        #self.dbc = self.db.cursor()
 
-        self.dbc.execute("SELECT VERSION();")
-        data = self.dbc.fetchall()
-        print "Database version : %s " % data
+        #self.dbc.execute("SELECT VERSION();")
+        #data = self.dbc.fetchall()
+        #print "Database version : %s " % data
 
         self.path = path
         self.year = year
@@ -45,7 +76,8 @@ class GetMeteors():
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.ssh.load_system_host_keys()
         self.ssh.connect(sftpURL, username=sftpUSER, key_filename=sftpKEY)
-        self.ftp = self.ssh.open_sftp()
+        self.sftp = self.ssh.open_sftp()
+
 
     def setPath(self, path=None, stationID=None):
         if path:
@@ -75,172 +107,173 @@ class GetMeteors():
             self.month = month
         if day:
             self.day = day
-
-    def createDb(self):
-        self.dbc.execute('SET CHARACTER SET utf8;')
         
-        try:
-            self.dbc.execute('DROP TABLE IF EXISTS user;')
-            self.dbc.execute('DROP TABLE IF EXISTS observatory;')
-            self.dbc.execute('DROP TABLE IF EXISTS station;')
-            self.dbc.execute('DROP TABLE IF EXISTS meta;')
-            self.dbc.execute('DROP TABLE IF EXISTS snap;')
-            self.dbc.execute('DROP TABLE IF EXISTS file_location;')
-            self.dbc.execute('DROP TABLE IF EXISTS station_type;')
-            self.dbc.execute('DROP TABLE IF EXISTS station_status;')
-            self.dbc.execute('DROP TABLE IF EXISTS user_observatory;')
-            self.dbc.execute('DROP TABLE IF EXISTS metalink;')
+    def run_indexing(self):
+        print "start Indexing"
+        filelist = _sql("SELECT file_index.id, file_index.id_station, file_index.filepath, file_index.filename, file_index.indextime, file_index.uploadtime FROM file_index INNER JOIN station ON station.id = file_index.id_station INNER JOIN station_type ON station_type.id = station.id_stationtype INNER JOIN projects ON projects.id = station_type.id_project WHERE file_index.uploadtime > file_index.indextime and projects.sname = 'bolidozor' AND file_index.checksum IS NOT NULL ORDER BY file_index.uploadtime;")
+        for out in filelist:
+            try:
+                print ">>", out
+                fileid=out[0]
+                fileserver="space.astro.cz"
+                filepath  = out[2]
+                filename  = out[3]
+                filestation=out[1]
+                fileindext =out[4]
+                fileuploadt=out[5]
+                
 
-            self.db.commit()
-        except Exception, e:
-            print e
-        
+                if "meta.csv" in filename:
+                    print "PODMINKA JE SPLNENA", filename
+                    #time.sleep(1)
+                    data = self.sftp.open(os.path.join(filepath,filename))
+                    try:
+                        df = pd.read_csv(data, delimiter=";", names = ["fname", "noise", "peakf", "mag", "duration"], skiprows=1)
+                        for index, row in df.iterrows():
+                            # nejdrive se zkontroluje, jestli uz je v 'file_index' soubor zaznamena
+                            # pokud neni vytvori se zaznam jen s 'filename_original' v tabulce 'file_index'
 
-        self.dbc.execute('CREATE TABLE user ('
-                            'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
-                            'name VARCHAR(32) UNIQUE KEY, '
-                            'r_name VARCHAR(32), '
-                            'email VARCHAR(128), '
-                            'pass VARCHAR(128), '
-                            'id_permission SMALLINT UNSIGNED, '
-                            'id_astrozor TINYINT UNSIGNED, '
-                            'www VARCHAR(255),'
-                            'text VARCHAR(500)'
-                        ');')
+                            exists = _sql("SELECT count(*) FROM file_index WHERE filename_original = '%s'" %(row['fname']))
+                            if exists[0][0] != 1:
+                                _sql("INSERT INTO file_index SET filename_original = '%s', id_station = 0, id_server = 0" %(row['fname']))
+                            else:
+                                id_file = _sql("SELECT id FROM file_index WHERE filename_original = '%s';" %(row['fname']))[0][0]
+                                
+                                # podle typu souboru se zapise do spravne databaze
+                                if "met" in row['fname']:
+                                    print _sql("INSERT INTO bz_met SET id_file = %i, noise = %f, freq = %f, mag = %f, duration = %f on duplicate key update id = id;" %(id_file, row['noise'], row['peakf'], row['mag'], row['duration']))
 
-        self.dbc.execute('INSERT INTO user'
-                            '(name, r_name, email, pass, id_astrozor, www, text) VALUES'
-                            '("roman-dvorak", "Roman Dvorak", "roman-dvorak@email.cz", "pass", 11, "", ""),'
-                            '("kaklik", "Jakub Kakona", "email@email.cz", "pass", 3, "", "")'
-                        ';')
-        
-        self.dbc.execute('CREATE TABLE observatory ('
-                            'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
-                            'name VARCHAR(32) UNIQUE KEY, '
-                            'id_obstype SMALLINT UNSIGNED DEFAULT 1 NOT NULL, '
-                            'id_user SMALLINT UNSIGNED DEFAULT 0, '
-                            'lat DECIMAL(8,5), '
-                            'lon DECIMAL(8,5), '
-                            'alt SMALLINT, '
-                            'text VARCHAR(500)'
-                        ');')
+                                elif "snap" in row['fname']:
+                                    print _sql("INSERT INTO bz_snap SET id_file = %i, noise = %f, freq = %f, mag = %f on duplicate key update id = id;" %(id_file, row['noise'], row['peakf'], row['mag']))
+                        
+                        _sql("UPDATE file_index SET indextime = '%s' WHERE filename_original = '%s'" %(time.strftime('%Y-%m-%d %H:%M:%S'), filename))
 
-        self.dbc.execute('INSERT INTO observatory'
-                            '(name, id_obstype, id_user, lat, lon, alt, text) VALUES'
-                            '("svakov", 1, 2, 14.59, 48.34, 450, "Sobeslav"),'
-                            '("ZVPP", 1, 1, 14.8, 49.0, 400, "Ceske Budejovice"),'
-                            '("ONDREJOV", 1, NULL, 15, 50.34, 450, "Ondrejov")'
-                        ';')
-        
+                    except Exception, e:
+                        print e
+                    data.close()
+                
+                elif "met.fits" in filename:
+                    print "METEOR FILE"
+                    try:
+                        data = self.sftp.open(os.path.join(filepath,filename))
+                        hdulist = pyfits.open(data)
+                        prihdr = hdulist[1].header
+                        
+                        fitsTime = prihdr['DATE']
+                        dt = datetime.datetime.strptime( fitsTime, "%Y-%m-%dT%H:%M:%S" )
+                        utimestamp = time.mktime(dt.timetuple())
 
-        self.dbc.execute('CREATE TABLE station ('
-                            'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
-                            'name VARCHAR(32) UNIQUE KEY, '
-                            'id_observatory SMALLINT UNSIGNED NOT NULL, '
-                            'id_stationstat SMALLINT UNSIGNED DEFAULT 1 NOT NULL, '
-                            'id_stationtype SMALLINT UNSIGNED DEFAULT 1 NOT NULL, '
-                            'handler VARCHAR(64), '
-                            'text VARCHAR(500) '
-                            #'FOREIGN KEY (id_observatory) REFERENCES observatory(id), '
-                            #'FOREIGN KEY (id_stationstat) REFERENCES station_status(id), '
-                            #'FOREIGN KEY (id_stationtype) REFERENCES station_type(id) '
-                        ');')
+                        print "FITS FILE META processing", filename, " from: ", utimestamp, fitsTime
+                        if utimestamp > 100000000:
+                            #print prihdr
 
-        self.dbc.execute('INSERT INTO station'
-                            '(name, id_observatory, id_stationstat, id_stationtype, text) VALUES'
-                            '("SVAKOV-R7", 1, 1, 1, "RMDS02D"),'
-                            '("ZVPP-R3", 2, 3, 1, "RMDS01B"),'
-                            '("ZVPP-R4", 2, 1, 1, "RMDS02D"),'
-                            '("space.astro.cz", 3, 2, 2, "space.astro.cz")'
-                        ';')
-        
+                            exists = _sql("SELECT count(*) FROM file_index WHERE filename_original = '%s'" %(filename))
+                            if exists[0][0] == 1:
+                                _sql("UPDATE bz_met SET obstime = '%f' WHERE id_file=(SELECT id from file_index WHERE filename_original = '%s')" %(utimestamp, filename))
+                                _sql("UPDATE file_index SET indextime = '%s' WHERE filename_original = '%s'" %(time.strftime('%Y-%m-%d %H:%M:%S'), filename))
+                        else:
+                            print "chyba", 
+                            time.sleep(2)
 
-        self.dbc.execute('CREATE TABLE meta ('
-                            'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
-                            'time DECIMAL(14,4) UNSIGNED NOT NULL, '
-                            'noise DECIMAL(6,4) UNSIGNED, '
-                            'freq DECIMAL(6,0) UNSIGNED, '
-                            'mag DECIMAL(6,4) UNSIGNED, '
-                            'duration DECIMAL(8,5) UNSIGNED,'
-                            'file VARCHAR(64) UNIQUE KEY, '
-                            'id_station TINYINT UNSIGNED NOT NULL, '
-                            'id_fileloc TINYINT UNSIGNED DEFAULT 0 '
-                        ');')
-        
-        self.dbc.execute('CREATE TABLE snap ('
-                            'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
-                            'time DECIMAL(14,4) UNSIGNED NOT NULL, '
-                            'noise DECIMAL(6,4) UNSIGNED, '
-                            #'freq DECIMAL(6,0) UNSIGNED, '
-                            #'mag DECIMAL(6,4) UNSIGNED, '
-                            'file VARCHAR(64) UNIQUE KEY, '
-                            'id_station TINYINT UNSIGNED NOT NULL, '
-                            'id_fileloc TINYINT UNSIGNED DEFAULT 0 '
-                        ');')
+                        data.close()
+                    except Exception, e:
+                        print "Err: 01", e
+                
+                elif "snap.fits" in filename:
+                    print "met"
+                    data = self.sftp.open(os.path.join(filepath,filename))
+                    try:
+                        hdulist = pyfits.open(data)
+                        prihdr = hdulist[1].header
 
-        self.dbc.execute('CREATE TABLE file_location ('
-                            'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
-                            'id_station INT(6) UNSIGNED, '
-                            'name VARCHAR(64), '
-                            'text VARCHAR(500)'
-                        ');')
-        
-        self.dbc.execute('CREATE TABLE station_type ('
-                            'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
-                            'cfg TINYINT,'
-                            'name VARCHAR(64), '
-                            'text VARCHAR(500)'
-                        ');')
+                        fitsTime = prihdr['DATE']
+                        dt = datetime.datetime.strptime(fitsTime, "%Y-%m-%dT%H:%M:%S" )
+                        utimestamp = time.mktime(dt.timetuple())
 
-        self.dbc.execute('INSERT INTO station_type'
-                            '(name, text) VALUES'
-                            '("RMDS02B", "RMDS02B"), '
-                            '("server", "server storage"), '
-                            '("server", "server data processing"), '
-                            '("RMDS02D", "RMDS02D")'
-                        ';')
+                        print "FITS FILE SNAP processing", filename, " from: ", utimestamp, fitsTime
+                        if utimestamp > 100000000:
 
-        self.dbc.execute('CREATE TABLE station_status ('
-                            'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
-                            'cfg TINYINT,'
-                            'name VARCHAR(64), '
-                            'text VARCHAR(500)'
-                        ');')
+                            exists = _sql("SELECT count(*) FROM file_index WHERE filename_original = '%s'" %(filename))
+                            if exists[0][0] == 1:
+                                _sql("UPDATE bz_snap SET obstime = '%f' WHERE id_file=(SELECT id from file_index WHERE filename_original = '%s')" %(utimestamp, filename))
+                                _sql("UPDATE file_index SET indextime = '%s' WHERE filename_original = '%s'" %(time.strftime('%Y-%m-%d %H:%M:%S'), filename))
+                        else:
+                            print "chyba", 
+                            time.sleep(2)
 
-        self.dbc.execute('insert into station_status (name, text) VALUES'
-                            '("working","Station works fine"), '
-                            '("bad_data","Station gives bad datas"), '
-                            '("blocked", "Station is blocked by administrator of Bolidozor"), '
-                            '("distabled","Station is disabled")'
-                        ';')
+                        data.close()
+                    except Exception, e:
+                        print e
+                
+                elif "raws.fits" in filename:
+                    print "raw"
+                    _sql("UPDATE file_index SET indextime = '%s' WHERE filename_original = '%s'" %(time.strftime('%Y-%m-%d %H:%M:%S'), filename))
 
-        self.dbc.execute('CREATE TABLE user_observatory ('
-                            'id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
-                            'id_user INT UNSIGNED NOT NULL, '
-                            'id_station INT UNSIGNED NOT NULL '
-                            #'FOREIGN KEY (id_user) REFERENCES user(id), '
-                            #'FOREIGN KEY (id_station) REFERENCES station(id)'
-                        ');')
-        
-        self.dbc.execute('CREATE TABLE metalink ( '
-                            'id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL, '
-                            'master INT UNSIGNED NOT NULL, '
-                            'link INT  UNIQUE KEY UNSIGNED NOT NULL'
-                        ');')
-        
-        
-        self.db.commit()
-        
+                else:
+                    print "unknown file"
+
+                
+            except Exception, e:
+                print e
+
+
+    def find_match(self):
+        print "######################################################################################"
+        print "######################################################################################"
+        print "######################################################################################"
+        print "######################################################################################"
+        i = 0
+        self.minDuration = float(_sql("select * from bz_param where name = 'master_met_min_duration'")[0][0])*10
+        self.minDurationBolid = float(_sql("select * from bz_param where name = 'group_max_time_delta'")[0][0])*10
+        self.minDuration = 1
+        self.minDurationBolid = 10
+
+        print "Minimalni delka bolidu je stanovana na ", self.minDurationBolid, "s. Minimalni delka derivatu je", self.minDuration, "s"
+        #row _sql("SELECT bz_met.id, bz_met.obstime, bz_met.duration FROM bz_met JOIN station ON bz_met.id_station = station.id WHERE (bz_met.duration > %i) AND (bz_met.time BETWEEN %i AND %i) AND (station.id_stationstat = 1) ORDER BY bz_met.obstime DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
+        row = _sql("SELECT bz_met.id, bz_met.obstime, bz_met.duration FROM bz_met INNER JOIN file_index ON file_index.id = bz_met.id_file INNER JOIN station ON file_index.id_station = station.id WHERE (bz_met.duration > %i) AND (bz_met.obstime BETWEEN %i AND %i) AND (station.id_stationstat = 1) ORDER BY bz_met.obstime;" %(int(self.minDurationBolid), int(0), int(time.time()) ))
+        lenrow = len(row)
+        print row, len(row)
+        print ""
+        err = 30
+        for meteor in row:
+            print "mam vybrany meteor", meteor
+            #self.dbc.execute("SELECT * FROM bz_met LEFT OUTER JOIN metalink ON metalink.link = bz_met.id WHERE (metalink.link IS NULL) AND (bz_met.time BETWEEN %f AND %f) AND (bz_met.duration > %f)  GROUP BY bz_met.id_station ORDER BY bz_met.mag DESC;" %(float(meteor[1])-err, float(meteor[1])+err, float(self.minDuration)))
+            n = _sql("SELECT bz_met.id FROM bz_met INNER JOIN file_index ON file_index.id = bz_met.id_file INNER JOIN station ON file_index.id_station = station.id WHERE (bz_met.obstime BETWEEN %f AND %f) AND (bz_met.duration > %f) AND (station.id_stationstat = 1) ORDER BY bz_met.mag DESC;" %(float(meteor[1])-err, float(meteor[1])+err, float(self.minDuration)))
+            print n
+            print "mam %i meteoru okolo" %(len(n))
+            if len(n) > 2:
+                print "-------", n[0] ,float(meteor[1]), datetime.datetime.fromtimestamp(float(meteor[1])).strftime('%Y-%m-%d %X'), float(meteor[2])
+                refid = n[0][0]
+                for near in n:
+                    try:
+                        print refid, near[0]
+                        _sql("INSERT INTO bz_event_met (id_event, id_file) VALUES (%i, %i);"%(refid, near[0]))
+                        print "Existuje", refid, near[0]
+                    except Exception, e:
+                        print "Error", e
+                    print near
+
+            else:
+                print "#"
+
+
 
 
     def run(self):          ########### Cteni csv souboru a ukladani do databaze
-        daypath = self.path+"/"+str(self.year)+"/"+str(self.month).zfill(2)+"/"+str(self.day).zfill(2)+"/"
+
+        while True:
+            self.run_indexing()
+            self.find_match()
+            time.sleep(10)
+        '''
+        daypath = os.path.join(self.path, str(self.year), str(self.month).zfill(2), str(self.day).zfill(2),"/")
         print "/storage/"+str(daypath)
-        files = self.ftp.listdir("/storage/"+str(daypath))
-        print files
-        for file in files:
+        files = self.sftp.listdir(os.path.join("/storage/",daypath))
+        self.dbc.execute("SELECT id, filepath, filename FROM file_index WHERE id NOT IN (SELECT id_file FROM indexed);")
+        for out in self.dbc.fetchall():
+            file out[]
             if 'meta' in file:
-                data = self.ftp.open("/storage/"+str(daypath)+file)
+                data = self.sftp.open(os.path.join(files,file))
                 try:
                     print "#",
                     for line in data:
@@ -265,6 +298,7 @@ class GetMeteors():
                 finally:
                     self.db.commit()
                     data.close()
+            '''
         print ""
 
 
@@ -299,12 +333,11 @@ class GetMeteors():
         self.db.commit()
 
     def stations(self):
-        self.dbc.execute("SELECT observatory.name, station.name, station.id FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id WHERE (station.id_stationtype = 1 OR  station.id_stationtype = 4) AND station.id_stationstat = 1;")
-        return self.dbc.fetchall()
+        return _sql("SELECT observatory.name, station.name, station.id FROM station LEFT JOIN observatory ON station.id_observatory = observatory.id WHERE (station.id_stationtype = 1 OR  station.id_stationtype = 4) AND station.id_stationstat = 1;")
 
 
 def main():  
-    meteors = GetMeteors("bolidozor/ZVPP/ZVPP-R3/data", year=0, month=0, day=0, minDBDuration = 0.1, minDuration=5, minDurationBolid=10)
+    meteors = GetMeteors(None, year=0, month=0, day=0, minDBDuration = 0.1, minDuration=5, minDurationBolid=10)
     
     try:
         #meteors.createDb()
@@ -321,14 +354,16 @@ def main():
 
     print "-------"
     print meteors.stations()
+    meteors.run()
+    '''
 
     if meteors.getYear() == 0:
         if not "noget" in sys.argv:
             for station in meteors.stations():
                 try:
                     meteors.setPath("bolidozor/%s/%s/data" %(station[0], station[1]), stationID = station[2])
-                    start = int(genfrom)
-                    stop = int(gento+86400)
+                    start = int(genfrom) # aktualni datum - 5 dnu
+                    stop = int(gento+86400) # do 4 dny zpet
                     for genTime in xrange(start, stop, 86400):
                         try:
                             meteors.set(year = datetime.datetime.fromtimestamp(int(genTime)).year, month = datetime.datetime.fromtimestamp(int(genTime)).month, day = datetime.datetime.fromtimestamp(int(genTime)).day)
@@ -344,6 +379,7 @@ def main():
             meteors.shoda()
         except Exception, e:
             print "SHODA", e
+    '''
 
 if __name__ == '__main__':
     main()
