@@ -1,0 +1,123 @@
+{% import datetime %}
+{% import math %}
+{% extends "base.hbs" %}
+{% block meta %}
+  <head>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/MB.css">
+    <link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9support.css">
+    <link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9.css">
+    <script type="text/javascript" src="http://space.astro.cz/bolidozor/support/js9browser/js9support.min.js"></script>
+    <script type="text/javascript" src="http://js9.si.edu/js9/js9.min.js"></script>
+    <script type="text/javascript" src="http://js9.si.edu/js9/js9plugins.js"></script>
+    <script type="text/javascript">
+        function Open(args) {
+            JS9.Load.apply(this, arguments)
+            document.getElementById("window").style.display = 'block';
+        }
+        function Close() {
+            document.getElementById("window").style.display = 'none';
+        }
+    </script>
+{% end %}
+{% block container %}
+    <div class="parameters">
+        <form style="margin: 0px; padding: 0px; display: in-line; max-width: 90%;">
+            EVENT: {{data[0]}}
+        </form>
+    </div>
+    
+{% set events = _sql("""
+                    SELECT bz_event_met.id_event, bz_met.obstime, file_index.id_station, bz_met.noise, bz_met.freq, bz_met.mag, bz_met.duration, observatory.name, station.name, file_index.filename_original FROM bz_event_met
+
+                    INNER JOIN bz_met ON bz_met.id = bz_event_met.id_file
+                    INNER JOIN file_index ON file_index.id = bz_met.id_file
+                    INNER JOIN station ON file_index.id_station = station.id 
+                    INNER JOIN observatory ON observatory.id = station.id_observatory
+
+                    WHERE bz_event_met.id_event = """+str(data[0])+" ORDER BY bz_met.duration;")%}
+
+<table class="eventListTable" id="{{events[1]}}" style="width:100%">
+    <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
+{% set Mtime = events[0][1] %}
+{% for event in events %}
+{% try %}
+    <tr> <div class="event_list">
+        <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(float(event[1])).strftime('%Y-%m-%d %X')}} &#916 {{float(event[1]) - float(events[1][1])}}s</span></td>
+        <td><span class="eventCell"> {{event[8]}}</span></td>
+        <td><span class="eventCell"> {{float(event[3])}}</span>
+        <td><span class="eventCell"> {{float(event[4])}}</span></td>
+        <td><span class="eventCell"> {{float(event[5])}}</span></td>
+        <td><span class="eventCell"> {{event[6]}}</span></td>
+        <td><span class="eventCell">  <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}"><img src="/prw.png" style="max-width: 20px;"></a>
+                                      <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}"><img src="/sun.png" style="max-width: 20px;"></a>
+                                      <a href="javascript:Open('http://space.astro.cz/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img></a></td>
+    </div></tr>
+{% except %}
+    <td> Err </td><td></td><td></td><td></td><td></td><td></td> </tr>
+{% end %}
+{% end %}
+</table>
+
+
+    <div class="parameters">
+        <form style="margin: 0px; padding: 0px; display: in-line; max-width: 90%;">
+            Close data (in 5min)
+        </form>
+    </div>
+
+
+<table class="eventListTable" id="{{events[1]}}" style="width:100%">
+    <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
+{% for event in _sql("SELECT meta.time, meta.id_station, meta.noise, meta.freq, meta.mag, meta.duration, observatory.name, station.name, meta.file FROM meta INNER JOIN station ON station.id = meta.id_station INNER JOIN observatory ON observatory.id = station.id_observatory WHERE (meta.time BETWEEN %f AND %f) AND meta.duration > 1 ORDER BY meta.time;" %(float(Mtime)-300.0, float(Mtime)+300.0)) %}
+{% try %}
+    <tr>
+        <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(float(event[0])).strftime('%Y-%m-%d %X')}} &#916 {{float(event[0]) - float(Mtime)}}s</span></td>
+        <td><span class="eventCell"> {{event[7]}}</span></td>
+        <td><span class="eventCell"> {{float(event[2])}}</span>
+        <td><span class="eventCell"> {{float(event[3])}}</span></td>
+        <td><span class="eventCell"> {{float(event[4])}}</span></td>
+        <td><span class="eventCell"> {{event[5]}}</span></td>
+        <td><span class="eventCell">  <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/{{event[6]}}/{{event[7]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[8]}}"><img src="/prw.png" style="max-width: 20px;"></a>
+                                      <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/{{event[6]}}/{{event[7]}}/meteors/{{datetime.datetime.fromtimestamp(event[0]).strftime('%Y/%m/%d/%H')}}/{{event[8]}}"><img src="/sun.png" style="max-width: 20px;"></a>
+                                      <a href="javascript:Open('http://space.astro.cz/bolidozor/{{event[6]}}/{{event[7]}}/meteors/{{datetime.datetime.fromtimestamp(event[0]).strftime('%Y/%m/%d/%H')}}/{{event[8]}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img></a></td>
+    </tr>
+{% except %}
+    <td> Err </td><td></td><td></td><td></td><td></td><td></td> </tr>
+{% end %}
+{% end %}
+</table>
+
+
+    <div class="parameters">
+        <form style="margin: 0px; padding: 0px; display: in-line; max-width: 90%;">
+            Close snapshots (in 5min)
+        </form>
+    </div>
+
+<table class="eventListTable" id="{{events[1]}}" style="width:100%">
+    <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>link</td></tr>
+{% for event in _sql("SELECT snap.time, snap.id_station, snap.noise, observatory.name, station.name, snap.file FROM snap INNER JOIN station ON station.id = snap.id_station INNER JOIN observatory ON observatory.id = station.id_observatory WHERE (snap.time BETWEEN %f AND %f) ORDER BY snap.time;" %(float(Mtime)-300.0, float(Mtime)+300.0)) %}
+{% try %}
+    <tr>
+        <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(float(event[0])).strftime('%Y-%m-%d %X')}} &#916 {{float(event[0]) - float(Mtime)}}s</span></td>
+        <td><span class="eventCell"> {{event[4]}}</span></td>
+        <td><span class="eventCell"> {{event[2]}}</span></td>
+        <td><span class="eventCell"> <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/{{event[3]}}/{{event[4]}}/snapshots/{{datetime.datetime.fromtimestamp(float(event[0])).strftime('%Y/%m/%d/%H')}}/{{event[5]}}"><img src="/prw.png" style="max-width: 20px;"></a>
+                                      <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/{{event[3]}}/{{event[4]}}/snapshots/{{datetime.datetime.fromtimestamp(float(event[0])).strftime('%Y/%m/%d/%H')}}/{{event[5]}}"><img src="/sun.png" style="max-width: 20px;"></a>
+                                      <a href="javascript:Open('http://space.astro.cz/bolidozor/{{event[3]}}/{{event[4]}}/snapshots/{{datetime.datetime.fromtimestamp(float(event[0])).strftime('%Y/%m/%d/%H')}}/{{event[5]}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img></a></span></td>
+    </tr>
+{% except %}
+    <td> Err </td><td></td><td></td><td></td><td></td><td></td> </tr>
+{% end %}
+{% end %}
+</table>
+
+
+    <div id="window">
+        <div style="text-align: left;"><a href="javascript:Close();"><img src="/ic_clear_black_18dp_1x.png"></a></div>
+        <div class="JS9Menubar"></div>
+        <div class="JS9"></div>
+    </div>
+{% end %}
+

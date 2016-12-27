@@ -1,0 +1,223 @@
+{% extends "base.hbs" %}
+{% block meta %}
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+    <style type="text/css">
+    #map{
+      width: 100%;
+      min-height: 600px;
+      height: 100%;
+    }
+    #mapbox{
+      top: -5px;
+      position:relative;
+      width: 100%;
+      min-height: 600px;
+      height: 100%;
+    }
+    </style>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+    <script src="http://code.jquery.com/jquery.min.js"></script>
+    <script>
+
+      
+
+      var snd = new Audio("meteor.wav"); // buffers automatically when created
+      
+      function message(msg){
+        log(msg)
+      }
+
+      function showmeteor(marker, duration){
+        marker.setIcon(IconEvent)
+        snd.play();
+      }
+
+      function hidemeteor(marker, duration){
+        setTimeout(function() {marker.setIcon(IconStation); },2500);
+      }
+
+      function meteor(station, amplitude, duration, marker){
+        showmeteor(marker, duration);
+        setTimeout(function() { hidemeteor(marker, duration);}, 0);
+      }
+     
+
+      function connect(){
+      try{
+
+          var socket;
+          var host = "ws://meteor1.astrozor.cz:5252/ws";
+            var socket = new WebSocket(host);
+
+                message('<p class="event">Socket Status: '+socket.readyState);
+
+                socket.onopen = function(){
+                   message('<p class="event">Socket Status: '+socket.readyState+' (open)');
+                }
+
+                socket.onmessage = function(msg){
+                   message('<p class="message">Received: '+msg.data);
+                   log('Received: '+msg.data)
+                   var split = msg.data.split(";")
+
+                   switch(split[1]) {
+                      {% for event_group in _sql("SELECT bolidozor_station.id, bolidozor_station.namesimple FROM bolidozor_station") %}
+                      case '{{(event_group[1])}}':
+                          meteor("{{event_group[1]}}", 0, 0, {{CleanName(event_group[1])}});
+                          break;
+                      {% end %}
+                      default:
+                          break;
+                  }
+                }
+
+                socket.onclose = function(){
+                   message('<p class="event">Socket Status: '+socket.readyState+' (Closed)');
+                }     
+
+            } catch(exception){
+               message('<p>Error'+exception);
+            }
+        }
+        </script>
+{% end %}
+{% block clear %}
+    <span id = "mapbox">
+      <div id="map"> </div>
+    </span>
+       <script type="text/javascript">
+
+
+      var IconStation = L.icon({
+          iconUrl: '/ic_gps_fixed_black_24dp_1x.png',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+          popupAnchor: [0, -20],
+      });
+
+      var IconEvent = L.icon({
+          iconUrl: '/ic_flare_black_36dp_1x.png',
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+          popupAnchor: [0, -20],
+      });
+
+      var IconStationInactive = L.icon({
+          iconUrl: '/ic_gps_not_fixed_black_24dp_1x.png',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+          popupAnchor: [0, -20],
+      });
+
+      var IconGraves = L.icon({
+          iconUrl: '/ic_filter_tilt_shift_black_48dp_1x.png',
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+          popupAnchor: [0, -20],
+      });
+
+      var IconVor = L.icon({
+          iconUrl: '/ic_filter_tilt_shift_black_48dp_1x.png',
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+          popupAnchor: [0, -20],
+      });
+
+      var IconType0 = L.icon({
+          iconUrl: '/ic_dns_black_18dp_1x.png',
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+          popupAnchor: [0, -20],
+      });
+
+      var IconType1 = L.icon({
+          iconUrl: '/ic_dns_black_18dp_1x.png',
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+          popupAnchor: [0, -20],
+      });
+
+
+
+      var map = L.map('map').setView([50, 14], 8);
+
+      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', { attribution: '&copy <b> <a href="">BOLIDOZOR</a></b> network, &copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+
+      var graves = L.marker([47.3480, 5.5151]).addTo(map)
+      graves.setIcon(IconGraves)
+      graves.bindPopup("<b>GRAVES RADAR</b><br>transmitter of radio signal");
+
+      {% for event_group in _sql("SELECT bolidozor_station.id, bolidozor_station.namesimple, bolidozor_observatory.lat, bolidozor_observatory.lon, bolidozor_station.name FROM bolidozor_station JOIN bolidozor_observatory ON bolidozor_station.observatory=bolidozor_observatory.id;", db="MLABvo") %}
+        var {{CleanName(event_group[1])}} = L.marker([{{event_group[2]}},{{event_group[3]}}]).addTo(map)
+        {{CleanName(event_group[1])}}.setIcon(IconStationInactive)
+        {{CleanName(event_group[1])}}.bindPopup("<b>{{event_group[1]}}</b><br>{{event_group[4]}}");
+      {% end %}
+
+      {% for server in _sql("SELECT vo_servers.namesimple, vo_servers.name, vo_servers.lat, vo_servers.lon FROM vo_servers;", db="MLABvo") %}
+        var {{CleanName(server[0])}} = L.marker([{{server[2]}},{{server[3]}}]).addTo(map)
+          {{CleanName(server[0])}}.setIcon(IconType0)
+          {{CleanName(server[0])}}.bindPopup(" <b>{{server[1]}}</b>");
+      {% end %}
+
+
+      var greenIcon = L.icon({
+          iconUrl: 'station.png',
+          iconSize:     [38, 95],
+          iconAnchor:   [22, 94],
+          popupAnchor:  [-3, -76]
+      });
+
+      function onMapClick(e) {popup
+          .setLatLng(e.latlng)
+          .setContent("You clicked the map at " + e.latlng.toString())
+          .openOn(map);
+      }
+
+      function onMap(e) {
+        var krut = L.marker(e.latlng, 500, {
+          color: 'red',
+          fillColor: '#f03',
+          fillOpacity: 0.5
+        }).addTo(map);
+        setTimeout(function() {map.removeLayer(krut);},1000);
+      }
+
+      //map.on('click', onMapClick);
+      map.on('click', onMap);
+
+     
+          $(document).ready(function (evt) {
+            var ws;
+           // evt.preventDefault();
+     
+              var host = "62.77.113.30";
+              var port = 5252;
+              var uri =  "/ws";
+     
+              ws = new WebSocket("ws://" + host + ":" + port + uri);
+               
+              ws.onmessage = function(evt) {
+                log("Message Received: " + evt.data)
+              };
+     
+              ws.onclose = function(evt) {
+                log("***Connection Closed***");
+                alert("***Connection Closed***");
+                };
+     
+              ws.onopen = function(evt) {
+                log("***Connection Opened***");
+              };
+     
+     
+          });
+  $(window).on("resize", function() {
+    $("#map").height($(window).height()-$("#header").height()-5).width($(window).width());
+  map.invalidateSize();}).trigger("resize");
+  $("#map").height($(window).height()-$("#header").height()-5).width($(window).width());
+  connect();
+  </script>
+{% end %}
