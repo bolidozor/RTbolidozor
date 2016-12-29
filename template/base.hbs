@@ -25,7 +25,7 @@
 {% block meta %}{% end %}
   </head>
   <body>
-  		<div id="header"><a href="/"><img src="/header_logoRT.png"></img></a>{% block header %}{% end %}</div>
+  		<div id="header"><a href="/"><img src="/header_logoRT.png"></img></a>{% block header %}{% end %}<div id="header_right" style="float: right;"> {% if current_user %} <b>{{current_user}}</b> <small>odhlasit se  </small> {% else %} <small>prihlasit se  </small> {% end %}</div></div>
 		<div class="container">
 		{% block container %}
         {% end %}

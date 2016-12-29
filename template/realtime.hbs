@@ -15,6 +15,18 @@
       min-height: 600px;
       height: 100%;
     }
+
+    #meteorBox{
+      height: 350px;
+      height: 25%
+      bottom: 0px;
+      background: red;
+      min-width: 150px;
+      right: 50px;
+      display: none;
+    }
+
+
     </style>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
     <script src="http://code.jquery.com/jquery.min.js"></script>
@@ -47,7 +59,7 @@
       try{
 
           var socket;
-          var host = "ws://meteor1.astrozor.cz:5252/ws";
+          var host = "ws://rt.bolidozor.cz/ws";
             var socket = new WebSocket(host);
 
                 message('<p class="event">Socket Status: '+socket.readyState);
@@ -60,6 +72,9 @@
                    message('<p class="message">Received: '+msg.data);
                    log('Received: '+msg.data)
                    var split = msg.data.split(";")
+                   
+                   var table = document.getElementById("list");
+                   table.innerHTLM = String(split) + table.innerHTLM
 
                    switch(split[1]) {
                       {% for event_group in _sql("SELECT bolidozor_station.id, bolidozor_station.namesimple FROM bolidozor_station") %}
@@ -86,6 +101,14 @@
     <span id = "mapbox">
       <div id="map"> </div>
     </span>
+    <div id="meteorBox_control">Vysouvatko</div>
+    <div id="meteorBox">
+    <div id="list"> 
+    aaaa
+    aaaa
+    </div>
+
+    </div>
        <script type="text/javascript">
 
 
@@ -220,4 +243,5 @@
   $("#map").height($(window).height()-$("#header").height()-5).width($(window).width());
   connect();
   </script>
+
 {% end %}

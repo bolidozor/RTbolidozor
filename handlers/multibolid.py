@@ -20,10 +20,12 @@ class MultiBolid(web.RequestHandler):
                 date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
             elif month == "all":
                 date_from = 0
-                date_to = time.time()
+                date_to = datetime.datetime.now().isoformat()
             else:
                 date_from = time.mktime(time.strptime(month, "%Y-%m"))
                 date_to  =  time.mktime(time.strptime(month, "%Y-%m"))+60*60*24*30
+            date_from = (datetime.datetime.utcnow()-datetime.timedelta(days = 60)).isoformat()
+            date_to = datetime.datetime.utcnow().isoformat()
             self.render("multiBolid.hbs", title="Bolidozor | multi-bolid database", range=[date_from, date_to], _sql = _sql, parent=self)
         else:
             if MBtype[1]=="event":

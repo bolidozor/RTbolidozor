@@ -56,8 +56,7 @@
 
 
 {% end %}{% block header %}
-
-   {% if user %} {{user}} <small><a href="/auth/logout/">logout</a>{% else %} <a href="/auth/login/">login</a></small> {% end %}  Právě na tomto serveru probíhají vylepšení softwaru RTbolidozor a MLABvo. Omluvte proto dočasnou nefunkčnost systému. 
+   <small>{% if current_user %} <b>{{current_user}}</b> <a href="/logout/">logout</a>{% else %} <a href="/login/">login</a> {% end %}  Právě na tomto serveru probíhají vylepšení softwaru RTbolidozor a MLABvo. Omluvte proto dočasnou nefunkčnost systému.</small> 
 
 {% end %}{% block clear %}
 
@@ -69,6 +68,9 @@
      <a href="/stats" style="background: url('/IndexBrowser.png') no-repeat;"> <br> <br> Stats</a>
      <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/" style="background: url('/IndexSpaceText.png') no-repeat;"> </a>
      <a href="http://wiki.bolidozor.cz/" style="background: url('/IndexWIKIText.png') no-repeat;"> </a>
+     {% if current_user %}
+        <a href="/admin" style="background: url('/IndexBrowser.png') no-repeat;"> <br> <br> Administration</a>
+     {% end %}
 
     </div>
     

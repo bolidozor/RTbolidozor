@@ -38,7 +38,7 @@ genfrom = gento - 86400*days
 
 def _sql(query, read=False):
     print "#>", query
-    connection = mdb.connect(host="localhost", user="root", passwd="root", db="RTbolidozor", use_unicode=True, charset="utf8")
+    connection = mdb.connect(host="localhost", user="root", passwd="root", db="MLABvo", use_unicode=True, charset="utf8")
     cursorobj = connection.cursor()
     result = None
     try:
@@ -223,31 +223,32 @@ class GetMeteors():
         print "######################################################################################"
         print "######################################################################################"
         i = 0
-        self.minDuration = float(_sql("select * from bz_param where name = 'master_met_min_duration'")[0][0])*10
-        self.minDurationBolid = float(_sql("select * from bz_param where name = 'group_max_time_delta'")[0][0])*10
+        #self.minDuration = float(_sql("select * from bz_param where name = 'master_met_min_duration'")[0][0])*10
+        #self.minDurationBolid = float(_sql("select * from bz_param where name = 'group_max_time_delta'")[0][0])*10
         self.minDuration = 1
         self.minDurationBolid = 10
+        err = datetime.timedelta(0,10)
 
         print "Minimalni delka bolidu je stanovana na ", self.minDurationBolid, "s. Minimalni delka derivatu je", self.minDuration, "s"
         #row _sql("SELECT bz_met.id, bz_met.obstime, bz_met.duration FROM bz_met JOIN station ON bz_met.id_station = station.id WHERE (bz_met.duration > %i) AND (bz_met.time BETWEEN %i AND %i) AND (station.id_stationstat = 1) ORDER BY bz_met.obstime DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
-        row = _sql("SELECT bz_met.id, bz_met.obstime, bz_met.duration FROM bz_met INNER JOIN file_index ON file_index.id = bz_met.id_file INNER JOIN station ON file_index.id_station = station.id WHERE (bz_met.duration > %i) AND (bz_met.obstime BETWEEN %i AND %i) AND (station.id_stationstat = 1) ORDER BY bz_met.obstime;" %(int(self.minDurationBolid), int(0), int(time.time()) ))
+        row = _sql("SELECT bolidozor_met.id, bolidozor_met.obstime, bolidozor_met.duration FROM bolidozor_met INNER JOIN bolidozor_fileindex ON bolidozor_fileindex.id = bolidozor_met.file INNER JOIN bolidozor_station ON bolidozor_fileindex.id_observer = bolidozor_station.id WHERE (bolidozor_met.duration > %i) AND (bolidozor_met.obstime BETWEEN '%s' AND '%s') ORDER BY bolidozor_met.obstime;" %(int(self.minDurationBolid), datetime.datetime(2000, 1, 1).date().isoformat(), datetime.datetime.utcnow().isoformat() ))
+        print row,
         lenrow = len(row)
-        print row, len(row)
+        print len(row)
         print ""
-        err = 30
         for meteor in row:
             print "mam vybrany meteor", meteor
             #self.dbc.execute("SELECT * FROM bz_met LEFT OUTER JOIN metalink ON metalink.link = bz_met.id WHERE (metalink.link IS NULL) AND (bz_met.time BETWEEN %f AND %f) AND (bz_met.duration > %f)  GROUP BY bz_met.id_station ORDER BY bz_met.mag DESC;" %(float(meteor[1])-err, float(meteor[1])+err, float(self.minDuration)))
-            n = _sql("SELECT bz_met.id FROM bz_met INNER JOIN file_index ON file_index.id = bz_met.id_file INNER JOIN station ON file_index.id_station = station.id WHERE (bz_met.obstime BETWEEN %f AND %f) AND (bz_met.duration > %f) AND (station.id_stationstat = 1) ORDER BY bz_met.mag DESC;" %(float(meteor[1])-err, float(meteor[1])+err, float(self.minDuration)))
+            n = _sql("SELECT bolidozor_met.id FROM bolidozor_met INNER JOIN bolidozor_fileindex ON bolidozor_fileindex.id = bolidozor_met.file INNER JOIN bolidozor_station ON bolidozor_fileindex.id_observer = bolidozor_station.id WHERE (bolidozor_met.obstime BETWEEN '%s' AND '%s') AND (bolidozor_met.duration > %f) ORDER BY bolidozor_met.mag DESC;" %( meteor[1]-err, meteor[1]+err, float(self.minDuration)))
             print n
             print "mam %i meteoru okolo" %(len(n))
             if len(n) > 2:
-                print "-------", n[0] ,float(meteor[1]), datetime.datetime.fromtimestamp(float(meteor[1])).strftime('%Y-%m-%d %X'), float(meteor[2])
+                print "-------", n[0] , meteor[1].strftime('%Y-%m-%d %X'), float(meteor[2])
                 refid = n[0][0]
                 for near in n:
                     try:
                         print refid, near[0]
-                        _sql("INSERT INTO bz_event_met (id_event, id_file) VALUES (%i, %i);"%(refid, near[0]))
+                        _sql("INSERT INTO bolidozor_met_match (match_id, met_id) VALUES (%i, %i);"%(refid, near[0]))
                         print "Existuje", refid, near[0]
                     except Exception, e:
                         print "Error", e
@@ -262,7 +263,7 @@ class GetMeteors():
     def run(self):          ########### Cteni csv souboru a ukladani do databaze
 
         while True:
-            self.run_indexing()
+            #self.run_indexing()
             self.find_match()
             time.sleep(10)
         '''

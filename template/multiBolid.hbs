@@ -28,28 +28,30 @@
         </form>
     </div>
 
-        {% set event_groups = _sql("SELECT bz_event_met.id, bz_event_met.id_event, bz_met.obstime FROM bz_event_met LEFT JOIN bz_met ON bz_met.id = bz_event_met.id_event WHERE bz_met.obstime > "+str(range[0])+" AND bz_met.obstime < "+str(range[1])+" GROUP BY bz_event_met.id_event ORDER BY bz_met.obstime DESC ;") %}<!-- META - 0 id, 1 time, 2 id_station, 3 noise, 4 freq, 5 mag, 6 duration, 7 file , 8 link, 9 met_true, 10 met_false, 11 met_head -->
+        {% set event_groups = _sql("SELECT bolidozor_met_match.id, bolidozor_met_match.match_id, bolidozor_met.obstime FROM bolidozor_met_match LEFT JOIN bolidozor_met ON bolidozor_met.id = bolidozor_met_match.met_id WHERE bolidozor_met.obstime > '"+str(range[0])+"' AND bolidozor_met.obstime < '"+str(range[1])+"' GROUP BY bolidozor_met_match.match_id ORDER BY bolidozor_met.obstime DESC ;") %}<!-- META - 0 id, 1 time, 2 id_station, 3 noise, 4 freq, 5 mag, 6 duration, 7 file , 8 link, 9 met_true, 10 met_false, 11 met_head -->
 
         {% if len(event_groups) == 0 %} 
             <div class="parameters" id="error">
             Error: 0 výsledků ... Zkus jiný měsíc
             </div>
         {% end %}
+        
         {% for event_group in event_groups %}
 
             {% set links = _sql("""
-                SELECT bz_event_met.id_event, bz_met.obstime, file_index.id_station, bz_met.noise, bz_met.freq, bz_met.mag, bz_met.duration, observatory.name, station.name, file_index.filename_original FROM bz_event_met 
+                SELECT bolidozor_met_match.match_id, bolidozor_met.obstime, bolidozor_fileindex.id_observer, bolidozor_met.noise, bolidozor_met.peak_f, bolidozor_met.mag, bolidozor_met.duration, bolidozor_observatory.namesimple, bolidozor_station.namesimple, bolidozor_fileindex.filename_original, bolidozor_fileindex.filename FROM bolidozor_met_match 
 
-                INNER JOIN bz_met ON bz_met.id = bz_event_met.id_file
-                INNER JOIN file_index ON file_index.id = bz_met.id_file
-                INNER JOIN station ON file_index.id_station = station.id 
-                INNER JOIN observatory ON observatory.id = station.id_observatory
+                INNER JOIN bolidozor_met ON bolidozor_met.id = bolidozor_met_match.met_id
+                INNER JOIN bolidozor_fileindex ON bolidozor_fileindex.id = bolidozor_met.file
+                INNER JOIN bolidozor_station ON bolidozor_fileindex.id_observer = bolidozor_station.id 
+                INNER JOIN bolidozor_observatory ON bolidozor_observatory.id = bolidozor_station.observatory
 
-                WHERE bz_event_met.id_event = """ +str(event_group[1])+";") %}
+                WHERE bolidozor_met_match.match_id = """ +str(event_group[1])+";") %}
 
+            
             <div class="event_group" id="{{event_group[1]}}">
                 <span > <a href="/multibolid/event/{{event_group[1] }}/"><img src="/ic_share_black_18dp_1x.png"> #{{event_group[1] }}</a></span>
-                <span class="eventGroupCell">{{datetime.datetime.fromtimestamp(event_group[2]).strftime('%Y-%m-%d %X')}} </span>
+                <span class="eventGroupCell">{{event_group[2]}} </span>
             </div>
             <table class="eventListTable" id="{{event_group[1]}}" style="width:100%">
                 <tr style="text-align: center; font-size: x-small; top: -5px;"><td>Date</td><td>Station</td><td>noise</td><td>freq</td><td>mag</td><td>duration</td><td>link</td></tr>
@@ -57,15 +59,16 @@
             {% for event in links %}
             {% try %}
                 <tr> <div class="event_list">
-                    <td><span class="eventCell"> {{datetime.datetime.fromtimestamp(event[1]).strftime('%Y-%m-%d %X')}} &#916 {{round(float(event[1]) - float(event_group[2]))}}s</span></td>
+                    <td><span class="eventCell"> {{event[1]}} &#916 s</span></td>
                     <td><span class="eventCell"> {{event[8]}}</span></td>
                     <td><span class="eventCell"> {{float(event[3])}}</span>
                     <td><span class="eventCell"> {{float(event[4])}}</span></td>
                     <td><span class="eventCell"> {{float(event[5])}}</span></td>
                     <td><span class="eventCell"> {{event[6]}}</span></td>
-                    <td><span class="eventCell">  <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}"><img src="/prw.png" style="max-width: 20px;"></a>
-                                                  <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}"><img src="/sun.png" style="max-width: 20px;"></a>
-                                                  <a href="javascript:Open('http://space.astro.cz/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{datetime.datetime.fromtimestamp(event[1]).strftime('%Y/%m/%d/%H')}}/{{event[9]}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img></a></td>
+                    
+                    <td><span class="eventCell">  <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{event[1].strftime('%Y/%m/%d/%H')}}/{{event[9]}}"><img src="/prw.png" style="max-width: 20px;"></a>
+                    <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{event[1].strftime('%Y/%m/%d/%H')}}/{{event[9]}}"><img src="/sun.png" style="max-width: 20px;"></a>
+                    <a href="javascript:Open('http://space.astro.cz/bolidozor/{{event[7]}}/{{event[8]}}/meteors/{{event[1].strftime('%Y/%m/%d/%H')}}/{{event[9]}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img></a></td>
                 </div></tr>
             {% except %}
                 <td> Err </td><td></td><td></td><td></td><td></td><td></td> </tr>

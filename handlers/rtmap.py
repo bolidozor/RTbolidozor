@@ -4,17 +4,21 @@
 import tornado.escape
 from tornado import web
 from tornado import websocket
-from . import _sql, wwwCleanName
+from . import _sql, wwwCleanName, BaseHandler
 import json
 
-class RTbolidozor(web.RequestHandler):
+class RTbolidozor(BaseHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
         self.render("realtime.hbs", title="Bolidozor | Real-time map", _sql = _sql, parent=self, CleanName = wwwCleanName)
 
 cl = []
 
-class SocketHandler(websocket.WebSocketHandler): 
+class SocketHandler(websocket.WebSocketHandler):
+    
+    def check_origin(*args, **kwargs):
+        return True
+
     def initialize(self):
         self.StationList = []
 
@@ -39,7 +43,7 @@ class SocketHandler(websocket.WebSocketHandler):
                 if m_type == "HI":
                     self.StationList.append([self] + message[message.find(";")+1:].split(";") )
                     print "type: HI", self.StationList
-                elif m_type == "stanica":       # inicializacializacni sprava od stanice (obsahoje o sobe informace)
+                elif m_type == "stanica" or  m_type == "stanice":       # inicializacializacni sprava od stanice (obsahoje o sobe informace)
                     jsonstation = json.loads(message.split(";")[1])
                     print "type stanica", jsonstation['name']
                     _sql("UPDATE bolidozor_station SET RTbolidozor = '" + str(self)+"' WHERE namesimple='"+jsonstation['name']+"';")

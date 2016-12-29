@@ -1,0 +1,15 @@
+<p>Hello, <b> %s</b>,</p>
+<p>Welcome to MLABvo - MLAB virtual observatory. </p>
+<hr>
+
+<h2>MLABvo</h2>
+
+MLABvo .... popis
+
+<h2>RTbolidozor</h2>
+
+RTbolidozor .... popis
+<br>
+<hr>
+
+More info at <a href="http://wiki.mlab.cz"> wiki.mlab.cz </a>

@@ -1,0 +1,218 @@
+{% extends "base.hbs" %}
+{% block container %}
+
+
+    <div class="block_header">
+        Aboute me <b>{{current_user}}</b>
+    </div>
+    
+    <div class="block_content">
+        {% set aboute = _sql("SELECT id, login, name, email, service, date_joined, last_login, is_staff, is_active, is_superuser FROM MLABvo.MLABvo_user WHERE login = '%s';" %(current_user))[0]%}
+        <table>
+            <tr><td>Id</td>         <td>{{aboute[0]}}</td></tr>
+            <tr><td>Login</td>      <td>{{aboute[1]}}</td></tr>
+            <tr><td>Name</td>       <td>{{aboute[2]}}</td></tr>
+            <tr><td>Email</td>      <td>{{aboute[3]}}</td></tr>
+            <tr><td>Service</td>    <td>{{aboute[4]}}</td></tr>
+            <tr><td>Date joined</td>    <td>{{aboute[5]}}</td></tr>
+            <tr><td>Last login</td  ><td>{{aboute[6]}}</td></tr>
+            <tr><td>is staff</td>   <td>{{aboute[7]}}</td></tr>
+            <tr><td>is active</td>  <td>{{aboute[8]}}</td></tr>
+            <tr><td>is superuser</td>   <td>{{aboute[9]}}</td></tr>
+        </table>
+    </div>
+
+    <!-- ==================== Stations ====================  -->
+   
+    <div class="block_header">
+        My stations <a href="/admin/add/station/">+</a>
+    </div>
+    {% set my_stations = _sql("SELECT id, name, namesimple, status, observatory, web, hardware, comment FROM MLABvo.bolidozor_station WHERE owner = %s;" %(aboute[0]))%}
+    <div class="block_content">
+        <table><tr><td>id</td><td>Name</td><td>Identificator</td><td>Status</td><td>Observatory id</td><td>Web</td><td>HW version</td><td>Comment</td></tr>
+        {% for val in my_stations %}
+            <tr>
+            <td>{{val[0]}}</td>
+            <td>{{val[1]}}</td>
+            <td>{{val[2]}}</td>
+            <td>{{val[3]}}</td>
+            <td>{{val[4]}}</td>
+            <td>{{val[5]}}</td>
+            <td>{{val[6]}}</td>
+            <td>{{val[7]}}</td>
+
+            </tr>
+        {% end %}
+        </table>
+
+    </div>
+    
+    <div class="block_header">
+        All stations
+    </div>
+    {% if aboute[9] == 1%}
+        {% set all_stations = _sql("SELECT id, name, namesimple, status, observatory, web, owner, hardware, comment FROM MLABvo.bolidozor_station;")%}
+        <div class="block_content">
+        <table><tr><td>id</td><td>Name</td><td>Identificator</td><td>Status</td><td>Observatory id</td><td>Web</td><td>owner</td><td>HW version</td><td>Comment</td></tr>
+            {% for val in all_stations %}
+                <tr>
+                <td>{{val[0]}}</td>
+                <td>{{val[1]}}</td>
+                <td>{{val[2]}}</td>
+                <td>{{val[3]}}</td>
+                <td>{{val[4]}}</td>
+                <td>{{val[5]}}</td>
+                <td>{{val[6]}}</td>
+                <td>{{val[7]}}</td>
+                <td>{{val[8]}}</td>
+
+                </tr>
+            {% end %}
+        </table>
+
+        </div>
+    {% else %}
+        {% set all_stations = _sql("SELECT id, name, namesimple, status, observatory, web, owner, hardware, comment FROM MLABvo.bolidozor_station;")%}
+        <div class="block_content">
+        <table><tr><td>id</td><td>Name</td><td>Identificator</td><td>Status</td><td>Observatory id</td><td>Web</td><td>owner</td><td>HW version</td><td>Comment</td></tr>
+            {% for val in all_stations %}
+                <tr>
+                <td>{{val[0]}}</td>
+                <td>{{val[1]}}</td>
+                <td>{{val[2]}}</td>
+                <td>{{val[3]}}</td>
+                <td>{{val[4]}}</td>
+                <td>{{val[5]}}</td>
+                <td>{{val[6]}}</td>
+                <td>{{val[7]}}</td>
+                <td>{{val[8]}}</td>
+
+                </tr>
+            {% end %}
+        </table>
+
+        </div>
+    {% end %}
+
+    <!-- ==================== OBSERVATORIES ====================  -->
+   
+    <div class="block_header">
+        My observatories <a href="/admin/add/observatory/">+</a>
+    </div>
+    {% set my_observatories = _sql("SELECT id, name, namesimple, lat, lon, alt, www, comment FROM MLABvo.bolidozor_observatory WHERE owner = %s;" %(aboute[0]))%}
+    <div class="block_content">
+        <table><tr><td>id</td><td>Name</td><td>Identificator</td><td>Lat</td><td>lon</td><td>alt</td><td>Web</td><td>Commet</td></tr>
+            {% for val in my_observatories %}
+                <tr>
+                <td>{{val[0]}}</td>
+                <td>{{val[1]}}</td>
+                <td>{{val[2]}}</td>
+                <td>{{val[3]}}</td>
+                <td>{{val[4]}}</td>
+                <td>{{val[5]}}</td>
+                <td>{{val[6]}}</td>
+                <td>{{val[7]}}</td>
+
+                </tr>
+            {% end %}
+        </table>
+
+    </div>
+
+    <div class="block_header">
+        All observatories
+    </div>
+    {% set all_observatories = _sql("SELECT id, name, namesimple, lat, lon, alt, owner, www, comment FROM MLABvo.bolidozor_observatory;")%} 
+    {% if aboute[9] == 1%}
+        <div class="block_content">
+            <table><tr><td>id</td><td>Name</td><td>Identificator</td><td>Lat</td><td>lon</td><td>alt</td><td>Owner</td><td>Web</td><td>Commet</td></tr>
+                {% for val in all_observatories %}
+                    <tr>
+                    <td>{{val[0]}}</td>
+                    <td>{{val[1]}}</td>
+                    <td>{{val[2]}}</td>
+                    <td>{{val[3]}}</td>
+                    <td>{{val[4]}}</td>
+                    <td>{{val[5]}}</td>
+                    <td>{{val[6]}}</td>
+                    <td>{{val[7]}}</td>
+                    <td>{{val[8]}}</td>
+
+                    </tr>
+                {% end %}
+            </table>
+        </div>
+    {% else %}
+        <div class="block_content">
+            <table><tr><td>id</td><td>Name</td><td>Identificator</td><td>Lat</td><td>lon</td><td>alt</td><td>Owner</td><td>Web</td><td>Commet</td></tr>
+                {% for val in all_observatories %}
+                    <tr>
+                    <td>{{val[0]}}</td>
+                    <td>{{val[1]}}</td>
+                    <td>{{val[2]}}</td>
+                    <td>{{val[3]}}</td>
+                    <td>{{val[4]}}</td>
+                    <td>{{val[5]}}</td>
+                    <td>{{val[6]}}</td>
+                    <td>{{val[7]}}</td>
+                    <td>{{val[8]}}</td>
+
+                    </tr>
+                {% end %}
+            </table>
+        </div>
+    {% end %}
+
+
+
+
+
+
+
+
+
+
+    <!-- ==================== Users ====================  -->
+
+    <div class="block_header">
+        Users
+    </div>
+    {% set all_users = _sql("SELECT id, login, name, email, service, date_joined, last_login, is_staff, is_active, is_superuser FROM MLABvo.MLABvo_user;")%} 
+    {% if aboute[9] == 1%}
+        <div class="block_content">
+            <table><tr><td>id</td><td>login</td><td>Name</td><td>Email</td><td>Service</td><td>Joined</td><td>Last</td><td>staff</td><td>active</td><td>sudo</td></tr>
+                {% for val in all_users %}
+                    <tr>
+                    <td>{{val[0]}}</td>
+                    <td>{{val[1]}}</td>
+                    <td>{{val[2]}}</td>
+                    <td>{{val[3]}}</td>
+                    <td>{{val[4]}}</td>
+                    <td>{{val[5]}}</td>
+                    <td>{{val[6]}}</td>
+                    <td>{{val[7]}}</td>
+                    <td>{{val[8]}}</td>
+                    <td>{{val[9]}}</td>
+
+
+                    </tr>
+                {% end %}
+            </table>
+        </div>
+    {% else %}
+        <div class="block_content">
+            <table><tr><td>id</td><td>Name</td><td>Email</td><td>Joined</td></tr>
+                {% for val in all_users %}
+                    <tr>
+                    <td>{{val[0]}}</td>
+                    <td>{{val[2]}}</td>
+                    <td>{{val[3]}}</td>
+                    <td>{{val[5]}}</td>
+
+                    </tr>
+                {% end %}
+            </table>
+        </div>
+    {% end %}
+
+{% end %}

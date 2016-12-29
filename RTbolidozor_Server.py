@@ -18,20 +18,19 @@ import svgwrite
 import crypt
 
 
-from handlers import rtmap, count, multibolid
-from handlers import _sql
+from handlers import rtmap, count, multibolid, auth, admin
+from handlers import _sql, BaseHandler
 
-cl = []
 
 def wwwCleanName(string):
     return ''.join( c for c in string if c not in '?:!/;-_#$%^!@., (){}[]' )
 
 
-class WebHandler(web.RequestHandler):
+class WebHandler(BaseHandler):
     @tornado.web.asynchronous
     def get(self, addres=None):
         print "web", addres
-        self.render("home.hbs", title="Bolidozor", user=self.get_secure_cookie("name"))
+        self.render("home.hbs", title="Bolidozor", user=self.get_secure_cookie("login"))
 
 class ClientsHandler(web.RequestHandler):
     @tornado.web.asynchronous
@@ -93,7 +92,7 @@ class AstroTools(web.RequestHandler):
 class JSweb(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
-        self.render("www/layout/js.html", title="Bolidozor multi-bolid database", _sql = _sql, parent=self)
+        self.render("js.hbs", title="Bolidozor multi-bolid database", _sql = _sql, parent=self)
 
 class AuthLoginHandler(web.RequestHandler):
     @tornado.web.asynchronous
@@ -224,10 +223,7 @@ class AuthUpdateHandler(web.RequestHandler):
                 return self.write("err")
 
 
-
-
-
-tornado.options.define("port", default=5252, help="port", type=int)
+tornado.options.define("port", default=10004, help="port", type=int)
 tornado.options.define("debug", default=True, help="debug mode")
 
 class WebApp(tornado.web.Application):
@@ -258,17 +254,29 @@ class WebApp(tornado.web.Application):
 
             #(r'/browser', DBreader),
             (r'/database(.*)', DBreader),
-            (r'/astrotools(.*)', AstroTools),
-            (r'/astrotools', AstroTools),
-            (r'/data(.*)', SimpleData),
-            (r'/data', SimpleData),
-            (r"/auth/login/", AuthLoginHandler),
-            (r"/auth/logout/", AuthLogoutHandler),
-            (r"/auth/setting/", AuthSettingHandler),
-            (r"/auth/new/(.*)", AuthNewHandler),
-            (r"/auth/update/(.*)", AuthUpdateHandler),
+
+            (r'/admin/add/(.*)', admin.new),
+            (r'/admin(.*)', admin.admin),
+            (r'/admin/(.*)', admin.admin),
+            
+            #(r'/astrotools(.*)', AstroTools),
+            #(r'/astrotools', AstroTools),
+            #(r'/data(.*)', SimpleData),
+            #(r'/data', SimpleData),
+            #(r"/auth/login/", AuthLoginHandler),
+            #(r"/auth/logout/", AuthLogoutHandler),
+            #(r"/auth/setting/", AuthSettingHandler),
+            #(r"/auth/new/(.*)", AuthNewHandler),
+            #(r"/auth/update/(.*)", AuthUpdateHandler),
             (r'/js(.*)', JSweb),
             (r'/js', JSweb),
+
+            (r'/login/oauth/github', auth.O_github),
+            (r'/login/', auth.O_login),
+            (r'/login', auth.O_login),
+            (r'/logout/', auth.O_logout),
+            (r'/logout', auth.O_logout),
+            (r'/newuser', auth.newuser),
             
             (r'/(favicon.ico)', web.StaticFileHandler, {'path': '.'}),
             (r'/(rest_api_example.png)', web.StaticFileHandler, {'path': './'}),
@@ -287,6 +295,7 @@ class WebApp(tornado.web.Application):
             name="RTbolidozor",
             server_url="rt.bolidozor.cz",
             site_title="RTbolidozor",
+            login_url="/login",
             #ui_modules=modules,
             port=tornado.options.options.port,
             compress_response=True,
@@ -297,6 +306,9 @@ class WebApp(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 def main():
+    import os
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
     tornado.options.parse_command_line()
     http_server = tornado.httpserver.HTTPServer(WebApp())
     http_server.listen(tornado.options.options.port)
