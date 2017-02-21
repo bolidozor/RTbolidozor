@@ -29,7 +29,7 @@
     </div>
     {% set my_stations = _sql("SELECT id, name, namesimple, status, observatory, web, hardware, comment FROM MLABvo.bolidozor_station WHERE owner = %s;" %(aboute[0]))%}
     <div class="block_content">
-        <table><tr><td>id</td><td>Name</td><td>Identificator</td><td>Status</td><td>Observatory id</td><td>Web</td><td>HW version</td><td>Comment</td></tr>
+        <table><tr style="text-align: center; font-size: x-small; top: -5px;"><td>id</td><td>Name</td><td>Identificator</td><td>Status</td><td>Observatory id</td><td>Web</td><td>HW version</td><td>Comment</td></tr>
         {% for val in my_stations %}
             <tr>
             <td>{{val[0]}}</td>
@@ -53,7 +53,7 @@
     {% if aboute[9] == 1%}
         {% set all_stations = _sql("SELECT id, name, namesimple, status, observatory, web, owner, hardware, comment FROM MLABvo.bolidozor_station;")%}
         <div class="block_content">
-        <table><tr><td>id</td><td>Name</td><td>Identificator</td><td>Status</td><td>Observatory id</td><td>Web</td><td>owner</td><td>HW version</td><td>Comment</td></tr>
+        <table><tr style="text-align: center; font-size: x-small; top: -5px;"><td>id</td><td>Name</td><td>Identificator</td><td>Status</td><td>Observatory id</td><td>Web</td><td>owner</td><td>HW version</td><td>Comment</td></tr>
             {% for val in all_stations %}
                 <tr>
                 <td>{{val[0]}}</td>

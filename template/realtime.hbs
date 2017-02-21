@@ -72,9 +72,6 @@
                    message('<p class="message">Received: '+msg.data);
                    log('Received: '+msg.data)
                    var split = msg.data.split(";")
-                   
-                   var table = document.getElementById("list");
-                   table.innerHTLM = String(split) + table.innerHTLM
 
                    switch(split[1]) {
                       {% for event_group in _sql("SELECT bolidozor_station.id, bolidozor_station.namesimple FROM bolidozor_station") %}
@@ -103,10 +100,9 @@
     </span>
     <div id="meteorBox_control">Vysouvatko</div>
     <div id="meteorBox">
-    <div id="list"> 
-    aaaa
-    aaaa
-    </div>
+    <table>
+      <tr></tr>
+    </table>
 
     </div>
        <script type="text/javascript">
@@ -147,7 +143,7 @@
           popupAnchor: [0, -20],
       });
 
-      var IconType0 = L.icon({
+      var IconTypeServer = L.icon({
           iconUrl: '/ic_dns_black_18dp_1x.png',
           iconSize: [18, 18],
           iconAnchor: [9, 9],
@@ -161,6 +157,14 @@
           popupAnchor: [0, -20],
       });
 
+      var IconStationDistabled = L.icon({
+          iconUrl: '/ic_gps_off_black_18dp_1x.png',
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+          popupAnchor: [0, -20],
+      });
+
+
 
 
       var map = L.map('map').setView([50, 14], 8);
@@ -173,15 +177,21 @@
       graves.setIcon(IconGraves)
       graves.bindPopup("<b>GRAVES RADAR</b><br>transmitter of radio signal");
 
-      {% for event_group in _sql("SELECT bolidozor_station.id, bolidozor_station.namesimple, bolidozor_observatory.lat, bolidozor_observatory.lon, bolidozor_station.name FROM bolidozor_station JOIN bolidozor_observatory ON bolidozor_station.observatory=bolidozor_observatory.id;", db="MLABvo") %}
+      {% for event_group in _sql("SELECT bolidozor_station.id, bolidozor_station.namesimple, bolidozor_observatory.lat, bolidozor_observatory.lon, bolidozor_station.name, bolidozor_station.status FROM bolidozor_station JOIN bolidozor_observatory ON bolidozor_station.observatory=bolidozor_observatory.id  WHERE bolidozor_station.status < 10;", db="MLABvo") %}
         var {{CleanName(event_group[1])}} = L.marker([{{event_group[2]}},{{event_group[3]}}]).addTo(map)
         {{CleanName(event_group[1])}}.setIcon(IconStationInactive)
         {{CleanName(event_group[1])}}.bindPopup("<b>{{event_group[1]}}</b><br>{{event_group[4]}}");
       {% end %}
 
+      {% for event_group in _sql("SELECT bolidozor_station.id, bolidozor_station.namesimple, bolidozor_observatory.lat, bolidozor_observatory.lon, bolidozor_station.name, bolidozor_station.status FROM bolidozor_station JOIN bolidozor_observatory ON bolidozor_station.observatory=bolidozor_observatory.id WHERE bolidozor_station.status BETWEEN 10 AND 99;", db="MLABvo") %}
+        var {{CleanName(event_group[1])}} = L.marker([{{event_group[2]}},{{event_group[3]}}]).addTo(map)
+        {{CleanName(event_group[1])}}.setIcon(IconStationDistabled)
+        {{CleanName(event_group[1])}}.bindPopup("<b>{{event_group[1]}}</b><br>{{event_group[4]}}");
+      {% end %}
+
       {% for server in _sql("SELECT vo_servers.namesimple, vo_servers.name, vo_servers.lat, vo_servers.lon FROM vo_servers;", db="MLABvo") %}
         var {{CleanName(server[0])}} = L.marker([{{server[2]}},{{server[3]}}]).addTo(map)
-          {{CleanName(server[0])}}.setIcon(IconType0)
+          {{CleanName(server[0])}}.setIcon(IconTypeServer)
           {{CleanName(server[0])}}.bindPopup(" <b>{{server[1]}}</b>");
       {% end %}
 

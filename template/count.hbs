@@ -13,14 +13,14 @@ $(window).ready(function () {
     
     <div class="block_content">
         <div>
-            <object type="image/svg+xml" data="/browser/plotJS/all/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>
+            <img type="image/svg+xml" src="/static/graphs/plotJS_all.svg"></img>
         </div>
         <div>
-            <object type="image/svg+xml" data="/browser/yeartrend/all/?width=690&height=100&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>
+            <img type="image/svg+xml" src="/static/graphs/yeartrend_all.svg"></img>
         </div>
-        <div>
+        {#<div>
             <object type="image/svg+xml" data="/browser/yearduration/" style="width: 100%;" height="500" border="0"></object>
-        </div>
+        </div>#}
     </div>
 
     <div class="block_header">
@@ -28,7 +28,7 @@ $(window).ready(function () {
     </div>
     
     
-    {% for station in _sql("SELECT namesimple, name FROM MLABvo.bolidozor_station;") %}
+    {% for station in _sql("SELECT namesimple, name FROM MLABvo.bolidozor_station WHERE status < 10 ORDER BY status;") %}
     
     <div class="block_header">
         {{station[0]}} <span style="size: small;"> @ {{station[1]}} </span>
@@ -36,13 +36,14 @@ $(window).ready(function () {
     </div>
     
     <div class="block_content">
-        Správce: <a href="mailto:{{station[0]}}">{{station[0]}}</a>
-        /browser/plotJS/{{station[0]}}/?width=690&height=280&month={{parent.get_argument('month', 'last')}}
+        <!-- Správce: <a href="mailto:{{station[0]}}">{{station[0]}}</a> -->
         <div>
-            <object type="image/svg+xml" data="/browser/plotJS/{{station[0]}}/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>
+            <img type="image/svg+xml" src="/static/graphs/plotJS_{{station[0]}}.svg"></img>
+            {#<object type="image/svg+xml" data="/browser/plotJS/{{station[0]}}/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>#}
         </div>
         <div>
-            <object type="image/svg+xml" data="/browser/yeartrend/{{station[0]}}/?width=690&height=100&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>
+            <img type="image/svg+xml" src="/static/graphs/yeartrend_{{station[0]}}.svg"></img>
+            {#<object type="image/svg+xml" data="/browser/yeartrend/{{station[0]}}/?width=690&height=100&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>#}
         </div>
     </div>
 
@@ -50,19 +51,5 @@ $(window).ready(function () {
 
 
    
-
-{% end %}{% block header%}
-<div id="tocitko" style="float: right;"> Ahoj!!! chvili pockej, tady bude tocitko </div>
-
-
-
-{% end %}{% block script %}
-
-
-    setTimeout(function(){
-        document.getElementById('tocitko').style.display = 'none';
-    }, 35000);
-
-
 
 {% end %}

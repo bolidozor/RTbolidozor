@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 class Browser(web.RequestHandler):
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
 
     def calc_colour(self, val):
         if self.color == 1:
@@ -50,7 +50,7 @@ class Browser(web.RequestHandler):
         return "rgb(%i,%i,%i)"%(int(red), int(green), int(blue))
 
     def get(self, params=None):
-        print "######################33"
+        print "######################"
         print params
         pwr_start_time = time.time()
         d_month = self.get_argument('month', 'last')
@@ -62,114 +62,62 @@ class Browser(web.RequestHandler):
         step = int(self.get_argument('step', 0))
         print params, d_month
 
-        d = params.split('/')
+        if params:
+            d = params.split('/')
 
-        if 'plotJS' in params:
-            path = "tmp/plotJS_%s.pickle" %(d[2])
-            if not os.path.exists(path) or os.path.getatime(path) < time.time()-5*60:
-            #if True:
-    
+            if 'plotJS' in params:
+                try:
+                    #path = "tmp/plotJS_%s.pickle" %(d[2])
+                    path_img = "/static/graphs/plotJS_%s.svg" %(d[2])
+                    print "Loading PICKLE"
+                    #fig = pickle.load(open(path, 'rb'))
+                    #self.write(open(path_img, 'rb'))
+                    self.write(path_img)
 
-                print params, d
-                if d[2] == 'all':
-                    counts = np.array(_sql("SELECT MONTH(obstime) as m,DAY(obstime) as d, HOUR(obstime) as h, count(*) FROM bolidozor_v_met WHERE MONTH(obstime) = MONTH(CURDATE()) GROUP BY m, d, h ORDER BY obstime;", True))
+                except Exception, e:
+                    self.write("Err - pickle missing")
+
+            elif "yeartrend" in params:
+                try:
+                    #path = "tmp/yeartrend_%s.pickle" %(d[2])
+                    path_img = "/static/graphs/yeartrend_%s.svg" %(d[2])
+                    print "Loading PICKLE"
+                    #fig = pickle.load(open(path, 'rb'))
+                    self.write(open(path_img, 'rb'))
+
+                except Exception, e:
+                    self.write("Err - pickle missing")
+
+            elif "yearduration" in params:
+                path = "tmp/yearduration.pickle"
+                #if not os.path.exists(path) and os.path.getatime(path) < time.time()-5*60:
+                if True:
+                
+
+                    counts = np.array(_sql("SELECT obstime, duration FROM bolidozor_v_met WHERE YEAR(obstime) = YEAR(CURDATE());", True, db="MLABvo"))
+                   
+                    counts = np.rot90(counts)
+                    print counts
+
+                    fig = plt.figure()
+                    ax = fig.add_subplot(111)
+                    cmap = plt.cm.jet
+                    cmap.set_under('#FAFAFA', 1)
+                    plt.tight_layout()
+                    ax.plot(counts[1], counts[0], 'bx')
+                    #ax.set_xlim([0,366])
+                    #ax.grid(color='white', linestyle='solid')
+                    #ax.xaxis.set_major_locator(months)
+                    #ax.xaxis.set_major_formatter(monthsFmt)
+                    #ax.xaxis.set_minor_locator(mondays)
+                    fig.autofmt_xdate()
+                    pickle.dump(fig, open(path, 'wb'))
+
                 else:
-                    id_station = _sql("SELECT id FROM bolidozor_station WHERE namesimple = '%s'" %(d[2]), db="MLABvo")[0][0]
-                    counts = np.array(_sql("SELECT MONTH(obstime) as m,DAY(obstime) as d, HOUR(obstime) as h, count(*) FROM bolidozor_v_met WHERE MONTH(obstime) = MONTH(CURDATE()) and id_observer = '%s' GROUP BY m, d, h ORDER BY obstime;" %(id_station), True))
-                
+                    print "Loading PICKLE"
+                    fig = pickle.load(open(path, 'rb'))
 
-                data = np.zeros((24,32))
-                for x in counts:
-                    data[x[2],x[1]] = x[3]
-
-                fig = plt.figure()
-                ax = fig.add_subplot(111)
-                cmap = plt.cm.jet
-                cmap.set_under('#FAFAFA', 1)
-                norm = mpl.colors.Normalize(vmin=1, vmax=np.amax(data))
-                img = ax.imshow(data, cmap=cmap, interpolation='nearest', aspect='auto', norm=norm)
-                
-                plt.colorbar(img)
-                plt.tight_layout()
-
-                fig.autofmt_xdate()
-                pickle.dump(fig, open(path, 'wb'))
-
-            else:
-                print "Loading PICKLE"
-                fig = pickle.load(open(path, 'rb'))
-            
-            self.write(mpld3.fig_to_html(fig))
-
-        elif "yeartrend" in params:
-            path = "tmp/yeartrend_%s.pickle" %(d[2])
-            if not os.path.exists(path) and os.path.getatime(path) < time.time()-5*60:
-            #if True:
-
-                #now = datetime.datetime.utcnow()
-                
-
-                if d[2] == 'all':
-                    #print "aaa", float(date_from), float(date_to)
-                    counts = np.array(_sql("SELECT DAYOFYEAR(obstime) as d, count(*) FROM bolidozor_v_met WHERE YEAR(obstime) = YEAR(CURDATE()) GROUP BY d ORDER BY obstime;", True, db="MLABvo"))
-                else:
-                    id_station = _sql("SELECT id FROM bolidozor_station WHERE namesimple = '%s'" %(d[2]), db="MLABvo")[0][0]
-                    counts = np.array(_sql("SELECT DAYOFYEAR(obstime) as d, count(*) FROM bolidozor_v_met WHERE YEAR(obstime) = YEAR(CURDATE()) and id_observer = '%s' GROUP BY d ORDER BY obstime;" %(id_station), True, db="MLABvo"))
-
-                print counts
-                counts = np.rot90(counts)
-                print counts
-
-                fig = plt.figure()
-                ax = fig.add_subplot(111)
-                ax.plot(counts[1], counts[0])
-                ax.set_xlim([0,366])
-                cmap = plt.cm.jet
-                cmap.set_under('#FAFAFA', 1)
-                plt.tight_layout()
-                ax.grid(color='white', linestyle='solid')
-                #ax.xaxis.set_major_locator(months)
-                #ax.xaxis.set_major_formatter(monthsFmt)
-                #ax.xaxis.set_minor_locator(mondays)
-                fig.autofmt_xdate()
-                pickle.dump(fig, open(path, 'wb'))
-
-            else:
-                print "Loading PICKLE"
-                fig = pickle.load(open(path, 'rb'))
-
-            self.write(mpld3.fig_to_html(fig))
-
-        elif "yearduration" in params:
-            path = "tmp/yearduration.pickle"
-            #if not os.path.exists(path) and os.path.getatime(path) < time.time()-5*60:
-            if True:
-            
-
-                counts = np.array(_sql("SELECT obstime, duration FROM bolidozor_v_met WHERE YEAR(obstime) = YEAR(CURDATE());", True, db="MLABvo"))
-               
-                counts = np.rot90(counts)
-                print counts
-
-                fig = plt.figure()
-                ax = fig.add_subplot(111)
-                cmap = plt.cm.jet
-                cmap.set_under('#FAFAFA', 1)
-                plt.tight_layout()
-                ax.plot(counts[1], counts[0], 'bx')
-                #ax.set_xlim([0,366])
-                #ax.grid(color='white', linestyle='solid')
-                #ax.xaxis.set_major_locator(months)
-                #ax.xaxis.set_major_formatter(monthsFmt)
-                #ax.xaxis.set_minor_locator(mondays)
-                fig.autofmt_xdate()
-                pickle.dump(fig, open(path, 'wb'))
-
-            else:
-                print "Loading PICKLE"
-                fig = pickle.load(open(path, 'rb'))
-
-            self.write(mpld3.fig_to_html(fig))
+                self.write(mpld3.fig_to_html(fig))
             
 
         else:

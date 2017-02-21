@@ -10,15 +10,15 @@
         <form action="/admin/add/observatory" method="post">
         {% raw xsrf_form_html() %}
         <table> 
-            <tr><td>id</td>             <td>Automatickly</td></tr>
-            <tr><td>Name</td>           <td><input  name="name" type="text"></input></td></tr>
-            <tr><td>Identificator</td>  <td><input  name="namesimple" type="text"></input></td></tr>
-            <tr><td>Status</td>         <td>Automatickly</td></tr>
-            <tr><td>Latitude (degrees)</td><td><input name="lat" type="number" step="any" max="180" min="180"></input></td></tr>
-            <tr><td>Longtitude (degrees)</td><td><input name="lon" type="number" step="any" max="180" min="180"></input></td></tr>
-            <tr><td>Altitude</td>       <td><input name="alt" type="number"></input></td></tr>
-            <tr><td>Web</td>            <td><input  name="www" type="text" value="http://"></input></td></tr>
-            {#<tr><td>Owner (id)</td>     <td><input  name="owner" type="number" disabled value="{{parent.me[0]}}"></input></td></tr>#}
+            <tr><td>id</td>             <td>Automatically</td><td></td></tr>
+            <tr><td>Name</td>           <td><input  name="name" type="text"></input></td><td>Název stanice (Svákov, ZVPP)</td></tr>
+            <tr><td>Identificator</td>  <td><input  name="namesimple" type="text"></input></td><td>Identifikátor observatoře (svakov, ZVPP)</td></tr>
+            <tr><td>Status</td>         <td>Automatically</td><td></td></tr>
+            <tr><td>Latitude (degrees)</td><td><input name="lat" type="number" step="any" max="180" min="-180"></input></td><td></td></tr>
+            <tr><td>Longtitude (degrees)</td><td><input name="lon" type="number" step="any" max="180" min="-180"></input></td><td></td></tr>
+            <tr><td>Altitude</td>       <td><input name="alt" type="number"></input></td><td></td></tr>
+            <tr><td>Web</td>            <td><input  name="www" type="text" value="http://"></input></td><td></td></tr>
+            {#<tr><td>Owner (id)</td>     <td><input  name="owner" type="number" disabled value="{{parent.me[0]}}"></input></td><td></td></tr>#}
             <tr><td>Owner</td><td> <select name="owner" >
                                         {% for obs in parent.owners %}
                                             <option value="{{obs[0]}}">{{obs[1]}}</option>
