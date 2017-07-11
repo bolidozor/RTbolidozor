@@ -231,7 +231,7 @@ class GetMeteors():
 
         print "Minimalni delka bolidu je stanovana na ", self.minDurationBolid, "s. Minimalni delka derivatu je", self.minDuration, "s"
         #row _sql("SELECT bz_met.id, bz_met.obstime, bz_met.duration FROM bz_met JOIN station ON bz_met.id_station = station.id WHERE (bz_met.duration > %i) AND (bz_met.time BETWEEN %i AND %i) AND (station.id_stationstat = 1) ORDER BY bz_met.obstime DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
-        row = _sql("SELECT bolidozor_met.id, bolidozor_met.obstime, bolidozor_met.duration FROM bolidozor_met INNER JOIN bolidozor_fileindex ON bolidozor_fileindex.id = bolidozor_met.file INNER JOIN bolidozor_station ON bolidozor_fileindex.id_observer = bolidozor_station.id WHERE (bolidozor_met.duration > %i) AND (bolidozor_met.obstime BETWEEN '%s' AND '%s') ORDER BY bolidozor_met.obstime;" %(int(self.minDurationBolid), datetime.datetime(2000, 1, 1).date().isoformat(), datetime.datetime.utcnow().isoformat() ))
+        row = _sql("SELECT bolidozor_met.id, bolidozor_met.obstime, bolidozor_met.duration FROM bolidozor_met INNER JOIN bolidozor_fileindex ON bolidozor_fileindex.id = bolidozor_met.file INNER JOIN bolidozor_station ON bolidozor_fileindex.id_observer = bolidozor_station.id WHERE (bolidozor_met.duration > %i) AND (bolidozor_met.obstime BETWEEN '%s' AND '%s') AND bolidozor_met.obstime > '2017-03-00' ORDER BY bolidozor_met.obstime;" %(int(self.minDurationBolid), datetime.datetime(2000, 1, 1).date().isoformat(), datetime.datetime.utcnow().isoformat() ))
         print row,
         lenrow = len(row)
         print len(row)
@@ -262,10 +262,12 @@ class GetMeteors():
 
     def run(self):          ########### Cteni csv souboru a ukladani do databaze
 
-        while True:
-            #self.run_indexing()
-            self.find_match()
-            time.sleep(10)
+        self.find_match()
+
+        #while True:
+        #    #self.run_indexing()
+        #    self.find_match()
+        #    time.sleep(10)
         '''
         daypath = os.path.join(self.path, str(self.year), str(self.month).zfill(2), str(self.day).zfill(2),"/")
         print "/storage/"+str(daypath)

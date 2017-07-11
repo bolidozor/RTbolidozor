@@ -51,7 +51,7 @@ class O_github(BaseHandler):
         token = github.fetch_token('https://github.com/login/oauth/access_token', code = github_code, client_secret='52597dc7efae01b9c3c70b667443883b48d0e0f1')
         user_j = github.get('https://api.github.com/user').json()
         email_j = github.get('https://api.github.com/user/emails').json()
-        user_db=_sql("SELECT count(*) FROM MLABvo.MLABvo_user WHERE login = '%s';" %(user_j['login']))[0][0]
+        user_db=_sql("SELECT count(*) FROM MLABvo.bolidozor_user WHERE login = '%s';" %(user_j['login']))[0][0]
 
         print token
         print user_j
@@ -74,12 +74,12 @@ class O_github(BaseHandler):
         utcnow = datetime.datetime.utcnow().isoformat()
 
         if user_db == 1: # uzivatel je zpet :)
-            _sql("UPDATE `MLABvo_user` SET `name` = '%s', `email` = '%s', `service` = '%s', `last_login` = '%s' WHERE login = '%s';" 
+            _sql("UPDATE `bolidozor_user` SET `name` = '%s', `email` = '%s', `service` = '%s', `last_login` = '%s' WHERE login = '%s';" 
                 %(user_j['name'], email, "github", utcnow, user_j['login']))
             self.redirect("/")
 
         elif user_db == 0: # Novy uzivatel
-            _sql("INSERT INTO `MLABvo`.`MLABvo_user` (`login`, `name`, `email`, `service`, `date_joined`, `last_login`) VALUES ('%s', '%s', '%s', '%s', '%s', '%s');"
+            _sql("INSERT INTO `MLABvo`.`bolidozor_user` (`login`, `name`, `email`, `service`, `date_joined`, `last_login`) VALUES ('%s', '%s', '%s', '%s', '%s', '%s');"
                 %(user_j['login'], user_j['name'], email, "github", utcnow, utcnow))
 
             sendMail("%s<%s>"%(user_j['name'],email),"Welcome to MLABvo, RTbolidozor", open("/home/roman/repos/RTbolidozor/emails/new_reg","r").read()%(user_j['name']))

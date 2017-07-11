@@ -21,14 +21,14 @@ class new(BaseHandler):
         if not self.current_user:
             self.write("no Fuj, co tady děláš")
         else:
-            self.me = _sql("SELECT id, login, name, email, service, date_joined, last_login, is_staff, is_active, is_superuser FROM MLABvo.MLABvo_user WHERE login='%s';" %(self.current_user))[0]
+            self.me = _sql("SELECT id, login, name, email, service, date_joined, last_login, is_staff, is_active, is_superuser FROM MLABvo.bolidozor_user WHERE login='%s';" %(self.current_user))[0]
             if self.me[9] == 1:
                 self.obs = _sql("SELECT id, name FROM bolidozor_observatory;")
-                self.owners = _sql("SELECT id, name FROM MLABvo_user;")
+                self.owners = _sql("SELECT id, name FROM bolidozor_user;")
             else:
                 self.obs = _sql("SELECT id, name FROM bolidozor_observatory WHERE owner = '%s';" %(self.me[0]))
                 self.owners = ([self.me[0], self.me[2]])
-                self.owners = _sql("SELECT id, name FROM MLABvo_user WHERE login='%s';" %(self.current_user))
+                self.owners = _sql("SELECT id, name FROM bolidozor_user WHERE login='%s';" %(self.current_user))
 
             print "vypis>>> me, obs, owners"
             print self.me
@@ -42,7 +42,7 @@ class new(BaseHandler):
 
 
     def post(self, param=None):
-        self.me = _sql("SELECT id, login, name, email, service, date_joined, last_login, is_staff, is_active, is_superuser FROM MLABvo.MLABvo_user WHERE login='%s';" %(self.current_user))[0]   
+        self.me = _sql("SELECT id, login, name, email, service, date_joined, last_login, is_staff, is_active, is_superuser FROM MLABvo.bolidozor_user WHERE login='%s';" %(self.current_user))[0]   
         if 'station' in param:
             print param
             name = self.get_argument("name", "NULL")
