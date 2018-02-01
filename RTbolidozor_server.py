@@ -16,9 +16,10 @@ import datetime
 import calendar
 import svgwrite
 import crypt
+import os
 
 
-from handlers import rtmap, count, multibolid, auth, admin
+from handlers import rtmap, count, multibolid, auth, admin, stations, around
 from handlers import _sql, BaseHandler
 
 
@@ -35,7 +36,7 @@ class WebHandler(BaseHandler):
 class ClientsHandler(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
-        print cl
+        #print cl
         self.render("index.html")
 
 
@@ -67,8 +68,6 @@ class DBreader(web.RequestHandler):
         else:
             table = self.get_argument('table', 'snap')
             self.render("www/layout/DBreader/mainpage.html", title="DBreader", _sql=_sql, parent=self, argv = self.get_argument, table=table)
-
-
 
 
 
@@ -225,6 +224,7 @@ class AuthUpdateHandler(web.RequestHandler):
 
 tornado.options.define("port", default=10004, help="port", type=int)
 tornado.options.define("debug", default=True, help="debug mode")
+tornado.options.parse_config_file("/home/roman/rtbolidozor.conf")
 
 class WebApp(tornado.web.Application):
 
@@ -238,15 +238,26 @@ class WebApp(tornado.web.Application):
         handlers =[
             (r'/', WebHandler),
             (r'/ws', rtmap.SocketHandler),
-            (r'/clients', ClientsHandler),
+            (r'/event', rtmap.MeteorRtHandler),
+            (r'/bolid', rtmap.SocketHandler),
 
-            (r'/multibolid(.*)', multibolid.MultiBolid),
             (r'/multibolid', multibolid.MultiBolid),
+            (r'/multibolid/', multibolid.MultiBolid),
+            (r'/multibolid(.*)', multibolid.MultiBolid),
+
+            (r'/around', around.Around),
+            (r'/around/', around.Around),
+            (r'/around(.*)', around.Around),
 
             (r'/realtime(.*)', rtmap.RTbolidozor),
             (r'/realtime', rtmap.RTbolidozor),
             (r'/map(.*)', rtmap.RTbolidozor),
             (r'/map', rtmap.RTbolidozor),
+
+            (r'/stations.kml', stations.station_kml),
+            (r'/stations.kml/', stations.station_kml),
+            (r'/stations/kml', stations.station_kml),
+            (r'/stations/kml/', stations.station_kml),
 
             (r'/browser(.*)', count.Browser),
             (r'/counts(.*)', count.Browser),
@@ -256,6 +267,7 @@ class WebApp(tornado.web.Application):
             (r'/database(.*)', DBreader),
 
             (r'/admin/add/(.*)', admin.new),
+            (r'/admin/sendEmail/(.*)', admin.sendEmail),
             (r'/admin(.*)', admin.admin),
             (r'/admin/(.*)', admin.admin),
             
@@ -293,7 +305,7 @@ class WebApp(tornado.web.Application):
             static_path= "/home/roman/repos/RTbolidozor/static/",
             xsrf_cookies=True,
             name="RTbolidozor",
-            server_url="rt.bolidozor.cz",
+            server_url="rtbolidozor.astro.cz",
             site_title="RTbolidozor",
             login_url="/login",
             #ui_modules=modules,

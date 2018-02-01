@@ -5,10 +5,24 @@ $(window).ready(function () {
     console.log("done")
 });
     </script>
+
+    <style type="text/css">
+        .container{
+            width: fit-content;
+        }
+    </style>
+
+    <div class="block_header"" style="width: 1200px;">Multicounts</div>
+    <div class="block_content" style="width: 1140px;">
+        {%raw multicount%}
+    </div>
  
+    {#
     <div class="block_header">
         All <span style="size: small;"> @ bolidozor</span>
-        
+                <img src="/static/multicounts.svg">
+        </object>
+
     </div>
     
     <div class="block_content">
@@ -18,9 +32,7 @@ $(window).ready(function () {
         <div>
             <img type="image/svg+xml" src="/static/graphs/yeartrend_all.svg"></img>
         </div>
-        {#<div>
-            <object type="image/svg+xml" data="/browser/yearduration/" style="width: 100%;" height="500" border="0"></object>
-        </div>#}
+        
     </div>
 
     <div class="block_header">
@@ -31,25 +43,50 @@ $(window).ready(function () {
     {% for station in _sql("SELECT namesimple, name FROM MLABvo.bolidozor_station WHERE status < 10 ORDER BY status;") %}
     
     <div class="block_header">
-        {{station[0]}} <span style="size: small;"> @ {{station[1]}} </span>
+        {{station['namesimple']}} <span style="size: small;"> @ {{station['name']}} </span>
         
     </div>
     
     <div class="block_content">
-        <!-- Správce: <a href="mailto:{{station[0]}}">{{station[0]}}</a> -->
+        <!-- Správce: <a href="mailto:{{station['namesimple']}}">{{station['namesimple']}}</a> -->
         <div>
-            <img type="image/svg+xml" src="/static/graphs/plotJS_{{station[0]}}.svg"></img>
-            {#<object type="image/svg+xml" data="/browser/plotJS/{{station[0]}}/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>#}
+            <img type="image/svg+xml" src="/static/graphs/plotJS_{{station['namesimple']}}.svg"></img>
+            <object type="image/svg+xml" data="/browser/plotJS/{{station['namesimple']}}/?width=690&height=280&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>
         </div>
         <div>
-            <img type="image/svg+xml" src="/static/graphs/yeartrend_{{station[0]}}.svg"></img>
-            {#<object type="image/svg+xml" data="/browser/yeartrend/{{station[0]}}/?width=690&height=100&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>#}
+            <img type="image/svg+xml" src="/static/graphs/yeartrend_{{station['namesimple']}}.svg"></img>
+            <object type="image/svg+xml" data="/browser/yeartrend/{{station['namesimple']}}/?width=690&height=100&month={{parent.get_argument('month', 'last')}}" style="width: 100%;" height="500" border="0"></object>
         </div>
     </div>
-
+ 
     {% end %}
 
-
+ #}
    
+
+<script type="text/javascript">
+    var layer = null;
+    
+    function showStation(name) {
+        if (layer == null){
+            $('#overlay_'+name).css('fill-opacity',0.8);
+            layer = name;
+        }
+        else{
+            if (layer == name){
+                $('#overlay_'+layer).css('fill-opacity',0);
+                layer = null;
+
+            }else{
+                $('#overlay_'+layer).css('fill-opacity',0);
+                $('#overlay_'+name).css('fill-opacity',0.8);
+                layer = name;
+
+            }
+        }
+    }
+
+
+</script>
 
 {% end %}

@@ -1,0 +1,160 @@
+{% extends "base.hbs" %}
+{% block container %}
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+<style type="text/css">
+
+input, select, textarea {
+    width: 100%;
+    border: none;
+}
+
+</style>
+
+
+    <div class="block_header">
+        Send email
+    </div>
+    
+    <div class="block_content">
+        <form id="email_form" action="post">
+        <label>Station: </label>
+        <select id="email">
+            {% for station in _sql("SELECT * FROM bolidozor_station INNER JOIN vo_user on vo_user.id = bolidozor_station.owner ORDER BY bolidozor_station.id DESC;")%}
+                <option value="{{station['vo_user.name']}} <{{station['email']}}>">{{station['namesimple']}} {{station['vo_user.name']}} &#60;{{station['email']}}&#62;</option>
+            {% end %}
+        </select>
+        <label>Preset: </label>
+        <select id="message">
+            <option value="0">Custom message</option>
+            <option value="1">Station storage is corrupted - problém s SD kartou</option>
+            <option value="2">Below-average number of meteors</option>
+            <option value="3">Station stopped sending us data - problém s připojevním</option>
+        </select>
+        <label>Problem:</label>
+        <input type="text" id="problem" value="problem">
+        <label>Details:</label>
+        <textarea id="details" rows="5" style="height: 5em;" >details</textarea>
+        <submit></submit>
+        </form>
+
+        <div style=" width: 100%; min-height: 20em; border: solid; font: initial; font-family: initial; background: initial; color: initial;">
+
+
+            <div text="#000000" bgcolor="#FFFFFF", style="margin: 5pt;">
+                    <p><font color="#666666">Dear Bolidozor station Owner,</font></p>
+                    <font color="#666666"> </font>
+                    <div style="margin-left: 2em;"><font color="#666666">Your station '<b><font
+                            color="#333333"><span id='email_station_name'>STATION</span></font></b>' has problem.</font><br>
+                      <br>
+                      <font color="#666666">Problem: <b><font color="#333333"><i><font id="email_station_problem">problem description</font></i></font></b></font><br>
+                      <font color="#666666">Details of the problem: <font
+                          color="#333333"><font id="email_station_detail">problem details</font></font><br>
+                        <br>
+                        Please check your Bolidozor station.</font><br>
+                      <font color="#666666">If you do not know how to solve your issue,
+                        please check out <a moz-do-not-send="true"
+                          href="http://wiki.bolidozor.cz">wiki.<font color="#666666">bolidozor</font>.cz</a>
+                        or contact us.</font><br>
+                    </div>
+                    <br>
+                    <br>
+                    <font color="#666666"> Thank you,</font><br>
+                    <font color="#666666"> Bolidozor team</font><br>
+                    <font color="#666666"> </font><br>
+                    <font color="#666666"><font size="-2"><img moz-do-not-send="false"
+                src="data:image/png;filename=logo.png;base64,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"
+                          alt="" class="" width="177" height="70"></font></font><br>
+
+                        <div style="line-height:100%; font-size: 7.5pt; color:#666666;">
+                        This email was sent semi-automatically from RTbolidozor software.<br>
+                        For additional information contact Bolidozor team on <a href="mailto:bolidozor@googlegroups.com"
+                          moz-do-not-send="true">mailing list</a><div><br>
+                  </div>
+
+        </div>
+
+        
+    </div>
+
+    <script type="text/javascript">
+        window.onload = function () {
+            //$('#message').on('change', refresh(this));
+            //$('#email').on('change', refresh(this));
+            //$('#problem').on('change', refresh(this));
+           //$('#details').on('change', refresh(this));
+            //$('#message').on('details', refresh());
+        }
+
+        /*function refresh(element){
+          console.log(element);
+          var preset = String(element.value);
+          console.log(preset);
+          
+          switch (preset){
+            case '0':
+                break;
+            case '1':
+                console.log("1 -");
+                $('#problem').val("Station storage is corrupted.");
+                $('#details').val("Station storage device (/dev/mmcblk0p1, EXT2-fs) has bad blocks. This problem can result in data loss or interruption of measurement. Please change memory unit.");
+                break;
+            case '2':
+                console.log("2 -");
+                $('#problem').val("Below-average number of meteors.");
+                $('#details').val("Station detects few meteors. Please check wires and signal quality.");
+                break;
+          };
+
+          console.log(document.getElementById("email").value);
+          //document.getElementById("email_station_name").innerHTML = document.getElementById("email").value;
+          //document.getElementById("email_title_station_name").innerHTML = document.getElementById("email").value;
+          document.getElementById("email_station_problem").innerHTML = document.getElementById("problem").innerHTML;
+          //document.getElementById("emali_station_detail").innerHTML = document.getElementById("details").innerHTML;
+
+        }*/
+
+    $('#email_form').change(function(){
+        console.log("changed FORM");
+        console.log($("#message").val());
+
+        switch ($("#message").val()){
+        case '0':
+            $('#details').attr("disabled", false);
+            $('#problem').attr("disabled", false);
+            break;
+        case '1':
+            console.log("1 -");
+            $('#problem').val("Station storage is corrupted.");
+            $('#details').val("Station storage device (/dev/mmcblk0p1, EXT2-fs) has bad blocks. This problem can result in data loss or interruption of measurement. Please change memory unit.");
+            $('#problem').attr("disabled", true);
+            $('#details').attr("disabled", true);
+
+            break;
+        case '2':
+            console.log("2 -");
+            $('#problem').val("Below-average number of meteors.");
+            $('#details').val("Station detects few meteors. Please check wiring and signal quality.");
+            $('#problem').attr("disabled", true);
+            $('#details').attr("disabled", true);
+            break;
+        case '3':
+            console.log("3 -");
+            $('#problem').val("Station stopped sending us data.");
+            $('#details').val("Make sure your device is powered up and connected to network and space.astro.cz server is accesible from your network.");
+            $('#problem').attr("disabled", true);
+            $('#details').attr("disabled", true);
+            break;
+        };
+
+        $('#email_station_detail').html($('#details').val());
+        $('#email_station_problem').html($('#problem').val());
+
+
+
+    });
+
+    </script>
+
+
+{% end %}

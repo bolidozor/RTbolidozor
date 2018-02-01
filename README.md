@@ -28,3 +28,8 @@ do souboru /src/BolidRecorder.cpp před (********METEOR DETECTED********) (řád
 
 a ve složce radio-observer zkompilovat pomocí make. 
 do souboru start.sh přidat za radio-obrerver "| python ~/repos/RTstation/RTstation.py"
+
+
+## Instalace na server
+sudo apt-get install python-websocket python-tornado python-jinja2 python-matplotlib python-mpld3 python-requests-oauthlib python-svgwrite python-mysqldb $
+

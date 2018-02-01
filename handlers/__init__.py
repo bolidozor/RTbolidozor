@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import MySQLdb as mdb
+import pymysql.cursors
 import os
 import tornado
 from requests_oauthlib import OAuth2Session
@@ -17,6 +18,10 @@ import os
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
+
+        #print self.options()
+        #print help(self.options())
+        print "----------------------"
         login = self.get_secure_cookie("login")
         token = self.get_secure_cookie("token")
         if not login:
@@ -48,8 +53,8 @@ Subject: %s
 
 
 def _sql(query, read=False, db="MLABvo"):
-        print "#>", query
-        connection = mdb.connect(host="localhost", user="root", passwd="root", db=db, use_unicode=True, charset="utf8")
+        #print "#>", query
+        connection = pymysql.connect(host="localhost", user="root", passwd="root", db=db, use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
         try:
             cursorobj = connection.cursor()
             result = None
@@ -60,6 +65,7 @@ def _sql(query, read=False, db="MLABvo"):
         except Exception, e:
                 print "Err", e
         connection.close()
+        #print result
         return result
 
 

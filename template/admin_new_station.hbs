@@ -17,14 +17,14 @@
             {#<tr><td>Observatory (id)</td><td><input name="observatory" type="number"></input></td></tr>#}
             <tr><td>Observatory</td><td> <select name="observatory" >
                                         {% for obs in parent.obs %}
-                                            <option value="{{obs[0]}}">{{obs[1]}}</option>
+                                            <option value="{{obs['id']}}">{{obs['name']}}</option>
                                         {% end %}
                                         </select></td> </tr>
             <tr><td>web</td>            <td><input  name="web" type="number" value="1"></input></td></tr>
-            {#<tr><td>Owner (id)</td>     <td><input  name="owner" type="number" disabled value="{{parent.me[0]}}"></input></td></tr>#}
+            {#<tr><td>Owner (id)</td>     <td><input  name="owner" type="number" disabled value="{{parent.me['id']}}"></input></td></tr>#}
             <tr><td>Owner</td><td> <select name="owner" >
                                         {% for obs in parent.owners %}
-                                            <option value="{{obs[0]}}">{{obs[1]}}</option>
+                                            <option value="{{obs['id']}}">{{obs['name']}}</option>
                                         {% end %}
                                         </select></td> </tr>
             <tr><td>Hardware version</td><td><input name="hardware" type="text" value="RMDSxxx"></input></td></tr>

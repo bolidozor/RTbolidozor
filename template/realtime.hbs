@@ -16,15 +16,7 @@
       height: 100%;
     }
 
-    #meteorBox{
-      height: 350px;
-      height: 25%
-      bottom: 0px;
-      background: red;
-      min-width: 150px;
-      right: 50px;
-      display: none;
-    }
+  
 
 
     </style>
@@ -41,6 +33,9 @@
       }
 
       function showmeteor(marker, duration){
+        console.log("show Meteor")
+        console.log(duration)
+        console.log(marker)
         marker.setIcon(IconEvent)
         snd.play();
       }
@@ -50,6 +45,8 @@
       }
 
       function meteor(station, amplitude, duration, marker){
+        console.log("meteor----")
+        console.log(marker)
         showmeteor(marker, duration);
         setTimeout(function() { hidemeteor(marker, duration);}, 0);
       }
@@ -59,7 +56,7 @@
       try{
 
           var socket;
-          var host = "ws://rt.bolidozor.cz/ws";
+          var host = "ws://rtbolidozor.astro.cz/ws";
             var socket = new WebSocket(host);
 
                 message('<p class="event">Socket Status: '+socket.readyState);
@@ -70,13 +67,21 @@
 
                 socket.onmessage = function(msg){
                    message('<p class="message">Received: '+msg.data);
-                   log('Received: '+msg.data)
-                   var split = msg.data.split(";")
+                   log('Received: '+msg.data);
+                   var split = msg.data.split(";");
+                   console.log(split[1]);
 
                    switch(split[1]) {
-                      {% for event_group in _sql("SELECT bolidozor_station.id, bolidozor_station.namesimple FROM bolidozor_station") %}
-                      case '{{(event_group[1])}}':
-                          meteor("{{event_group[1]}}", 0, 0, {{CleanName(event_group[1])}});
+                      {% for event_group in _sql("SELECT * FROM bolidozor_station") %}
+                      case "{{(event_group['namesimple'])}}":
+                          console.log("calling: {{(event_group['namesimple'])}}" );
+                          console.log("{{CleanName(event_group['name'])}}");
+                          console.log("test {{(event_group['namesimple'])}}");
+                          console.log("{{(event_group['namesimple'])}}", 0, 0, {{CleanName(event_group['namesimple'])}});
+                          meteor("{{(event_group['namesimple'])}}", 0, 0, {{CleanName(event_group['namesimple'])}});
+                          var d = new Date();
+                          var n = d.toLocaleTimeString();
+                          $("#meteorBox").prepend("<div class='eventlist_row' style='margin: 5pt;'><span style='font-size: 75%; margin-right: 10pt;''>"+n+"</span><span>{{(event_group['namesimple'])}}</span></div>");
                           break;
                       {% end %}
                       default:
@@ -98,13 +103,13 @@
     <span id = "mapbox">
       <div id="map"> </div>
     </span>
-    <div id="meteorBox_control">Vysouvatko</div>
-    <div id="meteorBox">
-    <table>
-      <tr></tr>
-    </table>
+    <div id="meteorBox_control" style="top: 2.5em; position: absolute; right: 50pt; background-color: white; width: 250pt; max-height: 90%; overflow-y: auto;">
+    <input type="checkbox" name="sound" checked="true" disabled="true"> Sound<br>
+    <div id="meteorBox"></div>
 
+      
     </div>
+    
        <script type="text/javascript">
 
 
@@ -165,8 +170,6 @@
       });
 
 
-
-
       var map = L.map('map').setView([50, 14], 8);
 
       L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', { attribution: '&copy <b> <a href="">BOLIDOZOR</a></b> network, &copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -177,22 +180,22 @@
       graves.setIcon(IconGraves)
       graves.bindPopup("<b>GRAVES RADAR</b><br>transmitter of radio signal");
 
-      {% for event_group in _sql("SELECT bolidozor_station.id, bolidozor_station.namesimple, bolidozor_observatory.lat, bolidozor_observatory.lon, bolidozor_station.name, bolidozor_station.status FROM bolidozor_station JOIN bolidozor_observatory ON bolidozor_station.observatory=bolidozor_observatory.id  WHERE bolidozor_station.status < 10;", db="MLABvo") %}
-        var {{CleanName(event_group[1])}} = L.marker([{{event_group[2]}},{{event_group[3]}}]).addTo(map)
-        {{CleanName(event_group[1])}}.setIcon(IconStationInactive)
-        {{CleanName(event_group[1])}}.bindPopup("<b>{{event_group[1]}}</b><br>{{event_group[4]}}");
+      {% for event_group in _sql("SELECT * FROM bolidozor_station INNER JOIN bolidozor_observatory ON bolidozor_observatory.id = bolidozor_station.observatory WHERE bolidozor_station.status < 10;") %}
+        var {{CleanName(event_group['namesimple'])}} = L.marker([{{event_group['lat']}},{{event_group['lon']}}]).addTo(map)
+        {{CleanName(event_group['namesimple'])}}.setIcon(IconStationInactive)
+        {{CleanName(event_group['namesimple'])}}.bindPopup("<b>{{event_group['namesimple']}}</b><br>{{event_group['name']}}");
       {% end %}
 
-      {% for event_group in _sql("SELECT bolidozor_station.id, bolidozor_station.namesimple, bolidozor_observatory.lat, bolidozor_observatory.lon, bolidozor_station.name, bolidozor_station.status FROM bolidozor_station JOIN bolidozor_observatory ON bolidozor_station.observatory=bolidozor_observatory.id WHERE bolidozor_station.status BETWEEN 10 AND 99;", db="MLABvo") %}
-        var {{CleanName(event_group[1])}} = L.marker([{{event_group[2]}},{{event_group[3]}}]).addTo(map)
-        {{CleanName(event_group[1])}}.setIcon(IconStationDistabled)
-        {{CleanName(event_group[1])}}.bindPopup("<b>{{event_group[1]}}</b><br>{{event_group[4]}}");
+      {% for event_group in _sql("SELECT * FROM bolidozor_station INNER JOIN bolidozor_observatory ON bolidozor_observatory.id = bolidozor_station.observatory WHERE bolidozor_station.status BETWEEN 10 AND 99;") %}
+        var {{CleanName(event_group['namesimple'])}} = L.marker([{{event_group['lat']}},{{event_group['lon']}}]).addTo(map)
+        {{CleanName(event_group['namesimple'])}}.setIcon(IconStationDistabled)
+        {{CleanName(event_group['namesimple'])}}.bindPopup("<b>{{event_group['namesimple']}}</b><br>{{event_group['name']}}");
       {% end %}
 
-      {% for server in _sql("SELECT vo_servers.namesimple, vo_servers.name, vo_servers.lat, vo_servers.lon FROM vo_servers;", db="MLABvo") %}
-        var {{CleanName(server[0])}} = L.marker([{{server[2]}},{{server[3]}}]).addTo(map)
-          {{CleanName(server[0])}}.setIcon(IconTypeServer)
-          {{CleanName(server[0])}}.bindPopup(" <b>{{server[1]}}</b>");
+      {% for server in _sql("SELECT * FROM vo_servers;") %}
+        var {{CleanName(server['name'])}} = L.marker([{{server['lat']}},{{server['lon']}}]).addTo(map)
+          {{CleanName(server['name'])}}.setIcon(IconTypeServer)
+          {{CleanName(server['name'])}}.bindPopup(" <b>{{server['name']}}</b>");
       {% end %}
 
 
@@ -226,8 +229,8 @@
             var ws;
            // evt.preventDefault();
      
-              var host = "62.77.113.30";
-              var port = 5252;
+              var host = "rtbolidozor.astro.cz";
+              var port = 80;
               var uri =  "/ws";
      
               ws = new WebSocket("ws://" + host + ":" + port + uri);
@@ -253,5 +256,14 @@
   $("#map").height($(window).height()-$("#header").height()-5).width($(window).width());
   connect();
   </script>
+
+  <!-- Global Site Tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-73663589-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments)};
+  gtag('js', new Date());
+  gtag('config', 'UA-73663589-1');
+</script>
 
 {% end %}

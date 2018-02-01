@@ -51,7 +51,8 @@ class O_github(BaseHandler):
         token = github.fetch_token('https://github.com/login/oauth/access_token', code = github_code, client_secret='52597dc7efae01b9c3c70b667443883b48d0e0f1')
         user_j = github.get('https://api.github.com/user').json()
         email_j = github.get('https://api.github.com/user/emails').json()
-        user_db=_sql("SELECT count(*) FROM MLABvo.bolidozor_user WHERE login = '%s';" %(user_j['login']))[0][0]
+        user_db=_sql("SELECT count(*) as count FROM MLABvo.bolidozor_user WHERE login = '%s';" %(user_j['login']))[0]['count']
+        print user_db
 
         print token
         print user_j
@@ -86,7 +87,7 @@ class O_github(BaseHandler):
             self.redirect("/newuser")
 
         else:
-            self.write("Chyba, prosím nahlašte do mailinglistu Bolidozoru č.0003")
+            self.write("Chyba, prosím nahlašte do mailinglistu Bolidozoru č.0003 - status: %s" %user_db)
 
 
         #_sql("REPLACE INTO `MLABvo`.`geozor_fileindex` SET `filename_original` = '%s', `filename` = '%s', `id_observer` = '%d', `id_server` = '%d', `filepath` = '%s', `obstime` = '%s', `uploadtime` = '%s', `lastaccestime` = '%s', `indextime` = '%s', `checksum` = '%s';" %(filename_original, filename, id_observer, id_server, filepath, uploadtime, uploadtime, lastaccestime, indextime, checksum))
@@ -97,7 +98,7 @@ class O_github(BaseHandler):
 
 class newuser(BaseHandler):
     def get(self):
-        self.write("Ahoj novy uzivateli :), pokracuj na <a href='/'>RTbolidozor</a>")
+        self.write("Ahoj! Vítám Tě tady. Ty jsi nový, Tebe ještě neznám :), pokračuj na <a href='/'>RTbolidozor</a>")
 
 
 #'2', 'kaklik', 'Jakub Kákona', 'None', 'github', '2016-12-29 18:56:08', '2016-12-29 18:56:08', '1', '1', '1'

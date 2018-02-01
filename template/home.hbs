@@ -56,11 +56,29 @@
 
 
 {% end %}{% block header %}
-   <small>Právě na tomto serveru probíhají vylepšení softwaru RTbolidozor a MLABvo. Omluvte proto dočasnou nefunkčnost systému.</small> 
+   <!-- <small>Právě na tomto serveru probíhají vylepšení softwaru RTbolidozor a MLABvo. <br> Omluvte proto dočasnou nefunkčnost systému. <span style="color: red; font-weight: 500;">Pro zobrazení odkazů se přihlašte pomocí GitHub účtu.</span></small>  -->
 
 {% end %}{% block clear %}
 
     <div id="floater">
+      <a href="/realtime" style="background: url('/IndexMapText.png') no-repeat;"></a>
+      <a href="/counts" style="background: url('/IndexCountsText.png') no-repeat;"></a>
+      <a href="/multibolid" style="background: url('/IndexMBText.png') no-repeat;"></a>
+      <a href="http://space.astro.cz/bolidozor/support/js9browser/#/bolidozor/" style="background: url('/IndexSpaceText.png') no-repeat;"> </a>
+      <a href="http://wiki.bolidozor.cz/" style="background: url('/IndexWIKIText.png') no-repeat;"> </a>
+      <a href="/around" style="background: url('/IndexMB100.png') no-repeat;"> </a>
+      <a href="/stations.kml" style="background: url('/kml.png') no-repeat;"> </a>
+      {% if current_user %}
+        <a href="/database"> DB reader OUT OF ORDER</a> ---
+        <a href="/stats"> Stats OUT OF ORDER</a> ---
+        <a href="/admin"> Administration</a> ---
+      {% end %} 
+    </div>
+
+
+
+    <!-- <div id="floater">
+     <a href="/"> bla</a>
      <a href="/realtime" style="background: url('/IndexMapText.png') no-repeat;"></a>
      <a href="/multibolid" style="background: url('/IndexMBText.png') no-repeat;"></a>
      <a href="/counts" style="background: url('/IndexCountsText.png') no-repeat;"></a>
@@ -70,8 +88,7 @@
         <a href="/database" style="background: url('/IndexBrowser.png') no-repeat;"> <br> <br> DB reader <br> OUT OF ORDER</a>
         <a href="/stats" style="background: url('/IndexBrowser.png') no-repeat;"> <br> <br> Stats <br> OUT OF ORDER</a>
         <a href="/admin" style="background: url('/IndexBrowser.png') no-repeat;"> <br> <br> Administration</a>
-     {% end %}
-
-    </div>
+     {% end %} 
+    </div> -->
     
 {% end %}

@@ -7,6 +7,7 @@ from tornado import web
 from . import _sql, wwwCleanName
 import time
 import os
+import os.path
 import pickle
 import mpld3
 from mpld3 import plugins, utils
@@ -62,6 +63,9 @@ class Browser(web.RequestHandler):
         step = int(self.get_argument('step', 0))
         print params, d_month
 
+        self.render("count.hbs", title="Bolidozor | meteor counts", _sql = _sql, parent=self, multicount = open("/home/roman/repos/RTbolidozor/static/multicounts.svg").read())
+
+        '''
         if params:
             d = params.split('/')
 
@@ -123,3 +127,4 @@ class Browser(web.RequestHandler):
         else:
             self.render("count.hbs", title="Bolidozor | meteor counts", _sql = _sql, parent=self)
 
+        '''

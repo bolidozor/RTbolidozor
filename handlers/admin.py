@@ -11,23 +11,31 @@ import json
 class admin(BaseHandler):
     def get(self, param=None):
         if not self.current_user:
-            self.write("no Fuj, co tady děláš")
+            self.write("... co tady děláš? Nejdříve se musíš přihlásit")
         else:
             self.render("admin.hbs", title="Bolidozor | admin", _sql = _sql, parent=self)
 
 
+class sendEmail(BaseHandler):
+    def get(self, param=None):
+        if not self.current_user:
+            self.write("... co tady děláš? Nejdříve se musíš přihlásit")
+        else:
+            self.render("admin.sendEmail.hbs", title="SendEmail | admin", _sql = _sql, parent=self)
+    
+
 class new(BaseHandler):
     def get(self, param=None):
         if not self.current_user:
-            self.write("no Fuj, co tady děláš")
+            self.write("... co tady děláš? Nejdříve se musíš přihlásit")
         else:
             self.me = _sql("SELECT id, login, name, email, service, date_joined, last_login, is_staff, is_active, is_superuser FROM MLABvo.bolidozor_user WHERE login='%s';" %(self.current_user))[0]
-            if self.me[9] == 1:
+            if self.me['is_superuser'] == 1:
                 self.obs = _sql("SELECT id, name FROM bolidozor_observatory;")
                 self.owners = _sql("SELECT id, name FROM bolidozor_user;")
             else:
-                self.obs = _sql("SELECT id, name FROM bolidozor_observatory WHERE owner = '%s';" %(self.me[0]))
-                self.owners = ([self.me[0], self.me[2]])
+                self.obs = _sql("SELECT id, name FROM bolidozor_observatory WHERE owner = '%s';" %(self.me['id']))
+                self.owners = ([self.me['id'], self.me['name']])
                 self.owners = _sql("SELECT id, name FROM bolidozor_user WHERE login='%s';" %(self.current_user))
 
             print "vypis>>> me, obs, owners"
@@ -50,7 +58,7 @@ class new(BaseHandler):
             status= self.get_argument("status", 0)
             observatory = self.get_argument("observatory", "NULL")
             web = self.get_argument("web", "NULL")
-            owner = self.get_argument("owner", self.me[0])
+            owner = self.get_argument("owner", self.me['id'])
             hardware = self.get_argument("hardware", "NULL")
             comment = self.get_argument("comment", "NULL")
 
@@ -65,7 +73,7 @@ class new(BaseHandler):
             lat= self.get_argument("lat", 0)
             lon = self.get_argument("lon", "NULL")
             alt = self.get_argument("alt", "NULL")
-            owner = self.get_argument("owner", self.me[0])
+            owner = self.get_argument("owner", self.me['id'])
             www = self.get_argument("www", "NULL")
             comment = self.get_argument("comment", "NULL")
 

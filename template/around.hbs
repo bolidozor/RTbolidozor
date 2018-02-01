@@ -1,0 +1,89 @@
+{% import datetime %}
+{% import math %}
+{% extends "base.hbs" %}
+{% block meta %}
+  <head>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/MB.css">
+    <link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9support.css">
+    <link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9.css">
+    <script type="text/javascript" src="http://space.astro.cz/bolidozor/support/js9browser/js9support.min.js"></script>
+    <script type="text/javascript" src="http://js9.si.edu/js9/js9.min.js"></script>
+    <script type="text/javascript" src="http://js9.si.edu/js9/js9plugins.js"></script>
+    <script type="text/javascript">
+        function Open(args) {
+            JS9.Load.apply(this, arguments)
+            document.getElementById("window").style.display = 'block';
+        }
+        function Close() {
+            document.getElementById("window").style.display = 'none';
+        }
+    </script>
+{% end %}
+{% block container %}
+    <div class="parameters">
+        <form style="margin: 0px; padding: 0px; display: in-line; max-width: 90%;">
+            {#Month: <input type="month" name="month" value="{{parent.get_argument('month', str(datetime.datetime.utcnow().strftime('%Y-%m')))}}">
+            <input type="submit">#}
+
+            přidejte do adresy parametr datetime ve formátu 2018-01-01T10:20:45
+            parametr delta nastavuje vzdálenost od zvoleného času.
+
+        </form>
+    </div>
+
+        {% if len(data) == 0 %} 
+            <div class="parameters" id="error">
+            Error: 0 výsledků ... Zkus jiný měsíc
+            </div>
+        {% else %} 
+            <div class="parameters">
+            Rows: {{len(data)}}
+            </div>
+        {% end %}
+        
+        <table style="width: 100%; padding: 10px;">
+                <tr>
+                    <th>Datetime</th>
+                    <th>Observer</th>
+                    <th>noise</th>
+                    <th>peak</th>
+                    <th>mag</th>
+                    <th>duration</th>
+                    <th>duration</th>
+                    <th>filename</th>
+                </tr>
+            {% for event in data %}
+            {% try %}
+                <tr>
+                    <td><span class="eventCell">{{event['obstime']}}</span></td>
+                    <td><span class="eventCell">{{event['id_observer']}}</span></td>
+                    <td><span class="eventCell"> {{float(event['noise'])}}</span>
+                    <td><span class="eventCell"> {{float(event['peak_f'])}}</span></td>
+                    <td><span class="eventCell"> {{float(event['mag'])}}</span></td>
+                    <td><span class="eventCell"> {{event['duration']}}</span></td>
+                    <td><span class="eventCell"> {{event['duration']}}</span></td>
+                    <td><span class="eventCell"> {{event['filename']}}</span></td>
+                  
+
+
+                </tr>
+            {% except %}
+                <td> Err </td><td></td><td></td><td></td><td></td><td></td> </tr>
+            {% end %}
+            {% end %}
+        </table>
+
+    <div id="window">
+        <div style="text-align: left;"><a href="javascript:Close();"><img src="/ic_clear_black_18dp_1x.png"></a></div>
+        <div class="JS9Menubar"></div>
+        <div class="JS9"></div>
+    </div>
+
+    <div id="tooltip" style="position: fixed; height: 4em; width: 150px; bottom: 25px; right: 25px;">
+        <img src="/prw.png" style="max-width: 20px;"> htfits<br>
+        <img src="/sun.png" style="max-width: 20px;"> space.astro.cz<br>
+        <img src="/open.png" style="max-width: 20px;"></img> JS9 browser <br>
+    </div>
+{% end %}
+
