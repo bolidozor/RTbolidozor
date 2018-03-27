@@ -1,0 +1,233 @@
+{% import datetime %}
+{% set title = "Time line" %}
+{% extends "base.hbs" %}
+{% block meta %}
+  <head>
+    <script type="text/javascript" src="/static/svg.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/MB.css">
+    <link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9support.css">
+    <link type="text/css" rel="stylesheet" href="http://space.astro.cz/bolidozor/support/js9browser/js9.css">
+    <script type="text/javascript" src="http://space.astro.cz/bolidozor/support/js9browser/js9support.min.js"></script>
+    <script type="text/javascript" src="http://space.astro.cz/bolidozor/support/js9browser/js9.min.js"></script>
+    <script type="text/javascript" src="http://space.astro.cz/bolidozor/support/js9browser/js9plugins.min.js"></script>
+
+
+    <style type="text/css">
+        .container{
+            width: 100%;
+            margin: 0pt;
+            padding: 0pt;
+        }
+
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #999;
+            width: 60px;
+            height: 60px;
+            -webkit-animation: spin 2s linear infinite; /* Safari */
+            animation: spin 2s linear infinite;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        @-webkit-keyframes spin {
+          0% { -webkit-transform: rotate(0deg); }
+          100% { -webkit-transform: rotate(360deg); }
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+    </style>
+{% end %}
+{% block container %}
+
+
+<div>
+    
+    <div class="timeline" style="background: '#fff9'; width: 100%;">
+        <div class="form-control" style="padding-left: 10pt; padding-top: 10pt;">
+            <input id="date" type="date">
+            <input id="time" type="time"> UTC
+            <input id="btn" type="button" name="send" value="Update" onclick="update_request()">
+        </div>
+        <div></div>
+        <div class="loader" id="data_loader"></div>
+        <div id="drawing" style="overflow-y: scroll;"></div>
+    </div>
+
+    <div id="met_info" style="min-height: 10pt; min-width: 33%; max-width: 50%; background-color: lightgray; float: left; margin: 10pt; padding: 5pt;">
+        
+
+    </div>
+
+    <div class="prewiev" id="event_JS9" style="display: none;">
+        <div id="js9">
+            <div class="JS9Menubar"></div>
+            <div class="JS9"></div>
+        </div>
+    </div>
+
+    <div class="prewiev" id="event_JS9_2" style="display: none;">
+        <div id="js9_2">
+            <div class="JS9Menubar"></div>
+            <div class="JS9"></div>
+        </div>
+    </div>
+
+
+
+</div>
+
+ <template>
+  <h2>Event from <span class="event_date"></span></h2>
+  <ul>
+      <li>Stanice: <span class="event_station"></span></li>
+      <li>Jméno souboru: <span class="event_filename"></span></li>
+      <li>Délka záznamu: <span class="event_duration"></span></li>
+      <li>                                      
+          <a class="open_web_js9" href=""><img src="/sun.png" style="max-width: 20px;"></a>
+          <a class="open_js9"><img src="/open.png" style="max-width: 20px;"></img></a></li>
+  </ul>
+  <img class="event_prewiev" src="" style="width: 100%;">
+</template> 
+
+<script type="text/javascript">
+    
+    var seconds = 3600;
+
+    var stations = 4;
+    var zero_date = null;
+
+    var draw = SVG('drawing').size(0,0);
+
+    var d = new Date();
+    d.setHours(0,0,0,0);
+    document.getElementById('date').value = d.toISOString().slice(0,10);
+    document.getElementById('time').value = '00:00';
+    update_request();
+
+    function update_meteors(data){
+        $("data_loader").show();
+        var stations_list = {}
+        var station_id = data['stations'];
+        stations = data['stations'].length;
+
+        $('#drawing').empty();
+        draw = SVG('drawing').size(100+seconds*2, 50*(stations+1));
+
+        // Svisle cary zobrazujici desetisekundy
+        for (i = 0; i < seconds/10; i++){
+            draw.line(10+i*20, 0+25, 10+i*20, stations*50+25).stroke({width: 1, color: '#909090'});
+            if (i%10 == 0){
+                //cont.fillText(i*10, i*30+5, 20);
+                draw.line(10+i*20, 0+10, 10+i*20, stations*50+45).stroke({width: 3, color: '#b0b0b0'});
+                draw.text((i*10).toString()+' s' ).move(12+i*20, 3);
+                draw.text(new Date(zero_date.getTime() + 10000*i).toISOString().substring(11,19) ).move(12+i*20, 50*(stations+1)-25);
+            }
+        }
+
+        for (station_i in data['stations']){
+            var station = data['stations'][station_i];
+            stations_list[station] = station_i;
+            draw.line(10, 50*(station_i)+50, 10+seconds*10, 50*(station_i)+50).stroke({width: 1});
+        }
+
+        for (met_i in data['events']){
+            var met = data['events'][met_i];
+            var met_date = new Date(met['obstime']);
+            met_date = new Date(Date.UTC(met_date.getFullYear(), met_date.getMonth(), met_date.getDate(), met_date.getHours(), met_date.getMinutes(), met_date.getSeconds()));
+
+            var sec = (met_date - zero_date)/1000;
+            var r = 5 + met['duration']*5;
+            if (r>40){r=40;}
+            var i = parseInt(stations_list[parseInt(met['id_observer'])])+1;
+            var event_sym = draw.circle(r).move(15+sec*2-(10+r)/2, 50*i-(r)/2);
+            event_sym.attr('date', met['obstime']);
+            event_sym.attr('duration', met['duration']);
+            event_sym.attr('filename', met['filename']);
+            event_sym.attr('id_observer', met['id_observer']);
+            event_sym.attr('path', met['path'].substring(9)+'/');
+            event_sym.on('mouseover', overevent, window);
+            event_sym.on('click', clickevent, window);
+
+        }
+        console.log(data['stations']);
+        console.log(stations_list);
+        $('#data_loader').hide();
+    }
+
+    function overevent(event_sym){
+        console.log(event_sym);
+        console.log(event_sym['target']);
+        console.log(event_sym['target'].getAttribute("date"));
+        console.log(event_sym['target'].attributes);
+
+        $("#met_info").empty();
+        //$("#met_info").text('''
+        //    event_sym['target'].getAttribute('date') + event_sym['target'].getAttribute('duration'));
+
+        var temp = document.getElementsByTagName("template")[0];
+        var clon = temp.content.cloneNode(true);
+        clon.querySelector(".event_date").innerHTML = event_sym['target'].getAttribute('date');
+        //clon.querySelector(".event_station").innerHTML = event_sym['target'].getAttribute('id_observer');
+        clon.querySelector(".event_station").innerHTML = event_sym['target'].getAttribute('station_id');
+        clon.querySelector(".event_filename").innerHTML = event_sym['target'].getAttribute('filename');
+        clon.querySelector(".event_duration").innerHTML = event_sym['target'].getAttribute('duration');
+        clon.querySelector(".event_prewiev").src = "http://meteor1.astrozor.cz/f.png?http://space.astro.cz/" + event_sym['target'].getAttribute('path') + event_sym['target'].getAttribute('filename');
+        clon.querySelector(".open_js9").href = "javascript:Open('http://space.astro.cz/" + event_sym['target'].getAttribute('path') + event_sym['target'].getAttribute('filename') + "', {colormap:'b'});";
+        clon.querySelector(".open_web_js9").href = "http://space.astro.cz/bolidozor/support/js9browser/#/" + event_sym['target'].getAttribute('path') + event_sym['target'].getAttribute('filename');
+        document.getElementById('met_info').appendChild(clon);
+    }
+    function clickevent(event_sym){
+        overevent(event_sym);
+        Open("http://space.astro.cz/" + event_sym['target'].getAttribute('path') + event_sym['target'].getAttribute('filename') , {colormap:'b'});
+    }
+
+    function getCookie(name) {
+        var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+        return r ? r[1] : undefined;
+    }
+
+    function update_request(){
+        var date = document.getElementById("date").value,
+            time = document.getElementById("time").value
+        zero_date = new Date(date + "T" + time);
+        zero_date = new Date(Date.UTC(zero_date.getFullYear(), zero_date.getMonth(), zero_date.getDate(), zero_date.getHours(), zero_date.getMinutes(), zero_date.getSeconds()));
+        console.log(zero_date);
+        
+        console.log("Start");
+        $.ajax({  
+            type: "POST",  
+            url: "/timeline", 
+            data: {
+                    'date': $('#date').val(),
+                    'time': $('#time').val(),
+                    '_xsrf': getCookie("_xsrf")
+            },
+            success: function(msg) {  
+                console.log(msg);
+                update_meteors(msg);
+            }  
+        });
+    }
+
+
+
+    function Open(args) {
+        JS9.Load.apply(this, arguments);
+        //JS9_2.Load.apply(this, arguments);
+        document.getElementById("event_JS9").style.display = 'block';
+    }
+    function Close() {
+        //document.getElementById("window").style.display = 'none';
+    }
+
+
+</script>
+
+
+{% end %}
+

@@ -26,6 +26,7 @@ import time
 import os
 import hashlib
 
+
 def md5Checksum(filePath):
     with open(filePath, 'rb') as fh:
         m = hashlib.md5()
@@ -36,35 +37,18 @@ def md5Checksum(filePath):
             m.update(data)
         return m.hexdigest()
 
-'''
-def _sql(query, read=False):
-        #print "#>>>", query
-        connection = mdb.connect(host="localhost", user="roman", passwd="Vibvoflar4", db="MLABvo", use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
-        cursorobj = connection.cursor()
-        result = None
-        try:
-                cursorobj.execute(query)
-                result = cursorobj.fetchall()
-                if not read:
-                    connection.commit()
-        except Exception, e:
-                print "Err", e
-        connection.close()
-        return result
-'''
 
 def _sql(query, read=False, db="MLABvo"):
         print "#>", query
         connection = pymysql.connect(host="localhost", user="roman", passwd="Vibvoflar4", db=db, use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
         try:
             cursorobj = connection.cursor()
-            result = None
             cursorobj.execute(query)
             result = cursorobj.fetchall()
             if not read:
                 connection.commit()
         except Exception, e:
-                print "Err", e
+                print("Err", e)
         connection.close()
         return result
 
@@ -73,8 +57,7 @@ class RTbolidozorAnalyzer():
     def __init__(self):
         self.indexProjectFiles()
 
-
-        print "init"
+        print("init")
  
 
     def indexProjectFiles(self):
@@ -85,49 +68,62 @@ class RTbolidozorAnalyzer():
         connection = pymysql.connect(host="localhost", user="roman", passwd="Vibvoflar4", db='MLABvo', use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
         
         cursorobj = connection.cursor()
+        date_folder = '2018/02/07/02'
         stations = [
-#'/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/02/00',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/00',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/01',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/02',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/03',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/04',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/05',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/06',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/07',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/08',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/09',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/10',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/11',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/03',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/12',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/13',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/14',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/15',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/16',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/17',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/18',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/19',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/20',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/21',
-#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2017/09/03/22',
-    #                '/storage/bolidozor/CIIRC/CIIRC-R1/meteors/2017/09/',
-    #                '/storage/bolidozor/HFN/HFN-R1/meteors/2017/08/',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/02/00',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/00',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/01',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/02',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/03',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/04',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/05',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/06',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/07',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/08',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/09',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/10',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/11',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/03',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/12',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/13',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/14',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/15',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/16',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/17',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/18',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/19',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/20',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/21',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/03/22',
+#                    '/storage/bolidozor/CIIRC/CIIRC-R1/meteors/2018/03/',
+#                    '/storage/bolidozor/HFN/HFN-R1/meteors/2018/03/',
                     
-                    '/storage/bolidozor/ZVPP/ZVPP-R6/data/2017/08',
-                    '/storage/bolidozor/ZVPP/ZVPP-R6/data/2017/09',
-                    '/storage/bolidozor/svakov/SVAKOV-R12/data/2017/08',
-                    '/storage/bolidozor/svakov/SVAKOV-R12/data/2017/09',
-                    '/storage/bolidozor/valmez/VALMEZ-R1/data/2017/08',
-                    '/storage/bolidozor/valmez/VALMEZ-R1/data/2017/09',
-                    '/storage/bolidozor/nachodsko/NACHODSKO-R5/data/2017/08',
-                    '/storage/bolidozor/nachodsko/NACHODSKO-R5/data/2017/09',
-                    '/storage/bolidozor/OBSUPICE/OBSUPICE-R6/data/2017/08',
-                    '/storage/bolidozor/OBSUPICE/OBSUPICE-R6/data/2017/09',
-                    '/storage/bolidozor/ddmtrebic/DDMTREBIC-R3/data/2017/08'
-                    '/storage/bolidozor/ddmtrebic/DDMTREBIC-R3/data/2017/00'
-                    '/storage/bolidozor/CIIRC/CIIRC-R1/data/2017/08'
-                    '/storage/bolidozor/CIIRC/CIIRC-R1/data/2017/09'
+                    #'/storage/bolidozor/ZVPP/ZVPP-R6/data/' + date_folder,
+                    #'/storage/bolidozor/ZVPP/ZVPP-R6/data/' + date_folder,
+
+                    #'/storage/bolidozor/svakov/SVAKOV-R12/data/' + date_folder,
+                    #'/storage/bolidozor/svakov/SVAKOV-R12/meteors/' + date_folder,
+                    #'/storage/bolidozor/svakov/SVAKOV-R12/snapshots/' + date_folder,
+                    
+                    '/storage/bolidozor/valmez/VALMEZ-R1/data/' + date_folder,
+                    '/storage/bolidozor/valmez/VALMEZ-R1/meteors/' + date_folder,
+                    '/storage/bolidozor/valmez/VALMEZ-R1/snapshots/' + date_folder,
+                    
+                    '/storage/bolidozor/nachodsko/NACHODSKO-R5/data/' + date_folder,
+                    '/storage/bolidozor/nachodsko/NACHODSKO-R5/meteors/' + date_folder,
+                    '/storage/bolidozor/nachodsko/NACHODSKO-R5/meteors/' + date_folder,
+                    
+                    '/storage/bolidozor/OBSUPICE/OBSUPICE-R6/data/' + date_folder,
+                    '/storage/bolidozor/OBSUPICE/OBSUPICE-R6/meteors/' + date_folder,
+                    '/storage/bolidozor/OBSUPICE/OBSUPICE-R6/snapshots/' + date_folder,
+
+                    #'/storage/bolidozor/ddmtrebic/DDMTREBIC-R3/data/' + date_folder,
+                    #'/storage/bolidozor/ddmtrebic/DDMTREBIC-R3/meteors/' + date_folder,
+                    #'/storage/bolidozor/ddmtrebic/DDMTREBIC-R3/snapshots/' + date_folder,
+
+                    '/storage/bolidozor/HFN/HFN-R1/meteors/' + date_folder,
+                    '/storage/bolidozor/HFN/HFN-R1/snapshots/' + date_folder,
+                    '/storage/bolidozor/HFN/HFN-R1/data/' + date_folder,
                     ]
 
         for station in stations:

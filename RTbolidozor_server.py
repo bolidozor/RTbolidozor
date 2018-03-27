@@ -19,7 +19,7 @@ import crypt
 import os
 
 
-from handlers import rtmap, count, multibolid, auth, admin, stations, around
+from handlers import rtmap, count, multibolid, auth, admin, stations, around, timeline
 from handlers import _sql, BaseHandler
 
 
@@ -249,6 +249,11 @@ class WebApp(tornado.web.Application):
             (r'/around/', around.Around),
             (r'/around(.*)', around.Around),
 
+
+            (r'/timeline', timeline.Timeline),
+            (r'/timeline/', timeline.Timeline),
+            (r'/timeline(.*)', timeline.Timeline),
+
             (r'/realtime(.*)', rtmap.RTbolidozor),
             (r'/realtime', rtmap.RTbolidozor),
             (r'/map(.*)', rtmap.RTbolidozor),
@@ -262,6 +267,9 @@ class WebApp(tornado.web.Application):
             (r'/browser(.*)', count.Browser),
             (r'/counts(.*)', count.Browser),
             (r'/database', count.Browser),
+            (r'/intensity/', count.intensity),
+            (r'/intensity', count.intensity),
+
 
             #(r'/browser', DBreader),
             (r'/database(.*)', DBreader),
@@ -303,7 +311,8 @@ class WebApp(tornado.web.Application):
             cookie_secret="ROT13IrehaxnWrArwyrcfvQvixnAnFirgr",
             template_path= "/home/roman/repos/RTbolidozor/template/",
             static_path= "/home/roman/repos/RTbolidozor/static/",
-            xsrf_cookies=True,
+            #xsrf_cookies=True,
+            xsrf_cookies=False,
             name="RTbolidozor",
             server_url="rtbolidozor.astro.cz",
             site_title="RTbolidozor",

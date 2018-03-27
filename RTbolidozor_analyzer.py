@@ -5,7 +5,7 @@
 ##
 ##
 #
-# Software pro roztztrideni dat v nove databazi MLAvo.... rozradi to soubory z tabulky 'bolidozor_fileindex' do tabulky met, snapshots atd .. u tabulky met to pri cteni fits souboru zapise jeho parametry.
+# Software pro roztztrideni dat v nove databazi MLABvo.... rozradi to soubory z tabulky 'bolidozor_fileindex' do tabulky met, snapshots atd .. u tabulky met to pri cteni fits souboru zapise jeho parametry.
 # Melo by to byl spousteno z cronu
 # vytvori grafy pro 'counts'
 # a nasledne udela indexy jednotlivych souboru
@@ -26,8 +26,8 @@ import time
 import pandas as pd
 
 import pickle
-import mpld3
-from mpld3 import plugins, utils
+#import mpld3
+#from mpld3 import plugins, utils
 from matplotlib.dates import MONDAY
 from matplotlib.dates import MonthLocator, WeekdayLocator, DateFormatter
 
@@ -48,14 +48,14 @@ def _sql(query, read=False):
                 result = cursorobj.fetchall()
                 if not read:
                     connection.commit()
-        except Exception, e:
+        except Exception as e:
                 print "Err", e
         connection.close()
         return result
 '''
 
 def _sql(query, read=False, db="MLABvo"):
-        print "#>", query
+        print("#>", query)
         connection = pymysql.connect(host="localhost", user="roman", passwd="Vibvoflar4", db=db, use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
         try:
             cursorobj = connection.cursor()
@@ -64,8 +64,9 @@ def _sql(query, read=False, db="MLABvo"):
             result = cursorobj.fetchall()
             if not read:
                 connection.commit()
-        except Exception, e:
-                print "Err", e
+        except Exception as e:
+            print("Err", e)
+        
         connection.close()
         return result
 
@@ -74,14 +75,11 @@ def _sql(query, read=False, db="MLABvo"):
 
 class RTbolidozorAnalyzer():
     def __init__(self):
-        print "Tvorba grafu"
+        print("RTbolidozor_analyzer")
         self.stanice =  _sql("SELECT id, name, namesimple FROM MLABvo.bolidozor_station where status < 10;")
-        print "dobre stanice", self.stanice
-        #for x in xrange(1,100):
+        print("dobre stanice", self.stanice)
+
         while True:
-            pass
-            #for station in self.stanice:
-            #    self.plotYearTrend(station)
             self.indexProjectFiles()
             time.sleep(10)
 
@@ -105,141 +103,140 @@ class RTbolidozorAnalyzer():
             fig.autofmt_xdate()
             plt.savefig(path_img)
             plt.close()
-            print  "dokoncen %s graf" %(path_img)
-        except Exception, e:
-            print e, path_img
+            print("dokoncen %s graf" %(path_img))
+        except Exception as e:
+            print(e, path_img)
         
 
     def indexProjectFiles(self):
         start_time = time.time()
-        print "zacatek indexProjectFiles"
+        print("zacatek indexProjectFiles")
 
         connection = pymysql.connect(host="localhost", user="roman", passwd="Vibvoflar4", db='MLABvo', use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
         cur = connection.cursor()
 
-
-        cur.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2000-01-01 00:00:00' AND uploadtime > '2017-00-00 00:00:00' ORDER BY id DESC LIMIT 1000;")
-        #cur.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2000-01-01 00:00:00' AND uploadtime > '2017-08-00 00:00:00' and filename_original NOT LIKE '%snap%' ORDER BY id DESC LIMIT 3000;")
-        #cur.execute("SELECT * FROM bolidozor_fileindex ORDER BY id DESC LIMIT 5000")
-        #cur.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2000-01-01 00:00:00' AND filename_original LIKE '%HFN%' ORDER BY id DESC LIMIT 50000;")
+        cur.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2000-01-01 00:00:00' AND uploadtime > '2017-01-01 00:00:00' ORDER BY id DESC LIMIT 1000;")
+        
+        #cur.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2019-01-01 00:00:00' AND uploadtime > '2017-08-00 00:00:00' and filename_original LIKE '%csv%' ORDER BY id DESC LIMIT 3000;")
+        #cur.execute("SELECT * FROM bolidozor_fileindex ORDER BY id DESC LIMIT 10000")
+        #cur.execute("SELECT * FROM bolidozor_fileindex WHERE filename_original LIKE '%meta%' ORDER BY id DESC LIMIT 5000000;")
+        #cur.execute("SELECT * FROM bolidozor_fileindex WHERE filename_original LIKE '20180306%' ORDER BY id DESC LIMIT 50000;")
+        
         data = cur.fetchall()
         rowlen = len(data)
-        print "mam data:", len(data)
+        print("mam data:", len(data))
         for rownum, row in enumerate(data):
-            print rownum, '/', rowlen
+            print(rownum, '/', rowlen)
             try:
 
                 if '.fits' in row['filename_original']:
                     if 'snap.' in row['filename_original']:
-                        print 'snap', row['filename_original']
-                        
-                        cur.execute("UPDATE `MLABvo`.`bolidozor_fileindex` SET indextime = CURRENT_TIMESTAMP WHERE id = '%s';" %(row['id']))
+                        print('snap', row['id'], row['filename_original'], end=" ")
 
                         if row['id_server'] == 1: # je to ulozeno na space?
-                        #    pass
-                            ##snap = self.space_astro.file(row['filepath']+'/'+row['filename_original'])
+
+                            #
+                            # Jestli je to snapshot a je na space, tak ho otevru a nactu hlavicku souboru.
+                            # Tam najdu delku souboru a odectu to od 'DATE' (sys-time zápisu), to ulozim do obstime v DB.
+                            #
+
                             snap = row['filepath']+'/'+row['filename_original']
                             hdulist = pyfits.open(snap)  # open a FITS file
-                            prihdr = hdulist[1].header           # the primary HDU header
-                            #sechdr = hdulist[1].header           # the primary HDU header
-
-                            file_length = 60
+                            prihdr = hdulist[1].header
                             file_length = prihdr['NAXIS2']*prihdr['CDELT2']/1000.0
                             obstime = datetime.datetime.strptime(prihdr['DATE'] , "%Y-%m-%dT%H:%M:%S")-datetime.timedelta(seconds=file_length)
-                            orgin = prihdr['ORIGIN']
-                            print obstime, orgin, file_length
+                            cur.execute("REPLACE INTO `MLABvo`.`bolidozor_snapshot` (`file`, `obstime`) VALUES ('%s', '%s');" %(row['id'], obstime))
+                            print(obstime, file_length, prihdr['ORIGIN'])
 
-
-                        #obstime = datetime.datetime.strptime(row['filename'].split('_')[0][:14], '%Y%m%d%H%M%S')
-                        cur.execute("REPLACE INTO `MLABvo`.`bolidozor_snapshot` (`file`, `obstime`) VALUES ('%s', '%s');" %(row['id'], obstime))
-                        #_sql("UPDATE `MLABvo`.`bolidozor_fileindex` SET indextime = UTC_TIMESTAMP() WHERE id = '%s';" %(row[0]))
-                        
+                        cur.execute("UPDATE `MLABvo`.`bolidozor_fileindex` SET indextime = UTC_TIMESTAMP() WHERE id = '%s';" %(row['id']))
 
                     elif 'met.' in row['filename_original']:
-                        print "meteor", row['filename_original']
-                        cur.execute("UPDATE `MLABvo`.`bolidozor_fileindex` SET indextime = UTC_TIMESTAMP() WHERE id = '%s';" %(row['id']))
-                        #print "update DONE"
+                        print("meteor", row['id'], row['filename_original'])
                         
                         if row['id_server'] == 1: # je to ulozeno na space?
-                            #hdulist = pyfits.open(self.space_astro.file(row[5]+'/'+row['filename_original']))  # open a FITS file
-                            hdulist = pyfits.open(row['filepath']+'/'+row['filename_original'].replace('met', 'raws'))  # open a FITS file
-                            print hdulist
-                            prihdr = hdulist[0].header           # the primary HDU header
-                            #sechdr = hdulist[1].header           # the primary HDU header
+                            #
+                            # Jestli je to 'met' soubor, tak z odpovidajiciho RAWu si najdu obstime
+                            #
 
+                            hdulist = pyfits.open(row['filepath']+'/'+row['filename_original'].replace('met', 'raws'))  # open a FITS file
+                            prihdr = hdulist[0].header
                             obstime =  datetime.datetime.strptime(prihdr['DATE'], "%Y-%m-%dT%H:%M:%S") - datetime.timedelta(seconds=prihdr['NAXIS2']*1/96000)
-                            orgin =  prihdr['ORIGIN']
-                            print obstime, prihdr['DATE'], orgin
+                            print(obstime, prihdr['DATE'], prihdr['ORIGIN'])
                             
-                        print "######################################################"
-                        print ("REPLACE INTO `MLABvo`.`bolidozor_met` (`file`, `obstime`) VALUES ('%s', '%s');" %(row['id'], obstime))
+                        print("######################################################")
+                        
                         cur.execute("REPLACE INTO `MLABvo`.`bolidozor_met` (`file`, `obstime`) VALUES ('%s', '%s');" %(row['id'], obstime))
                         cur.execute("UPDATE `MLABvo`.`bolidozor_fileindex` SET indextime = UTC_TIMESTAMP() WHERE id = '%s';" %(row['id']))
                         
-                        print " "
+                        print(" ")
 
                     elif 'raws.' in row['filename_original']:
-                        print 'raw', row['filename_original']
+                        print('raw', row['id'], row['filename_original'])
 
                         if row['id_server'] == 1: # je to ulozeno na space?
+                            #
+                            # Pokud mam raw, tak take nactu jeho hlavicku a opravim cas v DB, nasledne zaindexuji
+                            #
+                            #
+
                             hdulist = pyfits.open(row['filepath']+'/'+row['filename_original'])  # open a FITS file
                             prihdr = hdulist[0].header           # the primary HDU header
-
                             obstime =  datetime.datetime.strptime(prihdr['DATE'], "%Y-%m-%dT%H:%M:%S") - datetime.timedelta(seconds=prihdr['NAXIS2']*1/96000)
-                            orgin =  prihdr['ORIGIN']
-                            print obstime, prihdr['DATE'], orgin
+                            print(obstime, prihdr['DATE'], prihdr['ORIGIN'], row['filename_original'])
 
+                        #cur.execute("UPDATE `MLABvo`.`bolidozor_v_met` SET `raw_file_id` = '%s' WHERE filename_original = '%s'" %(row['id'], row['filename_original'].replace('raws', 'met')))
                         cur.execute("UPDATE `MLABvo`.`bolidozor_fileindex` SET indextime = UTC_TIMESTAMP(), obstime = '%s' WHERE id = '%s';" %(obstime, row['id']))
-                        pass
+    
+                
                 elif '.csv' in row['filename_original']:
-                    print 'csv', row['filename_original']
-
+                    print('csv', row['id'], row['filename_original'])
                     if 'meta' in row['filename_original']:
                         
                         if row['id_server'] == 1: # je to ulozeno na space?
-                            #meta = self.space_astro.file(row[5]+'/'+row['filename_original'])
                             meta = row['filepath']+'/'+row['filename_original']
 
                             try:
-                                with open(meta, 'rb') as csvfile:
-                                    meteors = csv.reader(csvfile)
-                                    #print meteors
-                                    print "==============================================================================="
-                                    for meteor in meteors:
-                                        if 'met' in meteor[0]:
-                                            meteor = meteor[0].split(';')
-                                            print meteor
-                                            cur.execute("UPDATE `MLABvo`.`bolidozor_v_met` SET noise = '%s', peak_f = '%s', mag = '%s', duration = '%s' WHERE filename_original = '%s';" %(meteor[1], meteor[2], meteor[3], meteor[4], meteor[0]))
+                                with open(meta, 'r') as csvfile:
+                                    rows = csv.reader(csvfile)
+                                    print("===============================================================================")
+                                    for row_csv in rows:
+                                        try:
+                                            if 'met' in row_csv[0]:
+                                                meteor = row_csv[0].split(';')
+                                                print(meteor)
+                                                
+                                                cur.execute("SELECT `id` FROM `MLABvo`.`bolidozor_fileindex` WHERE `filename_original` = '%s';" %(meteor[0]))
+                                                out = cur.fetchone()
+                                                cur.execute("UPDATE `MLABvo`.`bolidozor_met` SET noise = '%s', peak_f = '%s', mag = '%s', duration = '%s' WHERE file = '%s';" %(meteor[1], meteor[2], meteor[3], meteor[4], out['id']))
+                                        except Exception as e:
+                                            print("CSVerr: ", e, row_csv)
                             except Exception as e:
-                                print e
-                        #cur.execute("UPDATE `MLABvo`.`bolidozor_fileindex` SET indextime = UTC_TIMESTAMP() WHERE id = '%s';" %(row[0]))
+                                print(">>ERRcsv ", e)
                         
-                        #id, filename_original, filename, id_observer, id_server, filepath, obstime, noise, peak_f, mag, duration
-                        # file name; noise; peak f.; mag.; duration
-
                         cur.execute("UPDATE `MLABvo`.`bolidozor_fileindex` SET indextime = UTC_TIMESTAMP() WHERE id = '%s';" %(row['id']))
 
                     elif 'freq' in row['filename_original']: 
                         cur.execute("UPDATE `MLABvo`.`bolidozor_fileindex` SET indextime = UTC_TIMESTAMP() WHERE id = '%s';" %(row['id']))
                         pass
                 else:
-                    print "err", row['filename_original']
+                    print("err", row['filename_original'])
                     cur.execute("UPDATE `MLABvo`.`bolidozor_fileindex` SET indextime = UTC_TIMESTAMP() WHERE id = '%s';" %(row['id']))
 
 
-            except Exception, e:
-                if e[0] == 2:
-                    cur.execute("UPDATE `MLABvo`.`bolidozor_fileindex` SET indextime = UTC_TIMESTAMP() WHERE id = '%s';" %(row['id']))
-                else:
-                    print e, repr(e), e[0]
-                    time.sleep(2)
+            except Exception as e:
+                print(">>EndERR", e)
+                #if e[0] == 2:
+                #    cur.execute("UPDATE `MLABvo`.`bolidozor_fileindex` SET indextime = UTC_TIMESTAMP() WHERE id = '%s';" %(row['id']))
+                #else:
+                #    print(e, repr(e), e[0])
+                #    time.sleep(2)
 
         connection.commit()
 
         connection.close()
 
-        print "konec"
-        print "cas:", (time.time()-start_time)/60, "min"
+        print("konec")
+        print("cas:", (time.time()-start_time)/60, "min")
 
 
 if __name__ == '__main__':

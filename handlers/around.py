@@ -16,17 +16,19 @@ class Around(web.RequestHandler):
         p_datetime = self.get_argument('datetime', None)
         p_date = self.get_argument('date', None)
         p_time = self.get_argument('time', None)
-        p_delta = self.get_argument('delta', 5)
+        p_delta = self.get_argument('delta', 120)
 
-        if p_datetime:
-            center_time = arrow.get(p_datetime)
-            print(center_time)
+        if p_date and p_time:
+            center_time = arrow.get(p_date+"T"+p_time)
+            print(center_time.isoformat()[:19])
+        elif p_datetime:
+            center_time = arrow.get(p_datetime).naive
+            print(center_time.isoformat()[:19])
         else:
             center_time = datetime.datetime.utcnow()
 
-       
-        d_min = center_time + datetime.timedelta(minutes=-p_delta)
-        d_max = center_time + datetime.timedelta(minutes=p_delta)
+        d_min = center_time + datetime.timedelta(seconds=-float(p_delta))
+        d_max = center_time + datetime.timedelta(seconds=float(p_delta))
     
         '''
 {u'lastaccestime': datetime.datetime(2018, 2, 1, 2, 31, 13)
@@ -50,13 +52,21 @@ u'duration': 0.341333
 u'id': 2690241}
 
         '''    
-        events = _sql("""
-                SELECT bolidozor_fileindex.id, noise, peak_f, mag, duration, bolidozor_met.obstime, filepath, filename, file, id_observer FROM `bolidozor_met`
-                LEFT JOIN bolidozor_fileindex ON bolidozor_fileindex.id = bolidozor_met.file
+        if p_date and p_time:
+            events = _sql("""
+                SELECT bolidozor_fileindex.id as id, noise, peak_f, mag, duration, bolidozor_met.obstime, filepath as path,
+                filename, filename_original, file, id_observer, bolidozor_observatory.namesimple as observatory_namesimple, bolidozor_station.name as station_name FROM `bolidozor_met`
+                JOIN bolidozor_fileindex ON bolidozor_fileindex.id = bolidozor_met.file
+                JOIN bolidozor_station ON bolidozor_station.id = bolidozor_fileindex.id_observer
+                JOIN bolidozor_observatory ON bolidozor_observatory.id = bolidozor_station.observatory
                 WHERE bolidozor_met.obstime BETWEEN '%s' AND '%s'
                 ORDER BY bolidozor_met.obstime;
-            """ %(d_min, d_max) )
-        self.render("around.hbs", title="Bolidozor | multi-bolid database | EVENT", data=events, parent=self)
+            """ %(d_min.isoformat()[:19], d_max.isoformat()[:19]) )
+        else: events = None
+
+        #print(events)
+
+        self.render("around.hbs", title="Bolidozor | multi-bolid database | EVENT", data=events, target = center_time, parent=self)
 
         '''
         if params: MBtype = params.split('/')

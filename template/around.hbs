@@ -18,21 +18,35 @@
         function Close() {
             document.getElementById("window").style.display = 'none';
         }
+
+        $.urlParam = function(name){
+            var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+            if (results==null){
+               return null;
+            }
+            else{
+               return decodeURI(results[1]) || 0;
+            }
+        }
+
     </script>
 {% end %}
 {% block container %}
     <div class="parameters">
-        <form style="margin: 0px; padding: 0px; display: in-line; max-width: 90%;">
-            {#Month: <input type="month" name="month" value="{{parent.get_argument('month', str(datetime.datetime.utcnow().strftime('%Y-%m')))}}">
-            <input type="submit">#}
+        <p>Výsledky tohoto hledání budou 120s okolo zadaného času.</p>
+        <p>Requested data will be 120s around entered time.</p>
+        <div class="form-control">
+            <input id="date" type="date">
+            <input id="time" type="time"> UTC
+            <input id="btn" type="button" name="send" value="Update" onclick="location.href = '/around?date='+$('#date').val()+'&time='+$('#time').val();">
+        </div>
 
-            přidejte do adresy parametr datetime ve formátu 2018-01-01T10:20:45
-            parametr delta nastavuje vzdálenost od zvoleného času.
-
-        </form>
     </div>
-
-        {% if len(data) == 0 %} 
+        {% if not data %}
+            <div class="parameters" id="error">
+            Error: Nejdrive vyberte datum a cas.
+            </div>
+        {% elif len(data) == 0 %} 
             <div class="parameters" id="error">
             Error: 0 výsledků ... Zkus jiný měsíc
             </div>
@@ -40,30 +54,35 @@
             <div class="parameters">
             Rows: {{len(data)}}
             </div>
-        {% end %}
         
         <table style="width: 100%; padding: 10px;">
                 <tr>
-                    <th>Datetime</th>
-                    <th>Observer</th>
-                    <th>noise</th>
+                    <th>Met id</th>
+                    <th>Obstime</th>
+                    <th>Delta</th>
+                    <th>Station</th>
                     <th>peak</th>
                     <th>mag</th>
-                    <th>duration</th>
                     <th>duration</th>
                     <th>filename</th>
                 </tr>
             {% for event in data %}
             {% try %}
                 <tr>
+                    <td><span class="eventCell">{{event['id']}}</span></td>
                     <td><span class="eventCell">{{event['obstime']}}</span></td>
-                    <td><span class="eventCell">{{event['id_observer']}}</span></td>
-                    <td><span class="eventCell"> {{float(event['noise'])}}</span>
-                    <td><span class="eventCell"> {{float(event['peak_f'])}}</span></td>
-                    <td><span class="eventCell"> {{float(event['mag'])}}</span></td>
-                    <td><span class="eventCell"> {{event['duration']}}</span></td>
-                    <td><span class="eventCell"> {{event['duration']}}</span></td>
-                    <td><span class="eventCell"> {{event['filename']}}</span></td>
+                    <td><span class="eventCell"> &#916 {{abs(event['obstime'] - target.naive).seconds}}s</span></td>
+                    <td><span class="eventCell">{{event['station_name'][:15]}}</span></td>
+                    <td><span class="eventCell">{{float(event['peak_f'])}}</span></td>
+                    <td><span class="eventCell">{{float(event['mag'])}}</span></td>
+                    <td><span class="eventCell">{{event['duration']}}</span></td>
+
+    <td><span class="eventCell">  <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz{{event['path'][8:].replace("snapshot","meteors")}}/{{event['filename_original']}}"><img src="/prw.png" style="max-width: 20px;"></a>                                      
+    <a href="http://space.astro.cz/bolidozor/support/js9browser/#{{event['path'][8:].replace("snapshot","meteors")}}/{{event['filename_original']}}"><img src="/sun.png" style="max-width: 20px;"></a>
+    <a href="javascript:Open('http://space.astro.cz{{event['path'][8:].replace("snapshot","raw")}}/{{event['filename_original']}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img>
+
+    </a>
+    </td>
                   
 
 
@@ -72,7 +91,10 @@
                 <td> Err </td><td></td><td></td><td></td><td></td><td></td> </tr>
             {% end %}
             {% end %}
+
+        
         </table>
+        {% end %}
 
     <div id="window">
         <div style="text-align: left;"><a href="javascript:Close();"><img src="/ic_clear_black_18dp_1x.png"></a></div>
@@ -85,5 +107,13 @@
         <img src="/sun.png" style="max-width: 20px;"> space.astro.cz<br>
         <img src="/open.png" style="max-width: 20px;"></img> JS9 browser <br>
     </div>
+
+
+    <script type="text/javascript">
+        
+      $('#date').val($.urlParam('date'));
+      $('#time').val($.urlParam('time'));
+
+    </script>
 {% end %}
 

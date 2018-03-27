@@ -1,0 +1,98 @@
+{% extends "base.hbs" %}
+{% block container %}
+    <script type="text/javascript">
+$(window).ready(function () {
+    console.log("done")
+});
+    </script>
+
+    <style type="text/css">
+        .container{
+            width: fit-content;
+        }
+
+        [name=intensity_sharp]:hover{
+            opacity: 0.7;
+            transition-duration: 2s;
+        }
+        [name=intensity_sharp]{
+            opacity: 0;
+            transition-duration: 1s;
+        }
+
+        .helper{
+            display: none;
+            padding: 5pt;
+            position: fixed;
+            min-width: 10em;
+            max-width: 25em;
+            left: 2em;
+            background: white;
+            overflow: none;
+        }
+    </style>
+
+    <div class="helper">
+        
+
+    </div>
+
+    <div class="block_header"" style="width: 1200px;">Intensity</div>
+
+    <div class="block_header">
+        Jednotlive stanice
+    </div>
+    
+    
+    {% for station in stations %}
+    
+    <div class="block_header">
+        {{station['namesimple']}} <span style="size: small;"> @ {{station['name']}} </span>
+        
+    </div>
+    
+    <div class="block_content">
+        <!-- Správce: <a href="mailto:{{station['namesimple']}}">{{station['namesimple']}}</a> -->
+        <div>
+            {#
+            <img type="image/svg+xml" src="http://space.astro.cz/bolidozor/indexer/RTbolidozor/counts/intensity_{{station['id']}}.svg"></img>
+            #}
+            {% try %}
+            {%raw open('/storage/bolidozor/indexer/RTbolidozor/counts/intensity_'+str(station['id'])+'.svg').read() %}
+            {% except %} Neexistuje {% end %}
+        </div>
+    </div>
+    {% end %}
+
+
+<script type="text/javascript">
+    var layer = null;
+    function showStation(name) {
+        if (layer == null){
+            $('#overlay_'+name).css('fill-opacity',0.8);
+            layer = name;
+        }
+        else{
+            if (layer == name){
+                $('#overlay_'+layer).css('fill-opacity',0);
+                layer = null;
+
+            }else{
+                $('#overlay_'+layer).css('fill-opacity',0);
+                $('#overlay_'+name).css('fill-opacity',0.8);
+                layer = name;
+            }
+        }
+    }
+</script>
+
+    <script type="text/javascript">
+        $('[name="stanice_bin"]').hover(
+        function(){
+            $('.helper').show();
+            $(".helper").html($(this).attr('bin') + " meteors was detected in " +  $(this).attr('count') + " seconds<br>It is 1 meteor per " + Math.round($(this).attr('count')/$(this).attr('bin')) + " seconds<br> From "+ $(this).attr('t1'));
+        },function(){
+            $(".helper").hide();
+        });
+    </script>
+{% end %}

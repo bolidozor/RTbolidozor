@@ -35,7 +35,7 @@ class RTbolidozorAnalyzer():
         
         cursorobj = connection.cursor()
 
-        cursorobj.execute("SELECT * FROM bolidozor_fileindex WHERE indextime = '0000-00-00 00:00:00' AND uploadtime > '2017-09-00 00:00:00' and filename_original LIKE '%met.f%' ORDER BY id DESC LIMIT 1000;")
+        cursorobj.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2000-00-00 01:00:00' AND uploadtime > '2017-09-00 00:00:00' and filename_original LIKE '%met.f%' ORDER BY id DESC LIMIT 1000;")
         zaznamy = cursorobj.fetchall()
         for met in zaznamy:
             print met

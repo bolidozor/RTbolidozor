@@ -128,3 +128,12 @@ class Browser(web.RequestHandler):
             self.render("count.hbs", title="Bolidozor | meteor counts", _sql = _sql, parent=self)
 
         '''
+
+
+class intensity(web.RequestHandler):    
+
+    def get(self, name = None):
+        stations = _sql("SELECT id, name, namesimple FROM MLABvo.bolidozor_station where status < 10;")
+
+        self.render("count.intensity.hbs", title="Bolidozor | meteor intensity", stations = stations)
+
