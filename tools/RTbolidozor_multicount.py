@@ -18,7 +18,6 @@
 import MySQLdb as mdb
 import pymysql.cursors
 import time
-import datetime
 import csv
 import pyfits
 import time
@@ -29,8 +28,7 @@ import xml.etree.cElementTree as ET
 
 
 def _sql(query, read=False, db="MLABvo"):
-        print("#>", query)
-        connection = pymysql.connect(host="localhost", user="roman", passwd="Vibvoflar4", db=db, use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
+        connection = pymysql.connect(host="localhost", user="root", passwd="root", db=db, use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
         try:
             cursorobj = connection.cursor()
             result = None
@@ -46,13 +44,14 @@ def _sql(query, read=False, db="MLABvo"):
 
 class RTbolidozorCounts():
     def __init__(self):
-        print("Tvorba grafu")
+        print("Generovani Multicounts grafu")
         stanice =  _sql("SELECT id, name, namesimple FROM MLABvo.bolidozor_station where status < 10;")
+        
         print("dobre stanice, ktere budou analyzovany", stanice)
         self.plotMultiCounts(stanice, dnu=40)
         for station in stanice:
             try:
-                self.plotIntensity(station = station, dnu = 40)    
+                self.plotIntensity(station = station, dnu = 40)
             except Exception as e:
                 print(e)
             pass
@@ -68,8 +67,7 @@ class RTbolidozorCounts():
         return r, g, b
 
     def plotMultiCounts(self, stations, dnu):
-        print("mam tolik stanic:", end=" ")
-        print(len(stations))
+        print("mam {} stanic.".format(len(stations)))
         print(stations)
 
         pole = int(math.ceil(math.sqrt(len(stations)))) # velikost ctverce pro jednu hodinu
@@ -106,7 +104,8 @@ class RTbolidozorCounts():
                 #ET.SubElement(group, "rect", style="fill:#111;",id="svg_pole_hodina", width=str(sz_pole_hodina), height=str(sz_pole_hodina), x=str(10+space_pole_hodina+d*(sz_pole_hodina+space_pole_hodina)), y=str(10+space_pole_hodina+h*(sz_pole_hodina+space_pole_hodina)))
 
         for i, station in enumerate(stations):
-            print(station)
+            print("Generovani stanice", station)
+            
             data = _sql("SELECT COUNT(id) as 'count', DATE(MAX(obstime)) as 'date', HOUR(obstime) as 'hour' FROM MLABvo.bolidozor_v_met WHERE id_observer = '%s' AND obstime > '%s' GROUP BY MONTH(obstime) , DAY(obstime) , HOUR(obstime);" %(station['id'], first_day))
             min, max = 0, 0
             print("pro stanici mam %s zaznamu." %(len(data)))
@@ -127,7 +126,7 @@ class RTbolidozorCounts():
                 hexc = '%02x%02x%02x' % (r, g, b)
                 ET.SubElement(group, "rect", style="fill:#%s;"%(hexc), name="svg_stanice_hodina", date=str(row['date']), width=str(sz_ctverec_stanice), height=str(sz_ctverec_stanice), x=str((sloupec)*(sz_pole_hodina+space_pole_hodina)+10+space_pole_hodina+space_pole_hodina/2+sz_ctverec_stanice*offset_x), y=str(row['hour']*(sz_pole_hodina+space_pole_hodina)+10+space_pole_hodina+space_pole_hodina/2+sz_ctverec_stanice*offset_y))
                 ET.SubElement(group_overlay, "rect", style="fill:#%s;"%(hexc), name=station['namesimple']+"_hour", date=str(row['date']), width=str(sz_pole_hodina), height=str(sz_pole_hodina), x=str((sloupec)*(sz_pole_hodina+space_pole_hodina)+10+space_pole_hodina+space_pole_hodina/2), y=str(row['hour']*(sz_pole_hodina+space_pole_hodina)+10+space_pole_hodina+space_pole_hodina/2))
-            
+            print("")
 
             text_x = 100 * (i//3) + 100
             text_y = 5 + 10*(i%3)
@@ -147,6 +146,7 @@ class RTbolidozorCounts():
         ET.SubElement(group, "text", x=str(float(eomX)+5), y=str(9)).text = str(date(last_day.year, last_day.month,  1))
         ET.SubElement(group, "text", x=str(float(eomX2)+5),y=str(9)).text = str(date(last_day.year, last_day.month,1))
 
+        ET.SubElement(group_meta, "text", x="10", y="10").text = datetime.utcnow().strftime("%Y/%m/%d, %H:%M:%S UT")
         tree = ET.ElementTree(svg)
         tree.write("../static/multicounts.svg")
 
@@ -162,7 +162,7 @@ class RTbolidozorCounts():
         data = _sql("SELECT obstime FROM MLABvo.bolidozor_v_met WHERE id_observer = '%s' AND obstime > '%s' ORDER BY obstime;" %(station['id'], first_day))
         bind = int(len(data)/(dnu*optn))
         if bind < 5: bind = 5
-        
+
         svg = ET.Element("svg", style="background-color:white; opacity: 1; font-size: 7pt;", viewBox="0 0 %s %s" %(width, height+20))
         group_header = ET.SubElement(svg, "g")
 
@@ -191,7 +191,7 @@ class RTbolidozorCounts():
 
         for x in range(len(data)-1):
             dlen = (data[x+1]['obstime'] - data[x]['obstime']).seconds
-            
+
             column = (data[x]['obstime'].date() - first_day).days
             midnight = data[x]['obstime'].replace(hour=0, minute=0, second=0, microsecond=0)
             row = (data[x]['obstime'] - midnight).total_seconds()

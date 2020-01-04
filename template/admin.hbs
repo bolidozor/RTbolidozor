@@ -7,7 +7,7 @@
     </div>
     
     <div class="block_content">
-        {% set aboute = _sql("SELECT * FROM vo_user WHERE login = '%s';" %(current_user))[0]%}
+        {% set aboute = _sql("SELECT * FROM vo_user WHERE login = '{}';".format(current_user.decode("utf-8")))[0]%}
         <table>
             <tr><td>Id</td>         <td>{{aboute['id']}}</td></tr>
             <tr><td>Login</td>      <td>{{aboute['login']}}</td></tr>

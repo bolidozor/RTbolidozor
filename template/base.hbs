@@ -11,16 +11,11 @@
   gtag('config', 'UA-73663589-1');
 </script>
 
-
   <meta charset='utf-8'>
     <title>{{title}}</title>
     <link rel="stylesheet" type="text/css" href="/style.css">
     <link rel="stylesheet" type="text/css" href="/RTbolid.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
-
-
-
 
   <script type="text/javascript">
   function log (msg) {
@@ -33,7 +28,7 @@
 {% block meta %}{% end %}
   </head>
   <body>
-  		<div id="header"><a href="/"><img src="/header_logoRT.png"></img></a>{% block header %}{% end %}<div id="header_right" style="float: right;"> {% if current_user %} <b>{{current_user}}</b> <a href="/logout/">logout</a>{% else %} <a href="/login/">login</a> {% end %}</div></div>
+  		<div id="header"><a href="/"><img src="/header_logoRT.png"></img></a>{% block header %}{% end %}<div id="header_right" style="float: right;"> {% if current_user %} <b>{{current_user}}</b> <a href="/logout/">logout</a>{% else %} <a href="/login/">login</a> {% end %}<br>{% block help %}{% end %}</div></div>
 		<div class="container">
 		{% block container %}
         {% end %}

@@ -8,11 +8,17 @@ import tornado
 from requests_oauthlib import OAuth2Session
 
 import smtplib
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEBase import MIMEBase
-from email.MIMEText import MIMEText
-from email.Utils import COMMASPACE, formatdate
-from email import Encoders
+#from email.MIMEMultipart import MIMEMultipart
+#from email.MIMEBase import MIMEBase
+#from email.MIMEText import MIMEText
+#from email.Utils import COMMASPACE, formatdate
+#from email import Encoders
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email.utils import COMMASPACE, formatdate
+from email import encoders
+
 import os
 
 
@@ -21,7 +27,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
         #print self.options()
         #print help(self.options())
-        print "----------------------"
+        print("----------------------")
         login = self.get_secure_cookie("login")
         token = self.get_secure_cookie("token")
         if not login:
@@ -43,10 +49,10 @@ Content-type: text/html
 Subject: %s
 """ %(to, subject)
         message += text
-        print"-----"
-        print to
-        print message
-        print"-----"
+        print("----- email")
+        print(to)
+        print(message)
+        print("-----end")
         smtp = smtplib.SMTP('localhost')
         smtp.sendmail("MLAB distributed measurement systems <dms@mlab.cz>", to, message )
         smtp.close()
@@ -62,8 +68,8 @@ def _sql(query, read=False, db="MLABvo"):
             result = cursorobj.fetchall()
             if not read:
                 connection.commit()
-        except Exception, e:
-                print "Err", e
+        except Exception as e:
+                print("Err", e)
         connection.close()
         #print result
         return result

@@ -30,7 +30,7 @@ def wwwCleanName(string):
 class WebHandler(BaseHandler):
     @tornado.web.asynchronous
     def get(self, addres=None):
-        print "web", addres
+        print("web", addres)
         self.render("home.hbs", title="Bolidozor", user=self.get_secure_cookie("login"))
 
 class ClientsHandler(web.RequestHandler):
@@ -50,7 +50,7 @@ class ClientsHandler(web.RequestHandler):
 class DBreader(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, params=None):
-        print params, params.split('/')
+        print(params, params.split('/'))
         if 'data' in params:
             if self.get_argument('from_date', '') != '':
                 from_date = time.mktime(time.strptime(self.get_argument('from_date', ''), "%Y-%m-%d")),
@@ -63,7 +63,7 @@ class DBreader(web.RequestHandler):
                 to_date = time.time()
 
 
-            print from_date, to_date, table
+            print(from_date, to_date, table)
             table = self.get_argument('table', 'snap')
         else:
             table = self.get_argument('table', 'snap')
@@ -120,7 +120,7 @@ class AuthLoginHandler(web.RequestHandler):
 
     def set_current_user(self, user):
         if user:
-            print "set_secure_user", tornado.escape.json_encode(user)
+            print("set_secure_user", tornado.escape.json_encode(user))
             self.set_secure_cookie("name", "Roman Dvořák")
             self.set_secure_cookie("user", tornado.escape.json_encode(user))
         else:
@@ -137,22 +137,22 @@ class AuthLogoutHandler(web.RequestHandler):
 class AuthNewHandler(web.RequestHandler):
     #@tornado.web.asynchronous
     def post(self, type):
-        print "new type data,", type
+        print("new type data,", type)
         if type == "user":
-            print "ADD DATA:", _sqlo("INSERT INTO user (name, pass, r_name, email, text) VALUES ('%s', '%s', '%s', '%s', '%s')" %(self.get_argument('user', ''), self.get_argument('name', ''), self.get_argument('r_name', ''), self.get_argument('email', ''), self.get_argument('describe', '')))
+            #print "ADD DATA:", _sqlo("INSERT INTO user (name, pass, r_name, email, text) VALUES ('%s', '%s', '%s', '%s', '%s')" %(self.get_argument('user', ''), self.get_argument('name', ''), self.get_argument('r_name', ''), self.get_argument('email', ''), self.get_argument('describe', '')))
             return self.write("done")
 
         elif type == "observatory":
-            print "ADD DATA:",  _sqlo("INSERT INTO observatory (name, lat, lon, alt, id_owner, text, id_astrozor) VALUES ('%s', '%f', '%f', '%i', '%i', '%s', '%s')" %(self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('alt', '')), int(self.get_argument('owner', '')), self.get_argument('describe', ''), self.get_argument('link', '')))
+            #print("ADD DATA:",  _sqlo("INSERT INTO observatory (name, lat, lon, alt, id_owner, text, id_astrozor) VALUES ('%s', '%f', '%f', '%i', '%i', '%s', '%s')" %(self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('alt', '')), int(self.get_argument('owner', '')), self.get_argument('describe', ''), self.get_argument('link', ''))))
             return self.write("done")
 
         elif type == "station":
-            print "ADD DATA:",  _sqlo("INSERT INTO station (name, id_observatory, map) VALUES ('%s', '%i', '%s')" %(self.get_argument('name', ''), int(self.get_argument('observatory', '')), self.get_argument('describe', '')))
+            #print("ADD DATA:",  _sqlo("INSERT INTO station (name, id_observatory, map) VALUES ('%s', '%i', '%s')" %(self.get_argument('name', ''), int(self.get_argument('observatory', '')), self.get_argument('describe', ''))))
             return self.write("done")
         #self.dbc.execute('CREATE TABLE server (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(30) UNIQUE KEY, lat FLOAT, lon FLOAT, alt FLOAT, type INT(3), text VARCHAR(255), id_owner INT, id_station INT, id_astrozor INT);')
 
         elif type == "server":
-            print "ADD DATA:",  _sqlo("INSERT INTO server (name, lat, lon, alt, type, text, id_owner, id_astrozor) VALUES ('%s', '%f', '%f', '%f', '%i', '%s', '%i', '%i')" %(self.get_argument('name', ''), float(self.get_argument('lat', 0)), float(self.get_argument('lon', 0)), float(self.get_argument('alt', -1)),  int(self.get_argument('type', 0)), self.get_argument('describe', ''), int(self.get_argument('id_owner', -1)), int(self.get_argument('id_astrozor', -1)) ))
+            #print("ADD DATA:",  _sqlo("INSERT INTO server (name, lat, lon, alt, type, text, id_owner, id_astrozor) VALUES ('%s', '%f', '%f', '%f', '%i', '%s', '%i', '%i')" %(self.get_argument('name', ''), float(self.get_argument('lat', 0)), float(self.get_argument('lon', 0)), float(self.get_argument('alt', -1)),  int(self.get_argument('type', 0)), self.get_argument('describe', ''), int(self.get_argument('id_owner', -1)), int(self.get_argument('id_astrozor', -1)) )))
             return self.write("done")
 
         else:
@@ -167,18 +167,18 @@ class AuthUpdateHandler(web.RequestHandler):
     @tornado.web.asynchronous
     def get(self, type):
         path = type.split('/')
-        print path
+        print(path)
         self.render("www/layout/adminUpdate.html", title="update page", s_cookie=self.get_secure_cookie, _sql = _sql, path=path)
 
     #@tornado.web.asynchronous
     def post(self, type):
-        print "GET", type
+        print("GET", type)
         type = type.split('/')
-        print "new type data,", type
+        print("new type data,", type)
         if type[0] == "update":
             if type[1] == "observatory":
-                print ("UPDATE observatory SET name = '%s', lat = %f, lon = %f, alt = %f, text = '%s', id_owner = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), float(self.get_argument('alt', '-1')), self.get_argument('text', ''), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))   ))
-                print "ADD DATA:",  _sql("UPDATE observatory SET name = '%s', lat = %f, lon = %f, alt = %f, text = '%s', id_owner = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), float(self.get_argument('alt', '-1')), self.get_argument('text', ''), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))   ))
+                print(("UPDATE observatory SET name = '%s', lat = %f, lon = %f, alt = %f, text = '%s', id_owner = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), float(self.get_argument('alt', '-1')), self.get_argument('text', ''), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))   )))
+                print("ADD DATA:",  _sql("UPDATE observatory SET name = '%s', lat = %f, lon = %f, alt = %f, text = '%s', id_owner = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), float(self.get_argument('alt', '-1')), self.get_argument('text', ''), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))   )))
                 return self.write("done")
 
             elif type[1] == "station":
@@ -187,11 +187,11 @@ class AuthUpdateHandler(web.RequestHandler):
                 return self.write("done Station update" + str(out))
 
             elif type[1] == "server":
-                print "ADD DATA:",  _sql("UPDATE server SET name = '%s', lat = %f, lon = %f, id_owner = %i, id_station = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_observatory', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))  ))
+                print("ADD DATA:",  _sql("UPDATE server SET name = '%s', lat = %f, lon = %f, id_owner = %i, id_station = %i, id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), float(self.get_argument('lat', '')), float(self.get_argument('lon', '')), int(self.get_argument('id_owner', '-1')), int(self.get_argument('id_observatory', '-1')), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id',''))  )))
                 return self.write("done")
             
             elif type[1] == "user":
-                print "ADD DATA:", _sql("UPDATE user SET name = '%s', r_name = '%s', permission = %i, email = '%s', text = '%s', id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), self.get_argument('r_name', ''), int(self.get_argument('permission', '')), self.get_argument('email', ''), self.get_argument('text', ''), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id','')) ))
+                #print "ADD DATA:", _sql("UPDATE user SET name = '%s', r_name = '%s', permission = %i, email = '%s', text = '%s', id_astrozor = %i WHERE id = %i;" %( self.get_argument('name', ''), self.get_argument('r_name', ''), int(self.get_argument('permission', '')), self.get_argument('email', ''), self.get_argument('text', ''), int(self.get_argument('id_astrozor', '-1')), int(self.get_argument('id','')) ))
                 return self.write("done")
 
             else:
@@ -201,21 +201,21 @@ class AuthUpdateHandler(web.RequestHandler):
             if type[1] == "user":#IrehaxnRinFzbyxbinwrfhcreQvixn
                 if self.get_argument('pass', '')==self.get_argument('passv', ''):
                     passv = crypt.crypt(self.get_argument('pass', ''), "IrehaxnRinFzbyxbinwrfhcreQvixn")
-                    print "ADD DATA:", _sql("INSERT INTO user (name, r_name, email, pass, id_permission, id_astrozor, www, text) VALUES ('%s', '%s', '%s', '%s', %s, '%s', '%s', '%s')" %(self.get_argument('name', ''), self.get_argument('r_name', ''), self.get_argument('email', ''), passv, self.get_argument('id_permission', ''), self.get_argument('id_astrozor', ''), self.get_argument('www', ''), self.get_argument('text', '')))
+                    #print "ADD DATA:", _sql("INSERT INTO user (name, r_name, email, pass, id_permission, id_astrozor, www, text) VALUES ('%s', '%s', '%s', '%s', %s, '%s', '%s', '%s')" %(self.get_argument('name', ''), self.get_argument('r_name', ''), self.get_argument('email', ''), passv, self.get_argument('id_permission', ''), self.get_argument('id_astrozor', ''), self.get_argument('www', ''), self.get_argument('text', '')))
                     return self.write("done")
                 else:
                     return self.write("Hesla se neshodují")
 
             elif type[1] == "observatory":
-                print "ADD DATA:",  _sql("INSERT INTO observatory (name, id_obstype, id_user, lat, lon, alt, text) VALUES ('%s', %s, %s, '%s', '%s', '%s', '%s')" %(self.get_argument('name', ''), self.get_argument('id_obstype', ''), self.get_argument('id_user', ''), self.get_argument('lat', ''), self.get_argument('lon', ''), self.get_argument('alt', ''), self.get_argument('text', '')) )
+                #print "ADD DATA:",  _sql("INSERT INTO observatory (name, id_obstype, id_user, lat, lon, alt, text) VALUES ('%s', %s, %s, '%s', '%s', '%s', '%s')" %(self.get_argument('name', ''), self.get_argument('id_obstype', ''), self.get_argument('id_user', ''), self.get_argument('lat', ''), self.get_argument('lon', ''), self.get_argument('alt', ''), self.get_argument('text', '')) )
                 return self.write("done")
 
             elif type[1] == "station":
-                print "ADD DATA:",  _sql("INSERT INTO station (name, id_observatory, id_stationstat, id_stationtype, handler, text) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')" %(self.get_argument('name', ''), self.get_argument('id_observatory', ''), self.get_argument('id_stationstat', ''), self.get_argument('id_stationtype', ''), self.get_argument('handler', ''), self.get_argument('text', '')))
+                #print "ADD DATA:",  _sql("INSERT INTO station (name, id_observatory, id_stationstat, id_stationtype, handler, text) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')" %(self.get_argument('name', ''), self.get_argument('id_observatory', ''), self.get_argument('id_stationstat', ''), self.get_argument('id_stationtype', ''), self.get_argument('handler', ''), self.get_argument('text', '')))
                 return self.write("done")
 
             elif type[1] == "server":
-                print "ADD DATA:",  _sql("INSERT INTO server (name, lat, lon, alt, type, text, id_owner, id_astrozor) VALUES ('%s', '%f', '%f', '%f', '%i', '%s', '%i', '%i')" %(self.get_argument('name', ''), float(self.get_argument('lat', 0)), float(self.get_argument('lon', 0)), float(self.get_argument('alt', -1)),  int(self.get_argument('type', 0)), self.get_argument('describe', ''), int(self.get_argument('id_owner', -1)), int(self.get_argument('id_astrozor', -1)) ))
+                #print "ADD DATA:",  _sql("INSERT INTO server (name, lat, lon, alt, type, text, id_owner, id_astrozor) VALUES ('%s', '%f', '%f', '%f', '%i', '%s', '%i', '%i')" %(self.get_argument('name', ''), float(self.get_argument('lat', 0)), float(self.get_argument('lon', 0)), float(self.get_argument('alt', -1)),  int(self.get_argument('type', 0)), self.get_argument('describe', ''), int(self.get_argument('id_owner', -1)), int(self.get_argument('id_astrozor', -1)) ))
                 return self.write("done")
 
             else:
@@ -240,6 +240,10 @@ class WebApp(tornado.web.Application):
             (r'/ws', rtmap.SocketHandler),
             (r'/event', rtmap.MeteorRtHandler),
             (r'/bolid', rtmap.SocketHandler),
+
+            (r'/multibolid/selected', multibolid.ShowSelected),
+            (r'/multibolid/selected/', multibolid.ShowSelected),
+            (r'/multibolid/selected(.*)', multibolid.ShowSelected),
 
             (r'/multibolid', multibolid.MultiBolid),
             (r'/multibolid/', multibolid.MultiBolid),

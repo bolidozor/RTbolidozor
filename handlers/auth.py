@@ -11,14 +11,14 @@ import smtplib
 
 
 import urllib
-import urllib2
+#import urllib2
 import requests
 
 from requests_oauthlib import OAuth2Session
 
 class O_logout(BaseHandler):
     def get(self):
-        print "odhlasuji TE!!!!!!!!!!!!!!!"
+        print("odhlasuji Te")
         self.clear_cookie("login")
         self.clear_cookie("token")
 
@@ -30,14 +30,13 @@ class O_login(BaseHandler):
         login = self.get_secure_cookie("login", None)
         #token = eval(self.get_secure_cookie("token", None))
 
-        print "###########################"
-        print login
+        print(login)
 
         #else:
         github = OAuth2Session("34650903e94dd929f0b7", scope = ["user:email"])
         authorization_url, state = github.authorization_url('https://github.com/login/oauth/authorize')
 
-        print "redirect", state, authorization_url
+        print("redirect", state, authorization_url)
         self.redirect(authorization_url)
 
         #print "redirect"
@@ -52,22 +51,22 @@ class O_github(BaseHandler):
         user_j = github.get('https://api.github.com/user').json()
         email_j = github.get('https://api.github.com/user/emails').json()
         user_db=_sql("SELECT count(*) as count FROM MLABvo.bolidozor_user WHERE login = '%s';" %(user_j['login']))[0]['count']
-        print user_db
+        #print(user_db)
 
-        print token
-        print user_j
-        print "------------"
+        print(token)
+        print(user_j)
+        print("------------")
 
         email = None
         for e in email_j:                   # najdi mail, ktery je primarni
             if e['primary'] == True:
                 email = e['email']
             else:
-                print "mail vedlejsi", e
-        print email
+                print("mail vedlejsi", e)
+        print(email)
 
 
-        print user_db
+        print(user_db)
 
         self.set_secure_cookie('login', user_j['login'])
         self.set_secure_cookie('token', repr(token))

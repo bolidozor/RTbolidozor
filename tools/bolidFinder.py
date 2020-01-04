@@ -46,8 +46,8 @@ def _sql(query, read=False):
             result = cursorobj.fetchall()
             if not read:
                 connection.commit()
-    except Exception, e:
-            print "Err", e
+    except Exception as e:
+            print("Err", e)
     connection.close()
     return result
 
@@ -112,8 +112,8 @@ class GetMeteors():
 
 
     def find_match(self):
-        print "######################################################################################"
-        print "######################################################################################"
+        print("######################################################################################")
+        print("######################################################################################")
         i = 0
         #self.minDuration = float(_sql("select * from bz_param where name = 'master_met_min_duration'")[0][0])*10
         #self.minDurationBolid = float(_sql("select * from bz_param where name = 'group_max_time_delta'")[0][0])*10
@@ -121,8 +121,8 @@ class GetMeteors():
         #self.minDurationBolid = 10
         err = datetime.timedelta(0,self.maxOffset)
 
-        print "Minimalni delka bolidu je stanovana na ", self.minDurationBolid, "s. Minimalni delka derivatu je", self.minDuration, "s"
-        print "Maximalni casova odchylka je %s s" %(self.maxOffset)
+        print("Minimalni delka bolidu je stanovana na ", self.minDurationBolid, "s. Minimalni delka derivatu je", self.minDuration, "s")
+        print("Maximalni casova odchylka je %s s" %(self.maxOffset))
 
         row = _sql('''
             SELECT bolidozor_met.id, bolidozor_met.obstime, bolidozor_met.duration
@@ -136,7 +136,7 @@ class GetMeteors():
         lenrow = len(row)
 
         for meteor in row:
-            print "mam vybrany meteor", meteor
+            print("mam vybrany meteor", meteor)
             n = _sql('''
                 SELECT bolidozor_met.id, bolidozor_met.duration FROM bolidozor_met
                 INNER JOIN bolidozor_fileindex ON bolidozor_fileindex.id = bolidozor_met.file
@@ -145,29 +145,29 @@ class GetMeteors():
                 ORDER BY bolidozor_met.mag DESC LIMIT 20;
                 ''' %( meteor[1]-err, meteor[1]+err, float(self.minDuration)))
             
-            print n
+            print(n)
             max_dur = n[0][1]
             refid = n[0][0]
             for met in n:
                 if met[1] > max_dur:
                     max_dur = met[1]
                     refid = met[0]
-            print refid, max_dur
+            print(refid, max_dur)
 
-            print "mam %i meteoru okolo" %(len(n))
+            print("mam %i meteoru okolo" %(len(n)))
             if len(n) > 2:
-                print "-------", n[0] , meteor[1].strftime('%Y-%m-%d %X'), float(meteor[2])
+                print("-------", n[0] , meteor[1].strftime('%Y-%m-%d %X'), float(meteor[2]))
                 for near in n:
                     try:
-                        print refid, near[0]
+                        print(refid, near[0])
                         _sql("INSERT INTO bolidozor_met_match (match_id, met_id) VALUES (%i, %i);"%(refid, near[0]))
-                        print "Existuje", refid, near[0]
-                    except Exception, e:
-                        print "Error", e
-                    print near
+                        print("Existuje", refid, near[0])
+                    except Exception as e:
+                        print("Error", e)
+                    print(near)
 
             else:
-                print "#"
+                print("#")
 
 
 
@@ -179,27 +179,27 @@ class GetMeteors():
 
     def shoda(self, start = time.time()-86400*10, stop=time.time()):
         i = 0
-        print "Minimalni delka bolidu je stanovana na ", self.minDurationBolid, "s. Minimalni delka derivatu je", self.minDuration, "s"
+        print("Minimalni delka bolidu je stanovana na ", self.minDurationBolid, "s. Minimalni delka derivatu je", self.minDuration, "s")
         #sys.stdout.write("SELECT meta.id, meta.time, meta.duration FROM meta JOIN station ON meta.id_station = station.id WHERE (meta.duration) > %i AND (time BETWEEN %i AND %i) AND (station.id_stationstat = 1)  ORDER BY meta.time DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
         self.dbc.execute("SELECT meta.id, meta.time, meta.duration FROM meta JOIN station ON meta.id_station = station.id WHERE (meta.duration > %i) AND (meta.time BETWEEN %i AND %i) AND (station.id_stationstat = 1) ORDER BY meta.mag DESC;" %(int(self.minDurationBolid), int(genfrom), int(gento+86400) ))  
         row = self.dbc.fetchall()
         lenrow = len(row)
-        print row, len(row)
-        print ""
+        print(row, len(row))
+        print("")
         err = 60.0 # casova  odchylka
         for meteor in row:
             #self.dbc.execute("SELECT * FROM meta LEFT OUTER JOIN metalink ON metalink.link = meta.id WHERE (metalink.link IS NULL) AND (meta.time BETWEEN %f AND %f) AND (meta.duration > %f)  GROUP BY meta.id_station ORDER BY meta.mag DESC;" %(float(meteor[1])-err, float(meteor[1])+err, float(self.minDuration)))
             self.dbc.execute("SELECT meta.id FROM meta JOIN station ON meta.id_station = station.id WHERE (meta.time > %f) AND (meta.time < %f) AND (meta.duration > %f) AND (station.id_stationstat = 1) GROUP BY meta.id_station ORDER BY meta.mag DESC;" %(float(meteor[1])-err, float(meteor[1])+err, float(self.minDuration)))
             n = self.dbc.fetchall()
             if len(n) > 3:
-                print "-------", n[0][0] ,float(meteor[1]), datetime.datetime.fromtimestamp(float(meteor[1])).strftime('%Y-%m-%d %X'), float(meteor[2])
+                print("-------", n[0][0] ,float(meteor[1]), datetime.datetime.fromtimestamp(float(meteor[1])).strftime('%Y-%m-%d %X'), float(meteor[2]))
                 refid = n[0][0]
                 for near in n:
                     try:
                         self.dbc.execute("INSERT INTO metalink (master, link) VALUES (%i, %i);"%(refid, near[0]))
-                    except Exception, e:
-                        print "Existuje", refid, near[0]
-                    print near
+                    except Exception as e:
+                        print("Existuje", refid, near[0])
+                    print(near)
                     self.db.commit()
 
             else:

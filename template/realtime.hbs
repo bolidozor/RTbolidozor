@@ -8,6 +8,7 @@
       min-height: 600px;
       height: 100%;
     }
+
     #mapbox{
       top: -5px;
       position:relative;
@@ -16,18 +17,16 @@
       height: 100%;
     }
 
-  
-
-
     </style>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
     <script src="http://code.jquery.com/jquery.min.js"></script>
     <script>
 
-      
-
       var snd = new Audio("meteor.wav"); // buffers automatically when created
-      
+      var ws = null;
+      var attempts = 0;
+
+
       function message(msg){
         log(msg)
       }
@@ -37,7 +36,9 @@
         console.log(duration)
         console.log(marker)
         marker.setIcon(IconEvent)
-        snd.play();
+        if ($('#sound').is(":checked")){
+          snd.play();
+        }
       }
 
       function hidemeteor(marker, duration){
@@ -57,7 +58,7 @@
 
           var socket;
           var host = "ws://rtbolidozor.astro.cz/ws";
-            var socket = new WebSocket(host);
+          var socket = new WebSocket(host);
 
                 message('<p class="event">Socket Status: '+socket.readyState);
 
@@ -91,6 +92,7 @@
 
                 socket.onclose = function(){
                    message('<p class="event">Socket Status: '+socket.readyState+' (Closed)');
+                   setTimeout(connect(), 10000);
                 }     
 
             } catch(exception){
@@ -104,7 +106,7 @@
       <div id="map"> </div>
     </span>
     <div id="meteorBox_control" style="top: 2.5em; position: absolute; right: 50pt; background-color: white; width: 250pt; max-height: 90%; overflow-y: auto;">
-    <input type="checkbox" name="sound" checked="true" disabled="true"> Sound<br>
+    <input type="checkbox" name="sound" checked="true" id="sound"> Sound<br>
     <div id="meteorBox"></div>
 
       
@@ -224,32 +226,33 @@
       //map.on('click', onMapClick);
       map.on('click', onMap);
 
-     
-          $(document).ready(function (evt) {
-            var ws;
+      /*
+      function connetc(){
+        var host = "rtbolidozor.astro.cz";
+        var port = 80;
+        var uri =  "/ws";
+
+        ws = new WebSocket("ws://" + host + ":" + port + uri);
+      }
+
+ 
+      $(document).ready(function (evt) {
            // evt.preventDefault();
-     
-              var host = "rtbolidozor.astro.cz";
-              var port = 80;
-              var uri =  "/ws";
-     
-              ws = new WebSocket("ws://" + host + ":" + port + uri);
-               
-              ws.onmessage = function(evt) {
-                log("Message Received: " + evt.data)
-              };
-     
-              ws.onclose = function(evt) {
-                log("***Connection Closed***");
-                alert("***Connection Closed***");
-                };
-     
-              ws.onopen = function(evt) {
-                log("***Connection Opened***");
-              };
-     
-     
-          });
+ 
+          ws.onmessage = function(evt) {
+            log("Message Received: " + evt.data)
+          };
+ 
+          ws.onclose = function(evt) {
+            log("***Connection Closed***");
+            alert("***Connection Closed***");
+            };
+ 
+          ws.onopen = function(evt) {
+            log("***Connection Opened***");
+          };
+      });*/
+
   $(window).on("resize", function() {
     $("#map").height($(window).height()-$("#header").height()-5).width($(window).width());
   map.invalidateSize();}).trigger("resize");

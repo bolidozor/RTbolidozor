@@ -63,18 +63,24 @@
 
     </div>
 
-    <div class="prewiev" id="event_JS9" style="display: none;">
+    <div class="prewiev" id="event_JS9" style="display: none;  float: left">
         <div id="js9">
             <div class="JS9Menubar"></div>
             <div class="JS9"></div>
         </div>
     </div>
 
-    <div class="prewiev" id="event_JS9_2" style="display: none;">
+    <div class="prewiev" id="event_JS9_2" style="display: none;  float: left">
         <div id="js9_2">
             <div class="JS9Menubar"></div>
             <div class="JS9"></div>
         </div>
+    </div>
+
+    <div id="selected" style="display: none;">
+        <button onclick="ClearSelect()">Clear</button>
+        <button onclick="ShowSelected()">Show</button>
+        <div id="selected_list"></div>
     </div>
 
 
@@ -86,6 +92,7 @@
   <ul>
       <li>Stanice: <span class="event_station"></span></li>
       <li>Jméno souboru: <span class="event_filename"></span></li>
+      <li>Id meteoru: <span class="event_idmet"></span></li>
       <li>Délka záznamu: <span class="event_duration"></span></li>
       <li>                                      
           <a class="open_web_js9" href=""><img src="/sun.png" style="max-width: 20px;"></a>
@@ -96,7 +103,8 @@
 
 <script type="text/javascript">
     
-    var seconds = 3600;
+    var seconds = 3600/2;
+    var selected = new Set();
 
     var stations = 4;
     var zero_date = null;
@@ -124,7 +132,7 @@
             if (i%10 == 0){
                 //cont.fillText(i*10, i*30+5, 20);
                 draw.line(10+i*20, 0+10, 10+i*20, stations*50+45).stroke({width: 3, color: '#b0b0b0'});
-                draw.text((i*10).toString()+' s' ).move(12+i*20, 3);
+                draw.text((i/100).toString()+' ks' ).move(12+i*20, 3);
                 draw.text(new Date(zero_date.getTime() + 10000*i).toISOString().substring(11,19) ).move(12+i*20, 50*(stations+1)-25);
             }
         }
@@ -148,10 +156,14 @@
             event_sym.attr('date', met['obstime']);
             event_sym.attr('duration', met['duration']);
             event_sym.attr('filename', met['filename']);
+            event_sym.attr('id_met', met['id_met']);
             event_sym.attr('id_observer', met['id_observer']);
+            event_sym.attr('id_met', met['id_met']);
+            event_sym.attr('id_file', met['id']);
             event_sym.attr('path', met['path'].substring(9)+'/');
             event_sym.on('mouseover', overevent, window);
             event_sym.on('click', clickevent, window);
+            event_sym.on('dblclick', AddSelect, window);
 
         }
         console.log(data['stations']);
@@ -174,9 +186,10 @@
         clon.querySelector(".event_date").innerHTML = event_sym['target'].getAttribute('date');
         //clon.querySelector(".event_station").innerHTML = event_sym['target'].getAttribute('id_observer');
         clon.querySelector(".event_station").innerHTML = event_sym['target'].getAttribute('station_id');
+        clon.querySelector(".event_idmet").innerHTML = event_sym['target'].getAttribute('id_met');
         clon.querySelector(".event_filename").innerHTML = event_sym['target'].getAttribute('filename');
         clon.querySelector(".event_duration").innerHTML = event_sym['target'].getAttribute('duration');
-        clon.querySelector(".event_prewiev").src = "http://meteor1.astrozor.cz/f.png?http://space.astro.cz/" + event_sym['target'].getAttribute('path') + event_sym['target'].getAttribute('filename');
+        clon.querySelector(".event_prewiev").src = "http://blackhole.astro.cz/f.png?http://space.astro.cz/" + event_sym['target'].getAttribute('path') + event_sym['target'].getAttribute('filename');
         clon.querySelector(".open_js9").href = "javascript:Open('http://space.astro.cz/" + event_sym['target'].getAttribute('path') + event_sym['target'].getAttribute('filename') + "', {colormap:'b'});";
         clon.querySelector(".open_web_js9").href = "http://space.astro.cz/bolidozor/support/js9browser/#/" + event_sym['target'].getAttribute('path') + event_sym['target'].getAttribute('filename');
         document.getElementById('met_info').appendChild(clon);
@@ -199,6 +212,8 @@
         console.log(zero_date);
         
         console.log("Start");
+        $(".loader").show();
+        $("#drawing").hide();
         $.ajax({  
             type: "POST",  
             url: "/timeline", 
@@ -210,6 +225,8 @@
             success: function(msg) {  
                 console.log(msg);
                 update_meteors(msg);
+                $(".loader").hide();
+                $("#drawing").show();
             }  
         });
     }
@@ -221,13 +238,54 @@
         //JS9_2.Load.apply(this, arguments);
         document.getElementById("event_JS9").style.display = 'block';
     }
+
     function Close() {
         //document.getElementById("window").style.display = 'none';
     }
 
+    function UpdateSelectView(){
+        document.getElementById('selected_list').innerHTML = '';
+        selected.forEach(function e(element){
+            console.log(element);
+            document.getElementById('selected_list').innerHTML += element.getAttribute('filename')+'<br>';
+        })
+        
+    }
+
+    function AddSelect(data){
+        selected.add(data['target']);
+        console.log(selected);
+        UpdateSelectView();
+        $('#selected').show();
+    }
+
+    function ClearSelect(data){
+        selected = new Set();
+        UpdateSelectView();
+        $('#selected').hide();
+    }
+
+    function ShowSelected(){
+        var met_ids = [];
+        selected.forEach(function e(element){
+            met_ids.push(element.getAttribute('id_met'));
+        })
+        console.log(met_ids);
+        var url = '?id='+ met_ids.join('&id=');
+        window.open('/multibolid/selected'+url,'_blank').focus();
+    }
 
 </script>
 
 
 {% end %}
 
+
+
+
+{% block help%}
+<a href="#">?</a>
+
+
+
+{% end %}

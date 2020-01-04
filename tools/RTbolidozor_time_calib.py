@@ -30,12 +30,12 @@ class RTbolidozorAnalyzer():
         self.indexProjectFiles()
 
 
-        print "init"
+        print("init")
  
 
     def indexProjectFiles(self):
         start_time = time.time()
-        print "zacatek indexProjectFiles"
+        print("zacatek indexProjectFiles")
 
         start = time.time()
         in_one_query = 1000
@@ -50,39 +50,34 @@ class RTbolidozorAnalyzer():
             for row in data:
                 path = os.path.join(row['filepath'],row['filename'])
                 hdulist = pyfits.open(path)
-                print path
+                print(path)
                 if 'raw' in path:
                     prihdr = hdulist[0].header
                 else:
-                    print hdulist
                     prihdr = hdulist[1].header
-                print path
 
                 r_delt = 1.0/96000  #cas v sekundach mezi vzorky
                 f_length = r_delt*prihdr['NAXIS2']
                 file_date = prihdr['DATE']
                 file_date = datetime.datetime.strptime( file_date, "%Y-%m-%dT%H:%M:%S" )
-                print file_date
                 sys_beg = file_date-datetime.timedelta(seconds = f_length)
 
-                print f_length
-                print file_date
-                print sys_beg
+                print("file_length", f_length)
 
-                #exists = os.path.exists(path)
-                #if not exists and row['filepath'] != 'None':
-                #    print exists, path, row['id']
+                print("date", file_date)
+                print("obsdate", sys_beg)
+
                 cursorobj.execute("UPDATE `MLABvo`.`bolidozor_fileindex` SET `obstime`='%s' WHERE `id`='%s'; " %(sys_beg, row['id']) )
 
             connection.commit()
             opakovani += 1
-            print "DONE CYCLE", opakovani, (opakovani)*in_one_query
-            print datetime.timedelta(seconds = time.time() - start)
+            print("DONE CYCLE", opakovani, (opakovani)*in_one_query)
+            print(datetime.timedelta(seconds = time.time() - start))
         connection.close()
 
 
-        print "konec"
-        print "cas:", (time.time()-start_time)/60, "min"
+        print("konec")
+        print("cas:", (time.time()-start_time)/60, "min")
 
 
 

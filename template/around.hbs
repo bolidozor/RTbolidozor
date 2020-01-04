@@ -2,6 +2,9 @@
 {% import math %}
 {% extends "base.hbs" %}
 {% block meta %}
+
+{% if locals().get('search', True) %}{%end%}
+
   <head>
     <link rel="stylesheet" type="text/css" href="/style.css">
     <link rel="stylesheet" type="text/css" href="/MB.css">
@@ -32,7 +35,7 @@
     </script>
 {% end %}
 {% block container %}
-    <div class="parameters">
+    {% if search %}<div class="parameters">
         <p>Výsledky tohoto hledání budou 120s okolo zadaného času.</p>
         <p>Requested data will be 120s around entered time.</p>
         <div class="form-control">
@@ -40,8 +43,8 @@
             <input id="time" type="time"> UTC
             <input id="btn" type="button" name="send" value="Update" onclick="location.href = '/around?date='+$('#date').val()+'&time='+$('#time').val();">
         </div>
+    </div>{%end%}
 
-    </div>
         {% if not data %}
             <div class="parameters" id="error">
             Error: Nejdrive vyberte datum a cas.
@@ -59,7 +62,7 @@
                 <tr>
                     <th>Met id</th>
                     <th>Obstime</th>
-                    <th>Delta</th>
+                    {% if search %}<th>Delta</th>{%end%}
                     <th>Station</th>
                     <th>peak</th>
                     <th>mag</th>
@@ -71,24 +74,24 @@
                 <tr>
                     <td><span class="eventCell">{{event['id']}}</span></td>
                     <td><span class="eventCell">{{event['obstime']}}</span></td>
-                    <td><span class="eventCell"> &#916 {{abs(event['obstime'] - target.naive).seconds}}s</span></td>
-                    <td><span class="eventCell">{{event['station_name'][:15]}}</span></td>
-                    <td><span class="eventCell">{{float(event['peak_f'])}}</span></td>
-                    <td><span class="eventCell">{{float(event['mag'])}}</span></td>
-                    <td><span class="eventCell">{{event['duration']}}</span></td>
+                    {% if search %}<td><span class="eventCell"> &#916 {{abs(event['obstime'] - target.naive).seconds}}s</span></td>{%end%}
+                    <td><span class="eventCell">{{event.get('station_name', '0')[:15]}}</span></td>
+                    <td><span class="eventCell">{{(event.get('peak_f', '0'))}}</span></td>
+                    <td><span class="eventCell">{{(event.get('mag', '0'))}}</span></td>
+                    <td><span class="eventCell">{{event.get('duration', 'Err')}}</span></td>
 
-    <td><span class="eventCell">  <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz{{event['path'][8:].replace("snapshot","meteors")}}/{{event['filename_original']}}"><img src="/prw.png" style="max-width: 20px;"></a>                                      
+    <td><span class="eventCell">  
+    <a href="http://meteor1.astrozor.cz/f.png?http://space.astro.cz{{event['path'][8:].replace("snapshot","meteors")}}/{{event['filename_original']}}"><img src="/prw.png" style="max-width: 20px;"></a>                                      
     <a href="http://space.astro.cz/bolidozor/support/js9browser/#{{event['path'][8:].replace("snapshot","meteors")}}/{{event['filename_original']}}"><img src="/sun.png" style="max-width: 20px;"></a>
-    <a href="javascript:Open('http://space.astro.cz{{event['path'][8:].replace("snapshot","raw")}}/{{event['filename_original']}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img>
+    <a href="javascript:Open('http://space.astro.cz{{event['path'][8:].replace("snapshot","raw")}}/{{event['filename_original']}}', {colormap:'b'});"> <img src="/open.png" style="max-width: 20px;"></img></a>
 
-    </a>
     </td>
                   
 
 
                 </tr>
-            {% except %}
-                <td> Err </td><td></td><td></td><td></td><td></td><td></td> </tr>
+            {% except Exception as e%}
+                <td> Err {{e}} </td><td></td><td></td><td></td><td></td><td></td> </tr>
             {% end %}
             {% end %}
 

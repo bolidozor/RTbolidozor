@@ -13,7 +13,6 @@ class admin(BaseHandler):
         if not self.current_user:
             self.write("... co tady děláš? Nejdříve se musíš přihlásit")
         else:
-            print("PRihlaseni uzivatel je:", self.current_user)
             self.render("admin.hbs", title="Bolidozor | admin", _sql = _sql, parent=self)
 
 
@@ -40,9 +39,9 @@ class new(BaseHandler):
                 self.owners = _sql("SELECT id, name FROM bolidozor_user WHERE login='%s';" %(self.current_user))
 
             print("vypis>>> me, obs, owners")
-            print((self.me))
-            print((self.obs))
-            print((self.owners))
+            print(self.me)
+            print(self.obs)
+            print(self.owners)
 
             if 'station' in param:
                 self.render("admin_new_station.hbs", title="Bolidozor | admin", _sql = _sql, parent=self)
@@ -63,8 +62,8 @@ class new(BaseHandler):
             hardware = self.get_argument("hardware", "NULL")
             comment = self.get_argument("comment", "NULL")
 
-            print((_sql("INSERT INTO bolidozor_station (`name`, `namesimple`, `status`, `observatory`, `web`, `owner`, `hardware`, `comment`) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');"
-                %(name, namesimple, status, observatory, web, owner, hardware, comment))))
+            print(_sql("INSERT INTO bolidozor_station (`name`, `namesimple`, `status`, `observatory`, `web`, `owner`, `hardware`, `comment`) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');"
+                %(name, namesimple, status, observatory, web, owner, hardware, comment)))
             self.redirect("/admin/")
         
         elif 'observatory' in param:
@@ -78,6 +77,6 @@ class new(BaseHandler):
             www = self.get_argument("www", "NULL")
             comment = self.get_argument("comment", "NULL")
 
-            print((_sql("INSERT INTO bolidozor_observatory (`name`, `namesimple`, `lat`, `lon`, `alt`, `www`, `comment`, `owner`) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');"
-                %(name, namesimple, lat, lon, alt, www, comment, owner))))
+            print(_sql("INSERT INTO bolidozor_observatory (`name`, `namesimple`, `lat`, `lon`, `alt`, `www`, `comment`, `owner`) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');"
+                %(name, namesimple, lat, lon, alt, www, comment, owner)))
             self.redirect("/admin/")

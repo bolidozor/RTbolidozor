@@ -20,7 +20,7 @@ import pymysql.cursors
 import time
 import datetime
 import csv
-import pyfits
+import astropy.io.fits
 #import paramiko
 import time
 import os
@@ -31,20 +31,20 @@ class RTbolidozorAnalyzer():
         start_time = time.time()
 
 
-        connection = pymysql.connect(host="localhost", user="roman", passwd="Vibvoflar4", db='MLABvo', use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
+        connection = pymysql.connect(host="localhost", user="root", passwd="root", db='MLABvo', use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
         
         cursorobj = connection.cursor()
 
-        cursorobj.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2000-00-00 01:00:00' AND uploadtime > '2017-09-00 00:00:00' and filename_original LIKE '%met.f%' ORDER BY id DESC LIMIT 1000;")
+        cursorobj.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2000-00-00 01:00:00' AND uploadtime > '2019-12-00 00:00:00' and filename_original LIKE '%met.f%' ORDER BY id DESC LIMIT 10000;")
         zaznamy = cursorobj.fetchall()
         for met in zaznamy:
-            print met
+            print(met)
             cursorobj.execute("REPLACE INTO `MLABvo`.`bolidozor_met` (`file`, `obstime`) VALUES ('%s', '%s')"%(met['id'], met['obstime']))
 
-        print "ukoncuji"
+        print("ukoncuji")
         connection.commit()
         connection.close()
-        print "DONE"
+        print("DONE")
 
 
 
@@ -137,8 +137,8 @@ class RTbolidozorAnalyzer():
                 time.sleep(2)
             '''
 
-        print "konec"
-        print "cas:", (time.time()-start_time)/60, "min"
+        print("konec")
+        print("cas:", (time.time()-start_time)/60, "min")
 
 
 

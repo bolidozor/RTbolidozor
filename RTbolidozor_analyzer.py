@@ -20,14 +20,11 @@ import pymysql.cursors
 import time
 import datetime
 import csv
-import pyfits
-#import paramiko
+from astropy.io import fits
 import time
 import pandas as pd
 
 import pickle
-#import mpld3
-#from mpld3 import plugins, utils
 from matplotlib.dates import MONDAY
 from matplotlib.dates import MonthLocator, WeekdayLocator, DateFormatter
 
@@ -37,26 +34,9 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-'''
-def _sql(query, read=False):
-        #print "#>>>", query
-        connection = mdb.connect(host="localhost", user="roman", passwd="Vibvoflar4", db="MLABvo", use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
-        cursorobj = connection.cursor()
-        result = None
-        try:
-                cursorobj.execute(query)
-                result = cursorobj.fetchall()
-                if not read:
-                    connection.commit()
-        except Exception as e:
-                print "Err", e
-        connection.close()
-        return result
-'''
 
 def _sql(query, read=False, db="MLABvo"):
-        print("#>", query)
-        connection = pymysql.connect(host="localhost", user="roman", passwd="Vibvoflar4", db=db, use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
+        connection = pymysql.connect(host="localhost", user="root", passwd="root", db=db, use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
         try:
             cursorobj = connection.cursor()
             result = None
@@ -71,11 +51,10 @@ def _sql(query, read=False, db="MLABvo"):
         return result
 
 
-
-
 class RTbolidozorAnalyzer():
     def __init__(self):
         print("RTbolidozor_analyzer")
+        
         self.stanice =  _sql("SELECT id, name, namesimple FROM MLABvo.bolidozor_station where status < 10;")
         print("dobre stanice", self.stanice)
 
@@ -112,10 +91,11 @@ class RTbolidozorAnalyzer():
         start_time = time.time()
         print("zacatek indexProjectFiles")
 
-        connection = pymysql.connect(host="localhost", user="roman", passwd="Vibvoflar4", db='MLABvo', use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
+        connection = pymysql.connect(host="localhost", user="root", passwd="root", db='MLABvo', use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
         cur = connection.cursor()
 
-        cur.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2000-01-01 00:00:00' AND uploadtime > '2017-01-01 00:00:00' ORDER BY id DESC LIMIT 1000;")
+        cur.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2000-01-01 00:00:00' AND uploadtime > '2019-10-01 00:00:00' ORDER BY id DESC LIMIT 4000;")
+        #cur.execute("SELECT * FROM bolidozor_fileindex WHERE obstime > '2019-12-30 00:00:00' LIMIT 5000;")
         
         #cur.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2019-01-01 00:00:00' AND uploadtime > '2017-08-00 00:00:00' and filename_original LIKE '%csv%' ORDER BY id DESC LIMIT 3000;")
         #cur.execute("SELECT * FROM bolidozor_fileindex ORDER BY id DESC LIMIT 10000")
@@ -141,7 +121,8 @@ class RTbolidozorAnalyzer():
                             #
 
                             snap = row['filepath']+'/'+row['filename_original']
-                            hdulist = pyfits.open(snap)  # open a FITS file
+                            print(row)
+                            hdulist = fits.open(snap)  # open a FITS file
                             prihdr = hdulist[1].header
                             file_length = prihdr['NAXIS2']*prihdr['CDELT2']/1000.0
                             obstime = datetime.datetime.strptime(prihdr['DATE'] , "%Y-%m-%dT%H:%M:%S")-datetime.timedelta(seconds=file_length)
@@ -158,7 +139,7 @@ class RTbolidozorAnalyzer():
                             # Jestli je to 'met' soubor, tak z odpovidajiciho RAWu si najdu obstime
                             #
 
-                            hdulist = pyfits.open(row['filepath']+'/'+row['filename_original'].replace('met', 'raws'))  # open a FITS file
+                            hdulist = fits.open(row['filepath']+'/'+row['filename_original'].replace('met', 'raws'))  # open a FITS file
                             prihdr = hdulist[0].header
                             obstime =  datetime.datetime.strptime(prihdr['DATE'], "%Y-%m-%dT%H:%M:%S") - datetime.timedelta(seconds=prihdr['NAXIS2']*1/96000)
                             print(obstime, prihdr['DATE'], prihdr['ORIGIN'])
@@ -179,7 +160,7 @@ class RTbolidozorAnalyzer():
                             #
                             #
 
-                            hdulist = pyfits.open(row['filepath']+'/'+row['filename_original'])  # open a FITS file
+                            hdulist = fits.open(row['filepath']+'/'+row['filename_original'])  # open a FITS file
                             prihdr = hdulist[0].header           # the primary HDU header
                             obstime =  datetime.datetime.strptime(prihdr['DATE'], "%Y-%m-%dT%H:%M:%S") - datetime.timedelta(seconds=prihdr['NAXIS2']*1/96000)
                             print(obstime, prihdr['DATE'], prihdr['ORIGIN'], row['filename_original'])
@@ -202,12 +183,14 @@ class RTbolidozorAnalyzer():
                                     for row_csv in rows:
                                         try:
                                             if 'met' in row_csv[0]:
-                                                meteor = row_csv[0].split(';')
-                                                print(meteor)
-                                                
+                                                meteor = row_csv[0].split(';')     
+                                                print(meteor)                                           
                                                 cur.execute("SELECT `id` FROM `MLABvo`.`bolidozor_fileindex` WHERE `filename_original` = '%s';" %(meteor[0]))
                                                 out = cur.fetchone()
-                                                cur.execute("UPDATE `MLABvo`.`bolidozor_met` SET noise = '%s', peak_f = '%s', mag = '%s', duration = '%s' WHERE file = '%s';" %(meteor[1], meteor[2], meteor[3], meteor[4], out['id']))
+                                                if out:
+                                                    cur.execute("UPDATE `MLABvo`.`bolidozor_met` SET noise = '%s', peak_f = '%s', mag = '%s', duration = '%s' WHERE file = '%s';" %(meteor[1], meteor[2], meteor[3], meteor[4], out['id']))
+                                                else:
+                                                    print("Soubor jesne neni zaindexovan")
                                         except Exception as e:
                                             print("CSVerr: ", e, row_csv)
                             except Exception as e:

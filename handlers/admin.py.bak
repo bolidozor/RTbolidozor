@@ -13,7 +13,6 @@ class admin(BaseHandler):
         if not self.current_user:
             self.write("... co tady děláš? Nejdříve se musíš přihlásit")
         else:
-            print("PRihlaseni uzivatel je:", self.current_user)
             self.render("admin.hbs", title="Bolidozor | admin", _sql = _sql, parent=self)
 
 

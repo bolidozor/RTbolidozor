@@ -4,6 +4,8 @@
 
 import tornado.escape
 from tornado import web
+from tornado.concurrent import run_on_executor
+
 from . import _sql
 import time
 import datetime
@@ -21,19 +23,20 @@ class Timeline(web.RequestHandler):
             return val.isoformat()
         return str(val)
 
+    #@run_on_executor
     def post(self, params=None):
         self.set_header('Content-Type', 'application/json')
         
         p_date = self.get_argument('date', None)
         p_time = self.get_argument('time', None)
         
-        d_min = arrow.get(p_date+"T"+p_time)#.replace(minutes = 0)
-        d_max = d_min + datetime.timedelta(hours=1)
+        d_min = arrow.get(p_date+"T"+p_time)+ datetime.timedelta(minutes = -15)
+        d_max = d_min + datetime.timedelta(minutes = 30+15) 
 
         print("Pozaduji data mezi", d_min, d_max)
 
         events = _sql("""
-                SELECT bolidozor_fileindex.id as id, noise, peak_f, mag, duration, bolidozor_met.obstime, filepath as path,
+                SELECT bolidozor_fileindex.id as id, bolidozor_met.id as id_met, noise, peak_f, mag, duration, bolidozor_met.obstime, filepath as path,
                 filename, file, id_observer, bolidozor_observatory.namesimple as observatory_namesimple FROM `bolidozor_met`
                 JOIN bolidozor_fileindex ON bolidozor_fileindex.id = bolidozor_met.file
                 JOIN bolidozor_station ON bolidozor_station.id = bolidozor_fileindex.id_observer

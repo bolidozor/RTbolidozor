@@ -51,8 +51,8 @@ class Browser(web.RequestHandler):
         return "rgb(%i,%i,%i)"%(int(red), int(green), int(blue))
 
     def get(self, params=None):
-        print "######################"
-        print params
+        print("######################")
+        print(params)
         pwr_start_time = time.time()
         d_month = self.get_argument('month', 'last')
 
@@ -61,7 +61,7 @@ class Browser(web.RequestHandler):
         height = int(self.get_argument('height', 250))-20
         width = int(self.get_argument('width', 700))
         step = int(self.get_argument('step', 0))
-        print params, d_month
+        print(params, d_month)
 
         self.render("count.hbs", title="Bolidozor | meteor counts", _sql = _sql, parent=self, multicount = open("/home/roman/repos/RTbolidozor/static/multicounts.svg").read())
 
