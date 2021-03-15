@@ -1,0 +1,8 @@
+[Unit]
+Description="RTbolidozor - web server"
+
+[Service]
+Type=simple
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/home/roman/repos/RTbolidozor
+ExecStart=/usr/bin/python3 RTbolidozor_server.py
