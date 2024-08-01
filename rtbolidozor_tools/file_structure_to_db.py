@@ -4,6 +4,7 @@ import django
 import sys
 
 sys.path.append('../rtbolidozor_backend')
+sys.path.append('../app')
 
 # Inicializace Django prostředí
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'rtbolidozor_backend.settings')
@@ -72,7 +73,7 @@ def process_directory(root_dir):
                             observatory.save()
 
 def main():
-    root_directory = '/home/roman/mnt/space/storage/bolidozor'  # Nastavte cestu k hlavnímu adresáři
+    root_directory = '/storage'  # Nastavte cestu k hlavnímu adresáři
     process_directory(root_directory)
 
 if __name__ == "__main__":

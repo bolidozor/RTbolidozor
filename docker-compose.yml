@@ -1,0 +1,106 @@
+services:
+  django:
+    image: django:latest
+    container_name: django_app
+    build:
+      context: ./rtbolidozor_backend
+      dockerfile: Dockerfile_guicorn
+
+    volumes:
+      - /data/bolidozor/django:/data
+      - ./rtbolidozor_backend/:/app
+      - ./rtbolidozor_tools/:/tools
+      - /home/roman/mnt/space/storage/bolidozor:/storage
+    expose:
+      - "8000"
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - /data/bolidozor/.env
+    networks:
+      - internal_net
+
+  websocket:
+    image: django:latest
+    container_name: websocket_app
+    build:
+      context: ./rtbolidozor_backend
+      dockerfile: Dockerfile_daphne
+    volumes:
+      - "/data/bolidozor/websocket:/data"
+      - "./rtbolidozor_backend/:/app"
+    expose:
+      - "8001"
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - /data/bolidozor/.env
+    networks:
+      - internal_net
+
+  vue:
+    image: node:latest
+    container_name: vue_app
+    build:
+      context: ./rtbolidozor_frontend
+      dockerfile: Dockerfile_vue
+    command: npm run serve
+    volumes:
+      - /data/bolidozor/vue:/app
+      - "./rtbolidozor_frontend/:/app"
+    expose:
+      - "8080"
+    env_file:
+      - /data/bolidozor/.env
+    networks:
+      - internal_net
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    volumes:
+      - /data/bolidozor/redis:/data
+    ports:
+      - "6333:6379"
+    networks:
+      - internal_net
+
+  db:
+    image: postgres:13
+    container_name: postgres
+    volumes:
+      - /data/bolidozor/postgres:/var/lib/postgresql/data
+    env_file:
+      - /data/bolidozor/.env
+#    ports:
+#      - "5432:5432"
+    networks:
+      - internal_net
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    build:
+      context: ./rtbolidozor_nginx
+      dockerfile: Dockerfile_nginx
+    ports:
+      - "8888:80"
+    depends_on:
+      - django
+      - vue
+      - websocket
+    networks:
+      - internal_net
+
+networks:
+  internal_net:
+    driver: bridge
+
+volumes:
+  django_data:
+  websocket_data:
+  vue_data:
+  redis_data:
+  postgres_data:

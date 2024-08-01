@@ -24,7 +24,7 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/event/', views.realtime_event),
+    path('event/', views.realtime_event),
     path('api/v1', include('djoser.urls')),
     path('api/v1', include('djoser.urls.authtoken')),
     path('api/v1/observatories/', views.ObservatoryList.as_view()),
@@ -32,4 +32,4 @@ urlpatterns = [
     path('api/v1/stations/', views.StationList.as_view()),
     path('api/v1/station/<str:pk>/', views.StationDetail.as_view()),
 
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

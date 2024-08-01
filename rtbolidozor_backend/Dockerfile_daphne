@@ -1,0 +1,26 @@
+# Dockerfile for WebSocket server
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED 1
+
+# Set work directory
+WORKDIR /app
+
+# Install dependencies
+COPY ./requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN echo "ls -l /app"
+
+# Copy project
+COPY . .
+
+# Expose port 8001 for Daphne
+EXPOSE 8001
+
+# Run Daphne
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8001", "rtbolidozor_backend.asgi:application", "-v", "3"]
+
+
+

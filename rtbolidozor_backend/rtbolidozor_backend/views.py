@@ -40,7 +40,12 @@ class StationDetail(APIView):
 
 
 def realtime_event(request):
-    message = request.GET.get('message', 'Default message')
+    station_identifier = request.GET.get('station', 'None')
+    station = Station.objects.get(identifier=station_identifier)
+    message = {
+        'station': station.identifier,
+    }
+
     channel_layer = get_channel_layer()
     print("Sending message: ", message)
     print("Channel layer: ", channel_layer)
@@ -52,4 +57,4 @@ def realtime_event(request):
             "message": message,
         }
     )
-    return JsonResponse({'status': 'Message sent'})
+    return JsonResponse({'status': 'OK'})

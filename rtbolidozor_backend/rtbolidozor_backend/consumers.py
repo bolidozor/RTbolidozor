@@ -1,42 +1,28 @@
 # consumers.py
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
+from channels.generic.websocket import AsyncWebsocketConsumer
 
-class ChatConsumer(WebsocketConsumer):
-    def connect(self):
-        self.room_group_name = 'rtmap_group'
+class ChatConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.channel_layer.group_add("rtmap_group", self.channel_name)
+        await self.accept()
 
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name,
-            self.channel_name
-        )
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard("rtmap_group", self.channel_name)
 
-        self.accept()
-
-    def disconnect(self, code):
-        async_to_sync(self.channel_layer.group_discard)(
-            self.room_group_name,
-            self.channel_name
-        )
-        print("DISCONNECED CODE: ",code)
-
-    def receive(self, text_data=None, bytes_data=None):
-        print(" MESSAGE RECEIVED")
-        data = json.loads(text_data)
-        message = data['message']
-        async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name, 
-            {
-                "type": 'chat_message',
-                "message": message
-            }
-        )
-    def chat_message(self, event):
-        print("EVENT TRIGERED")
-        # Receive message from room group
+    async def bz_event(self, event):
         message = event['message']
-        # Send message to WebSocket
-        self.send(text_data=json.dumps({
-            'type': 'chat',
+        await self.send(text_data=json.dumps({
             'message': message
         }))
+
+    async def receive(self, text_data):
+        #message = json.loads(text_data).get('message')
+        message = text_data
+        await self.channel_layer.group_send(
+            "rtmap_group",
+            {
+                'type': 'bz_event',
+                'message': message
+            }
+        )
