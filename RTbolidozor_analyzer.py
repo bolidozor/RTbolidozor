@@ -94,7 +94,7 @@ class RTbolidozorAnalyzer():
         connection = pymysql.connect(host="localhost", user="root", passwd="root", db='MLABvo', use_unicode=True, charset="utf8", cursorclass=pymysql.cursors.DictCursor)
         cur = connection.cursor()
 
-        cur.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2000-01-01 00:00:00' AND uploadtime > '2019-10-01 00:00:00' ORDER BY id DESC LIMIT 4000;")
+        cur.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2000-01-01 00:00:00' AND uploadtime > '2022-06-01 00:00:00' ORDER BY id DESC LIMIT 4000;")
         #cur.execute("SELECT * FROM bolidozor_fileindex WHERE obstime > '2019-12-30 00:00:00' LIMIT 5000;")
         
         #cur.execute("SELECT * FROM bolidozor_fileindex WHERE indextime < '2019-01-01 00:00:00' AND uploadtime > '2017-08-00 00:00:00' and filename_original LIKE '%csv%' ORDER BY id DESC LIMIT 3000;")
@@ -183,8 +183,8 @@ class RTbolidozorAnalyzer():
                                     for row_csv in rows:
                                         try:
                                             if 'met' in row_csv[0]:
-                                                meteor = row_csv[0].split(';')     
-                                                print(meteor)                                           
+                                                meteor = row_csv[0].split(';')
+                                                print(meteor)
                                                 cur.execute("SELECT `id` FROM `MLABvo`.`bolidozor_fileindex` WHERE `filename_original` = '%s';" %(meteor[0]))
                                                 out = cur.fetchone()
                                                 if out:

@@ -69,37 +69,42 @@ class RTbolidozorAnalyzer():
         root = '/storage/bolidozor/'
 
         #date_folder = '/*/2019/12/[2]*/**/*.*'
-        date_folder = '/*/2019/10/??/**/*.*'
+        date_folder = '/*/2022/06/2[5-7]/**/*.*'
+        #date_folder = '/*/2020/09/10/**/*.*'
 
         stations = [
-#                   'HFN/HFN-R1',
-#                    'CIIRC/CIIRC-R1'
-#                    'svakov/SVAKOV-R12',
-#                    'valmez/VALMEZ-R1',
-#                    'nachodsko/NACHODSKO-R5',
-                    'OBSUPICE/OBSUPICE-R6',
-#                    'ddmtrebic/DDMTREBIC-R3',
-                    'HFN/HFN-R1',
-                    'FLZ/FLZ-R0',
-                    'svakov/SVAKOV-R12',
+ #                   'HFN/HFN-R2',
+ #                   'CIIRC/CIIRC-R1'
+ #                   'svakov/SVAKOV-R12',
+ #                   'valmez/VALMEZ-R1',
+ #                   'nachodsko/NACHODSKO-R5',
+ #                   'OBSUPICE/OBSUPICE-R6',
+                    'ddmtrebic/DDMTREBIC-R4',
+ #                   'HFN/HFN-R2',
+ #                   'FLZ/FLZ-R0',
+ #                   'svakov/SVAKOV-R12',
                     ]
 #        stations = ['ASU/ASU-R0']
         stations = ['*/*']
 
         for station in stations:
+            print(station, root+station+date_folder)
             files = glob.glob(root+station+date_folder)
             for fullname in files:
                 root = os.path.dirname(fullname)
                 file = os.path.basename(fullname)
                 try:
                     if 'meta' in file or 'raws' in file or 'csv' in file or 'fits' in file:
+                        print("Start of file", file)
                         station_name = file.split('_')[1]
                         uploadtime = datetime.datetime.strptime(file.split('_')[0][:14], '%Y%m%d%H%M%S')
                         md5 = md5Checksum(fullname)
-                        cursorobj.execute("SELECT (SELECT id from MLABvo.bolidozor_station WHERE namesimple = '"+station_name+"') as id,(SELECT count(*) FROM `MLABvo`.`bolidozor_fileindex` WHERE checksum = '%s') as 'count';"%(md5))
+                        cursorobj.execute("SELECT (SELECT id from MLABvo.bolidozor_station WHERE namesimple = '"+station_name+"') as id,(SELECT count(*) FROM `MLABvo`.`bolidozor_fileindex` WHERE filename_original = '%s') as 'count';"%(file))
+                        #cursorobj.execute("SELECT (SELECT id from MLABvo.bolidozor_station WHERE namesimple = '"+station_name+"') as id,(SELECT count(*) FROM `MLABvo`.`bolidozor_fileindex` WHERE checksum = '%s') as 'count';"%(md5))
                         all = cursorobj.fetchall()
                         #cursorobj.execute("SELECT id from MLABvo.bolidozor_station WHERE namesimple = '"+station_name+"';")
                         station_id = all[0]['id']
+                        print(all[0])
                         #cursorobj.execute("SELECT count(*) FROM `MLABvo`.`bolidozor_fileindex` WHERE checksum = '%s'"%(md5))
                         lenght = all[0]['count']
                         #filename = file.split('/')[-1]
@@ -108,6 +113,7 @@ class RTbolidozorAnalyzer():
                             #print("REPLACE INTO `MLABvo`.`bolidozor_fileindex` SET `filename_original` = '%s', `filename` = '%s', `id_observer` = '%d', `id_server` = '%d', `filepath` = '%s', `obstime` = '%s', `uploadtime` = '%s', `lastaccestime` = '%s', `indextime` = '%s', `checksum` = '%s';" %(file, file, station_id, 1, root, uploadtime, uploadtime, '1790-01-01 00:00:00', '1790-01-01 00:00:00', md5))
                             cursorobj.execute("REPLACE INTO `MLABvo`.`bolidozor_fileindex` SET `filename_original` = '%s', `filename` = '%s', `id_observer` = '%d', `id_server` = '%d', `filepath` = '%s', `obstime` = '%s', `uploadtime` = '%s', `lastaccestime` = '%s', `indextime` = '%s', `checksum` = '%s';" %(file, file, station_id, 1, root, uploadtime, uploadtime, '1790-01-01 00:00:00', '1790-01-01 00:00:00', md5))
                             connection.commit()
+                            print("updated")
                 except Exception as e:
                     print("CHYBA", e)
             print("commit")

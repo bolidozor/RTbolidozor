@@ -1,0 +1,5 @@
+requests_oauthlib
+pymongo
+mpld3
+simplekml
+tornado

@@ -28,13 +28,13 @@ def wwwCleanName(string):
 
 
 class WebHandler(BaseHandler):
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
     def get(self, addres=None):
         print("web", addres)
         self.render("home.hbs", title="Bolidozor", user=self.get_secure_cookie("login"))
 
 class ClientsHandler(web.RequestHandler):
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
     def get(self):
         #print cl
         self.render("index.html")
@@ -48,7 +48,7 @@ class ClientsHandler(web.RequestHandler):
 
 
 class DBreader(web.RequestHandler):
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
     def get(self, params=None):
         print(params, params.split('/'))
         if 'data' in params:
@@ -83,18 +83,18 @@ class SimpleData(web.RequestHandler):
 
 
 class AstroTools(web.RequestHandler):
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
     def get(self, params=None):
         self.render("www/layout/AstroTools/index.html", title="Astro tools")
 
 
 class JSweb(web.RequestHandler):
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
     def get(self, params=None):
         self.render("js.hbs", title="Bolidozor multi-bolid database", _sql = _sql, parent=self)
 
 class AuthLoginHandler(web.RequestHandler):
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
     def get(self):
         try:
             errormessage = self.get_argument("error")
@@ -128,7 +128,7 @@ class AuthLoginHandler(web.RequestHandler):
 
 
 class AuthLogoutHandler(web.RequestHandler):
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
     def get(self):
         self.clear_cookie("name")
         self.clear_cookie("user")
@@ -159,12 +159,12 @@ class AuthNewHandler(web.RequestHandler):
             return self.write("err")
 
 class AuthSettingHandler(web.RequestHandler):
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
     def get(self):
         self.render("www/layout/admin.html", title="Administration page", s_cookie=self.get_secure_cookie, _osql = _sqlo, _sql = _sql)
 
 class AuthUpdateHandler(web.RequestHandler):
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
     def get(self, type):
         path = type.split('/')
         print(path)

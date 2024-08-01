@@ -22,11 +22,12 @@ from email import encoders
 import os
 
 
+import pymongo 
+import bson
+
+
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
-
-        #print self.options()
-        #print help(self.options())
         print("----------------------")
         login = self.get_secure_cookie("login")
         token = self.get_secure_cookie("token")
@@ -35,12 +36,17 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             return login
 
+    def prepare(self):
+        self.mdb = pymongo.MongoClient("mongodb://localhost:27017/").Bolidozor
+
+
     def get_user(self):
         login = self.get_secure_cookie("login")
         if not login:
             return None
         else:
             return login
+
 def sendMail(to, subject = "MLABvo", text = "No content"):
         message="""From:  MLAB distributed measurement systems <dms@mlab.cz>
 To: %s

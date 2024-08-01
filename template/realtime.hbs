@@ -73,16 +73,18 @@
                    console.log(split[1]);
 
                    switch(split[1]) {
-                      {% for event_group in _sql("SELECT * FROM bolidozor_station") %}
-                      case "{{(event_group['namesimple'])}}":
-                          console.log("calling: {{(event_group['namesimple'])}}" );
-                          console.log("{{CleanName(event_group['name'])}}");
-                          console.log("test {{(event_group['namesimple'])}}");
-                          console.log("{{(event_group['namesimple'])}}", 0, 0, {{CleanName(event_group['namesimple'])}});
-                          meteor("{{(event_group['namesimple'])}}", 0, 0, {{CleanName(event_group['namesimple'])}});
+
+                      {% for station in stations %}
+                        {%set namesimple = station['stations']['name_simple']%}
+                      case "{{(namesimple)}}":
+                          console.log("calling: {{namesimple}}" );
+                          console.log("{{CleanName(station['name'])}}");
+                          console.log("test {{namesimple}}");
+                          console.log("{{namesimple}}", 0, 0, {{CleanName(namesimple)}});
+                          meteor("{{namesimple}}", 0, 0, {{CleanName(namesimple)}});
                           var d = new Date();
                           var n = d.toLocaleTimeString();
-                          $("#meteorBox").prepend("<div class='eventlist_row' style='margin: 5pt;'><span style='font-size: 75%; margin-right: 10pt;''>"+n+"</span><span>{{(event_group['namesimple'])}}</span></div>");
+                          $("#meteorBox").prepend("<div class='eventlist_row' style='margin: 5pt;'><span style='font-size: 75%; margin-right: 10pt;''>"+n+"</span><span>{{namesimple}}</span></div>");
                           break;
                       {% end %}
                       default:
@@ -182,24 +184,22 @@
       graves.setIcon(IconGraves)
       graves.bindPopup("<b>GRAVES RADAR</b><br>transmitter of radio signal");
 
-      {% for event_group in _sql("SELECT * FROM bolidozor_station INNER JOIN bolidozor_observatory ON bolidozor_observatory.id = bolidozor_station.observatory WHERE bolidozor_station.status < 10;") %}
-        var {{CleanName(event_group['namesimple'])}} = L.marker([{{event_group['lat']}},{{event_group['lon']}}]).addTo(map)
-        {{CleanName(event_group['namesimple'])}}.setIcon(IconStationInactive)
-        {{CleanName(event_group['namesimple'])}}.bindPopup("<b>{{event_group['namesimple']}}</b><br>{{event_group['name']}}");
+      
+
+      {% for station in stations %}
+        {%set namesimple = station['stations']['name_simple']%}
+        var {{CleanName(namesimple)}} = L.marker([{{station['location']['loc'][1]}},{{station['location']['loc'][0]}}] ).addTo(map);
+        {{CleanName(namesimple)}}.setIcon({%if station['stations']['status'] < 10 %}IconStationInactive{% elif station['stations']['status'] < 99%}IconStationDistabled{%else%}{%end%});
+        {{CleanName(namesimple)}}.bindPopup("<b>{{namesimple}}</b><br>{{station['name']}}");
       {% end %}
 
-      {% for event_group in _sql("SELECT * FROM bolidozor_station INNER JOIN bolidozor_observatory ON bolidozor_observatory.id = bolidozor_station.observatory WHERE bolidozor_station.status BETWEEN 10 AND 99;") %}
-        var {{CleanName(event_group['namesimple'])}} = L.marker([{{event_group['lat']}},{{event_group['lon']}}]).addTo(map)
-        {{CleanName(event_group['namesimple'])}}.setIcon(IconStationDistabled)
-        {{CleanName(event_group['namesimple'])}}.bindPopup("<b>{{event_group['namesimple']}}</b><br>{{event_group['name']}}");
-      {% end %}
-
+{#
       {% for server in _sql("SELECT * FROM vo_servers;") %}
         var {{CleanName(server['name'])}} = L.marker([{{server['lat']}},{{server['lon']}}]).addTo(map)
           {{CleanName(server['name'])}}.setIcon(IconTypeServer)
           {{CleanName(server['name'])}}.bindPopup(" <b>{{server['name']}}</b>");
       {% end %}
-
+#}
 
       var greenIcon = L.icon({
           iconUrl: 'station.png',

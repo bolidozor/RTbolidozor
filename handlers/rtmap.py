@@ -7,10 +7,18 @@ from tornado import websocket
 from . import _sql, wwwCleanName, BaseHandler
 import json
 
+import pymongo 
+import bson
+
+
 class RTbolidozor(BaseHandler):
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
     def get(self, params=None):
-        self.render("realtime.hbs", title="Bolidozor | Real-time map", _sql = _sql, parent=self, CleanName = wwwCleanName)
+        stations = self.mdb.observatories.aggregate([
+            {'$unwind': '$stations'},
+            {"$match": {'stations.status': {"$lt": 99}}}
+        ])
+        self.render("realtime.hbs", title="Bolidozor | Real-time map", stations = list(stations), parent=self, CleanName = wwwCleanName)
 
 cl = set()
 
@@ -60,13 +68,20 @@ class SocketHandler(websocket.WebSocketHandler):
                 #m_type = message.split[";"][0]
                 m_type = message[1:message.find(";")]
                 print("m_type je:", m_type)
+                
                 if m_type == "HI":
                     self.StationList.append([self] + message[message.find(";")+1:].split(";") )
                     print("type: HI", self.StationList)
+                
                 elif  m_type == "stanice":
                     jsonstation = json.loads(message.split(";")[1])
                     print("typ stanice", jsonstation['name'])
-                    _sql("UPDATE bolidozor_station SET RTbolidozor = '" + str(self)+"' WHERE namesimple='"+jsonstation['name']+"';")
+                    #_sql("UPDATE bolidozor_station SET RTbolidozor = '" + str(self)+"' WHERE namesimple='"+jsonstation['name']+"';")
+                    self.mdb.observatory.update({'stations.name_simple': jsonstation['name']},
+                        {'$set': {
+                            'stations.$.station.RTbolidozor': str(self)
+                        }})
+                
                 elif m_type == "event":
                     msg_data =  message.split(';')
                     print("type event", message, msg_data)
@@ -74,12 +89,13 @@ class SocketHandler(websocket.WebSocketHandler):
                     #print "EVENT", query
                     for client in self.connections:
                         client.write_message(u"$met;" + msg_data[1]+ ";" +"{message}")
+
             elif message[0] == '#':
                 print("multicast")
                 for client in self.connections:
                     client.write_message(u"multicast: " + message)
             else:
-                print("Prijata zprava: ", message)
+                print("Neznama zprava: ", message)
                 pass
         except Exception as e:
             print("ERROR1>>", repr(e))
