@@ -2,7 +2,8 @@
 FROM nginx:latest
 
 # Copy custom configuration file from the current directory
-COPY ./nginx.conf /etc/nginx/nginx.conf
+#COPY ./nginx.conf /etc/nginx/nginx.conf
+COPY ./nginx.conf /etc/nginx/sites-available/default 
 
 # Copy any other necessary static files or configurations
 # COPY ./static/ /usr/share/nginx/html/

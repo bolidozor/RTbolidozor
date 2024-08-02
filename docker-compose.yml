@@ -46,10 +46,10 @@ services:
     build:
       context: ./rtbolidozor_frontend
       dockerfile: Dockerfile_vue
-    command: npm run serve
-    volumes:
-      - /data/bolidozor/vue:/app
-      - "./rtbolidozor_frontend/:/app"
+    #command: npm run build
+    #volumes:
+    #  #- /data/bolidozor/vue:/app
+    #  #- "./rtbolidozor_frontend/:/app"
     expose:
       - "8080"
     env_file:

@@ -1,17 +1,29 @@
 ARG NODE_VERSION=18.0.0
-FROM node:${NODE_VERSION}-alpine
+FROM node:current-slim
 
-ENV NODE_ENV production
+#ENV NODE_ENV production
 
+RUN mkdir /usr/src/app
 WORKDIR /usr/src/app
-RUN --mount=type=bind,source=package.json,target=package.json \
-    --mount=type=bind,source=package-lock.json,target=package-lock.json \
-    --mount=type=cache,target=/root/.npm \
-    npm ci --omit=dev
+
+#RUN npm install -g @vue/cli @vue/cli-service vue-cli-service --save-dev
+
+ENV PATH /usr/src/app/node_modules/.bin:$PATH
+
+COPY package.json /usr/src/app/package.json
+#RUN --mount=type=bind,source=package.json,target=package.json \
+#    --mount=type=bind,source=package-lock.json,target=package-lock.json \
+#    --mount=type=cache,target=/root/.npm \
+#    npm ci --omit=dev
 
 # Run the application as a non-root user.
-USER node
+#USER node
 
+RUN npm install
+RUN npm install -g @vue/cli
+
+#ENV PATH /app/node_modules/.bin:$PATH
+#RUN export PATH=$PATH:/root/.npm-global/bin 
 # Copy the rest of the source files into the image.
 COPY . .
 
@@ -19,4 +31,4 @@ COPY . .
 EXPOSE 8080
 
 # Run the application.
-CMD node run serve
+CMD npm run serve --verbose
