@@ -1,3 +1,4 @@
+version: '3'
 services:
   django:
     image: django:latest
@@ -10,9 +11,9 @@ services:
       - /data/bolidozor/django:/data
       - ./rtbolidozor_backend/:/app
       - ./rtbolidozor_tools/:/tools
-      - /home/roman/mnt/space/storage/bolidozor:/storage
-    expose:
-      - "8000"
+      - /storage/bolidozor:/storage
+    #ports:
+    #  - 8011:8001
     depends_on:
       - redis
       - db
@@ -28,10 +29,10 @@ services:
       context: ./rtbolidozor_backend
       dockerfile: Dockerfile_daphne
     volumes:
-      - "/data/bolidozor/websocket:/data"
-      - "./rtbolidozor_backend/:/app"
-    expose:
-      - "8001"
+      - /data/bolidozor/websocket:/data
+      - ./rtbolidozor_backend/:/app
+    #ports:
+    #  - 8012:8001
     depends_on:
       - redis
       - db
@@ -47,11 +48,11 @@ services:
       context: ./rtbolidozor_frontend
       dockerfile: Dockerfile_vue
     #command: npm run build
-    #volumes:
+    volumes:
     #  #- /data/bolidozor/vue:/app
-    #  #- "./rtbolidozor_frontend/:/app"
-    expose:
-      - "8080"
+    - "./rtbolidozor_frontend/:/app"
+    #ports:
+    #  - 8010:8080
     env_file:
       - /data/bolidozor/.env
     networks:
@@ -60,10 +61,12 @@ services:
   redis:
     image: redis:latest
     container_name: redis
+    restart: always
     volumes:
-      - /data/bolidozor/redis:/data
-    ports:
-      - "6333:6379"
+      - /data/bolidozor/redis:/root/redis
+      - /data/bolidozor/redis.conf:/usr/local/etc/redis/redis.conf
+    #ports:
+    #  - "6333:6379"
     networks:
       - internal_net
 
@@ -86,11 +89,20 @@ services:
       context: ./rtbolidozor_nginx
       dockerfile: Dockerfile_nginx
     ports:
-      - "8888:80"
+      - 8888:8888
     depends_on:
       - django
       - vue
       - websocket
+    networks:
+      - internal_net
+
+
+  # For internal network debuging purposes
+  network_tools:
+    image: busybox
+    container_name: network_tools
+    command: ["sh", "-c", "while true; do sleep 3600; done"]
     networks:
       - internal_net
 

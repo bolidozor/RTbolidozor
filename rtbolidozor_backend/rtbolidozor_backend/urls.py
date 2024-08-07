@@ -24,9 +24,10 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('event/', views.realtime_event),
+    path('event/', views.realtime_event, name="event"),
     path('api/v1', include('djoser.urls')),
     path('api/v1', include('djoser.urls.authtoken')),
+    path('api/v1/event/', views.realtime_event),
     path('api/v1/observatories/', views.ObservatoryList.as_view()),
     path('api/v1/observatory/<str:pk>/', views.ObservatoryDetail.as_view()),
     path('api/v1/stations/', views.StationList.as_view()),

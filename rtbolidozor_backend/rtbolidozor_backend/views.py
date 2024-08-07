@@ -40,16 +40,25 @@ class StationDetail(APIView):
 
 
 def realtime_event(request):
-    station_identifier = request.GET.get('station', 'None')
-    station = Station.objects.get(identifier=station_identifier)
+    msg = request.GET.get('msg', '')
+    station_identifier = request.GET.get('station', '')
+    observatory = request.GET.get('observatory', '')
+
+    print("Event", request)
+
+    #station = Station.objects.get(identifier=station_identifier)
+
+
     message = {
-        'station': station.identifier,
+        'type': 'event',
+        'station': station_identifier,
+        'observatory': observatory,
     }
 
     channel_layer = get_channel_layer()
     print("Sending message: ", message)
     print("Channel layer: ", channel_layer)
-    
+
     # Vysílání zprávy do skupiny "broadcast_group"
     async_to_sync(channel_layer.group_send)('rtmap_group',
         {

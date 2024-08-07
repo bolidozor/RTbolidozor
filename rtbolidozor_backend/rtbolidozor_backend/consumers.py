@@ -17,12 +17,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def receive(self, text_data):
+        pass
         #message = json.loads(text_data).get('message')
         message = text_data
-        await self.channel_layer.group_send(
-            "rtmap_group",
-            {
-                'type': 'bz_event',
-                'message': message
-            }
-        )
+        #await self.channel_layer.group_send(
+        #    "rtmap_group",
+        #    {
+        #        'type': 'bz_event',
+        #        'message': message
+        #    }
+        #)
