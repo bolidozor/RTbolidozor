@@ -68,9 +68,80 @@ class Station(models.Model):
     location = models.CharField(max_length=255)
     observatory = models.ForeignKey(Observatory, on_delete=models.CASCADE, related_name='stations')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    last_active = models.DateTimeField(default='2000-01-01 00:00:00')
 
     def __str__(self):
         return f"Station {self.identifier} - {self.name}"
     
     def get_absolute_url(self):
         return f"/o/{self.observatory.identifier}/{self.identifier}/"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['identifier', 'observatory'], name='unique_station')
+        ]
+
+class File(UUIDMixin):
+    name = models.CharField(max_length=255)
+    hash = models.CharField(max_length=255)
+    file_path = models.FileField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['name']),
+        ]
+
+    def __str__(self):
+        return self.name
+    
+    # class Meta:
+    #     constraints = [
+    #         models.UniqueConstraint(fields=['file_path'], name='unique_file')
+    #     ]
+
+
+# class EventMetadata(UUIDMixin):
+#     peak_frequency = models.FloatField()
+#     magnitude = models.FloatField()
+#     duration = models.FloatField(help_text="Duration of the event in seconds")
+#     corrected_time_flag = models.BooleanField(default=False, help_text="Flag indicating if the time is corrected")
+#     corrected_start_time = models.DateTimeField(help_text="Corrected start time of the event")
+
+
+#     def __str__(self):
+#         return f"Metadata for Event"
+    
+#     class Meta:
+#         constraints = [
+#             models.UniqueConstraint(fields=['event'], name='unique_event_metadata')
+#         ]
+
+
+class Event(UUIDMixin):
+    met_file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='event_met', null=True, blank=True)
+    raw_file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='event_raw', null=True, blank=True)
+    obs_start_time = models.DateTimeField(help_text="System start time of the event")
+    station = models.ForeignKey('Station', on_delete=models.CASCADE, related_name='events')
+    #metadata = models.OneToOneField('EventMetadata', on_delete=models.CASCADE, related_name='event', null=True, blank=True)
+    peak_frequency = models.FloatField(null=True)
+    magnitude = models.FloatField(null=True)
+    duration = models.FloatField(null=True, help_text="Duration of the event in seconds")
+    corrected_time_flag = models.BooleanField(null=True, default=False, help_text="Flag indicating if the time is corrected")
+    corrected_start_time = models.DateTimeField(null=True, help_text="Corrected start time of the event")
+
+
+    def __str__(self):
+        return f"Event at {self.exact_start_time} from {self.station}"
+    
+    # class Meta:
+    #     constraints = [
+    #         models.UniqueConstraint(fields=['obs_start_time', 'station'], name='unique_event')
+    #     ]
+
+class MultiStationEvent(UUIDMixin):
+    timestamp = models.DateTimeField()
+    events = models.ManyToManyField('Event', related_name='other_stations')
+
+    def __str__(self):
+        return f"MultiStationEvent at {self.timestamp}"

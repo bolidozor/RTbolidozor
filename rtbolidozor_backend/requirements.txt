@@ -11,3 +11,7 @@ django-cors-headers==4.4.0
 pillow
 asgi_redis
 channels
+astropy
+numpy
+pandas
+glob2

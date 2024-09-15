@@ -11,6 +11,7 @@ WORKDIR /usr/src/app
 ENV PATH /usr/src/app/node_modules/.bin:$PATH
 
 COPY package.json /usr/src/app/package.json
+COPY package-lock.json /usr/src/app/package-lock.json
 #RUN --mount=type=bind,source=package.json,target=package.json \
 #    --mount=type=bind,source=package-lock.json,target=package-lock.json \
 #    --mount=type=cache,target=/root/.npm \
@@ -31,4 +32,4 @@ COPY . .
 EXPOSE 8080
 
 # Run the application.
-CMD npm run serve --verbose
+CMD ["npm", "run", "serve", "--verbose"]

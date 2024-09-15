@@ -30,7 +30,7 @@ services:
       dockerfile: Dockerfile_daphne
     volumes:
       - /data/bolidozor/websocket:/data
-      - ./rtbolidozor_backend/:/app
+    #  - ./rtbolidozor_backend/:/app
     #ports:
     #  - 8012:8001
     depends_on:
@@ -40,6 +40,8 @@ services:
       - /data/bolidozor/.env
     networks:
       - internal_net
+    command: daphne -b 0.0.0.0 -p 8001 rtbolidozor_backend.asgi:application
+
 
   vue:
     image: node:latest
@@ -50,7 +52,7 @@ services:
     #command: npm run build
     volumes:
     #  #- /data/bolidozor/vue:/app
-    - "./rtbolidozor_frontend/:/app"
+      - ./rtbolidozor_frontend/src:/usr/src/app/src
     #ports:
     #  - 8010:8080
     env_file:
@@ -99,12 +101,12 @@ services:
 
 
   # For internal network debuging purposes
-  network_tools:
-    image: busybox
-    container_name: network_tools
-    command: ["sh", "-c", "while true; do sleep 3600; done"]
-    networks:
-      - internal_net
+  #network_tools:
+  #  image: busybox
+  #  container_name: network_tools
+  #  command: ["sh", "-c", "while true; do sleep 3600; done"]
+  #  networks:
+  #    - internal_net
 
 networks:
   internal_net:
