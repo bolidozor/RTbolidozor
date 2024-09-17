@@ -18,22 +18,40 @@
       >
 
               <div class="card-header">
-
-              <p class="card-header-title">{{observatory.identifier}}, {{observatory.name}}</p>
+                <a :href="'#' + observatory.name" class="card-header-icon">
+                  <span class="icon">
+                    <i class="fas fa-link"></i>
+                  </span>
+                </a>
+              <p class="card-header-title">{{observatory.identifier}}, {{observatory.name}} <br> {{ observatory.location }}</p>
               </div>
 
               <div class="card-content">
+                <div class="content">
+                  
               <div 
-                class="station box"
+                class="station m-4"
                 v-for="station in observatory.stations"
                 v-bind:key="station.identificator"
               >
-                  {{station.identifier}}<br>
-                  {{station.name}}<br>
-                  {{station.status}}
+                  <div class="tag is-primary is-medium"><b>{{station.identifier}}</b>
+                    <span 
+                    class="tag ml-2" 
+                    :class="{
+                      'is-success': ['active', 'online'].includes(station.status),
+                      'is-warning': ['maintenance', 'updating'].includes(station.status),
+                      'is-danger': ['offline'].includes(station.status),
+                      'is-light': ['pending', 'unknown'].includes(station.status)
+                    }"
+                    >
+                    {{ station.status }}
+                    </span>
+                  </div>
+                  {{ station }}
+              </div>
+              </div>
               </div>
 
-              </div>
 
 
       </div>

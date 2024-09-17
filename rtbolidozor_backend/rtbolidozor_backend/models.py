@@ -86,6 +86,9 @@ class File(UUIDMixin):
     hash = models.CharField(max_length=255)
     file_path = models.FileField()
     created_at = models.DateTimeField(auto_now_add=True)
+    server = models.CharField(max_length=255, null=True, blank=True)
+    online = models.BooleanField(default=True)
+    indexed = models.BooleanField(default=False)
 
     class Meta:
         indexes = [
@@ -118,6 +121,13 @@ class File(UUIDMixin):
 #         ]
 
 
+class Snapshot(UUIDMixin):
+    snap_file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='snapshot', null=True, blank=True)
+    station = models.ForeignKey('Station', on_delete=models.CASCADE, related_name='snapshots')
+    timestamp = models.DateTimeField("Snapshot timestamp, start of the observation", null=True, blank=True)
+    duration = models.FloatField(help_text="Duration of the snapshot in seconds", null=True, blank=True)
+
+
 class Event(UUIDMixin):
     met_file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='event_met', null=True, blank=True)
     raw_file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='event_raw', null=True, blank=True)
@@ -145,3 +155,4 @@ class MultiStationEvent(UUIDMixin):
 
     def __str__(self):
         return f"MultiStationEvent at {self.timestamp}"
+    

@@ -4,6 +4,7 @@ from .models import Observatory, Station, BolidozorUser
 
 
 class StationSerializer(serializers.ModelSerializer):
+    # Meta class to specify the model and fields to be used in the serializer
     class Meta:
         model = Station
         fields = [
@@ -11,10 +12,12 @@ class StationSerializer(serializers.ModelSerializer):
             'name',
             'location',
             'observatory',
+            'status',
         ]
         
 class ObservatorySerializer(serializers.ModelSerializer):
-    stations = StationSerializer(many=True, read_only=True)
+    stations = serializers.SerializerMethodField()
+    #stations = StationSerializer(many=True, read_only=True)
     class Meta:
         model = Observatory
         fields = [
@@ -25,3 +28,8 @@ class ObservatorySerializer(serializers.ModelSerializer):
             'longitude',
             'stations'
         ]
+    
+    def get_stations(self, obj):
+        # Seřazení podle `name` a poté podle `status`
+        stations = obj.stations.order_by('name', 'status')
+        return StationSerializer(stations, many=True).data

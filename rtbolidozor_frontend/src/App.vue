@@ -1,5 +1,4 @@
 <template>
-  
   <div id="app">
     <nav class="navbar is-dark">
       <div class="navbar-brand">
