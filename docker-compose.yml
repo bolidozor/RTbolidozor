@@ -30,7 +30,7 @@ services:
       dockerfile: Dockerfile_daphne
     volumes:
       - /data/bolidozor/websocket:/data
-    #  - ./rtbolidozor_backend/:/app
+      - ./rtbolidozor_backend/:/app
     #ports:
     #  - 8012:8001
     depends_on:
@@ -41,6 +41,29 @@ services:
     networks:
       - internal_net
     command: daphne -b 0.0.0.0 -p 8001 rtbolidozor_backend.asgi:application
+
+  worker:
+    image: django:latest
+    container_name: django_q
+    build:
+      context: ./rtbolidozor_backend
+      dockerfile: Dockerfile_guicorn
+
+    volumes:
+      - /data/bolidozor/django:/data
+      - ./rtbolidozor_backend/:/app
+      - ./rtbolidozor_tools/:/tools
+      - /storage/bolidozor:/storage
+    #ports:
+    #  - 8011:8001
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - /data/bolidozor/.env
+    networks:
+      - internal_net
+    command: python3 manage.py qcluster
 
 
   vue:

@@ -20,8 +20,9 @@ COPY . .
 #RUN python3 manage.py collectstatic --noinput
 
 # Expose port 8000 for Gunicorn
-# EXPOSE 8000
+# EXPOSE 8001
 
 # Run Gunicorn
-#CMD ["python3", "manage.py", "runserver"]
-CMD ["gunicorn", "rtbolidozor_backend.wsgi:application", "--bind", "0.0.0.0:8001"]
+#CMD ["python", "manage.py", "runserver" "0.0.0.0:8001"]
+#CMD ["gunicorn", "rtbolidozor_backend.wsgi:application", "--bind", "0.0.0.0:8001"]
+CMD ["gunicorn", "rtbolidozor_backend.wsgi:application", "--bind", "0.0.0.0:8001" "--reload"]

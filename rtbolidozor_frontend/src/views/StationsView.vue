@@ -34,20 +34,19 @@
                 v-for="station in observatory.stations"
                 v-bind:key="station.identificator"
               >
-                  <div class="tag is-primary is-medium"><b>{{station.identifier}}</b>
+                  <div class="tag is-llight-primary is-medium"><b>{{station.identifier}}</b>
                     <span 
                     class="tag ml-2" 
                     :class="{
-                      'is-success': ['active', 'online'].includes(station.status),
+                      'is-success': ['active'].includes(station.status),
                       'is-warning': ['maintenance', 'updating'].includes(station.status),
-                      'is-danger': ['offline'].includes(station.status),
-                      'is-light': ['pending', 'unknown'].includes(station.status)
+                      'is-danger': ['error'].includes(station.status),
+                      'is-dark': ['pending', 'retired'].includes(station.status)
                     }"
                     >
                     {{ station.status }}
                     </span>
                   </div>
-                  {{ station }}
               </div>
               </div>
               </div>

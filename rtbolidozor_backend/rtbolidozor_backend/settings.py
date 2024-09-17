@@ -27,12 +27,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'django_q',
+    'rtbolidozor_backend.apps',
+    
+
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
     'djoser',
     'channels',
 
+    
     'rtbolidozor_backend',
 ]
 
@@ -42,6 +47,25 @@ CORS_ALLOWED_ORIGINS = [
     "https://localhost:8888",
     "http://localhost:8888",
 ]
+
+Q_CLUSTER = {
+
+    'name': 'rtbolidozor_backend',
+    'workers': 8,
+    'recycle': 500,
+    'timeout': 3500,
+    'retry': 3600,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    'redis': {
+        'host': 'redis',
+        'port': 6379,
+        'db': 0, },
+    'orm': 'default',
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -30,6 +30,5 @@ class ObservatorySerializer(serializers.ModelSerializer):
         ]
     
     def get_stations(self, obj):
-        # Seřazení podle `name` a poté podle `status`
         stations = obj.stations.order_by('name', 'status')
         return StationSerializer(stations, many=True).data
