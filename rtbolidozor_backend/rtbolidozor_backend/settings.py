@@ -53,7 +53,7 @@ Q_CLUSTER = {
     'name': 'rtbolidozor_backend',
     'workers': 8,
     'recycle': 500,
-    'timeout': 3500,
+    'timeout': 500,
     'retry': 3600,
     'compress': True,
     'save_limit': 250,
@@ -143,7 +143,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/

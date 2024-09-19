@@ -16,3 +16,4 @@ numpy
 pandas
 glob2
 django-q
+astropy

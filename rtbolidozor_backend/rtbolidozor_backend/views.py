@@ -3,9 +3,12 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from .models import Observatory, Station
-from .serializers import ObservatorySerializer, StationSerializer
+from .models import Observatory, Station, Snapshot
+from .serializers import ObservatorySerializer, StationSerializer, SnapshotSerializer
+from django.db.models import F, ExpressionWrapper, DurationField
 
+from django.utils import timezone
+from datetime import timedelta
 
 
 from django.http import JsonResponse
@@ -27,7 +30,13 @@ class ObservatoryDetail(APIView):
 
 class StationList(APIView):
     def get(self, request):
-        stations = Station.objects.all()
+        status = request.query_params.get('status', None)
+
+        if status:
+            stations = Station.objects.filter(status=status)
+        else:
+            stations = Station.objects.all()
+
         serializer = StationSerializer(stations, many=True)
         return Response(serializer.data)
     
@@ -36,6 +45,63 @@ class StationDetail(APIView):
         station = Station.objects.get(identifier=identifier)
         serializer = StationSerializer(station)
         return Response(serializer.data)
+
+
+class SnapshotListAtTime(APIView):
+    def get(self, request, timestamp_str):
+        print("SnapshotListAtTime")
+        print("Request: ", timestamp_str)
+        # Získání časového okamžiku z query parametru
+        #timestamp_str = request.query_params.get('timestamp', None)
+        if not timestamp_str:
+            return Response({"error": "Timestamp is required"}, status=400)
+
+        try:
+            timestamp = timezone.datetime.fromisoformat(timestamp_str)
+
+        except ValueError:
+            return Response({"error": "Invalid timestamp format"}, status=400)
+        
+        print("...............")
+        print("Timestamp: ", timestamp)
+
+        # Najít snapshoty, které obsahují tento časový okamžik
+        snapshots = Snapshot.objects.filter(
+            #station_id=station_id,
+            timestamp__gte=timestamp - timedelta(seconds=60),
+            timestamp__lte=timestamp
+            #timestamp__lte=ExpressionWrapper(
+            #    F('timestamp') + 60 * timedelta(seconds=1), 
+            #    output_field=DurationField()
+            #)
+            
+        ).order_by('timestamp').order_by('station')
+        station_snapshots = {}
+        for snap in snapshots:
+            station_id = snap.station.identifier
+            if station_id not in station_snapshots:
+                station_snapshots[station_id] = {
+                    'station_info': StationSerializer(snap.station).data,
+                    'snapshots': []
+                }
+            station_snapshots[station_id]['snapshots'].append(SnapshotSerializer(snap).data)
+
+        obj = list(station_snapshots.values())
+        
+        return Response(obj)
+        # Získání seznamu stanic
+        stations = Station.objects.all()
+        station_serializer = StationSerializer(stations, many=True)
+
+        # Vytvoření odpovědi s metadaty a daty
+        response_data = {
+            "metadata": {
+            "stations": station_serializer.data
+            },
+            "data": SnapshotSerializer(snapshots, many=True).data
+        }
+
+        return Response(response_data)
 
 
 

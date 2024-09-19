@@ -23,6 +23,6 @@ COPY . .
 # EXPOSE 8001
 
 # Run Gunicorn
-#CMD ["python", "manage.py", "runserver" "0.0.0.0:8001"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]
 #CMD ["gunicorn", "rtbolidozor_backend.wsgi:application", "--bind", "0.0.0.0:8001"]
-CMD ["gunicorn", "rtbolidozor_backend.wsgi:application", "--bind", "0.0.0.0:8001" "--reload"]
+#CMD ["gunicorn", "rtbolidozor_backend.wsgi:application", "--bind", "0.0.0.0:8001", "--reload"]

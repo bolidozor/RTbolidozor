@@ -82,7 +82,7 @@ class Station(models.Model):
         ]
 
 class File(UUIDMixin):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     hash = models.CharField(max_length=255)
     file_path = models.FileField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -121,15 +121,17 @@ class File(UUIDMixin):
 #         ]
 
 
-class Snapshot(UUIDMixin):
-    snap_file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='snapshot', null=True, blank=True)
-    station = models.ForeignKey('Station', on_delete=models.CASCADE, related_name='snapshots')
+class Snapshot(models.Model):
+    id = models.BigAutoField(primary_key=True, auto_created=True, unique=True)
+    snap_file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='snapshots', null=True, blank=True, unique=True)
+    station = models.ForeignKey('Station', on_delete=models.CASCADE, related_name='snapshot')
     timestamp = models.DateTimeField("Snapshot timestamp, start of the observation", null=True, blank=True)
     duration = models.FloatField(help_text="Duration of the snapshot in seconds", null=True, blank=True)
 
 
-class Event(UUIDMixin):
-    met_file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='event_met', null=True, blank=True)
+class Event(models.Model):
+    id = models.BigAutoField(primary_key=True, auto_created=True, unique=True)  
+    met_file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='event_met', null=True, blank=True, unique=True)
     raw_file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='event_raw', null=True, blank=True)
     obs_start_time = models.DateTimeField(help_text="System start time of the event")
     station = models.ForeignKey('Station', on_delete=models.CASCADE, related_name='events')

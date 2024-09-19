@@ -1,0 +1,6 @@
+[submodule "rtbolidozor_frontend/src/assets/js9"]
+	path = rtbolidozor_frontend/src/assets/js9
+	url = git@github.com:ericmandel/js9.git
+[submodule "rtbolidozor_frontend/public/js9"]
+	path = rtbolidozor_frontend/public/js9
+	url = git@github.com:ericmandel/js9.git

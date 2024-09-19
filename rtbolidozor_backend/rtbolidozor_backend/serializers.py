@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Observatory, Station, BolidozorUser
+from .models import Observatory, Station, BolidozorUser, Snapshot, File
 
 
 
@@ -32,3 +32,15 @@ class ObservatorySerializer(serializers.ModelSerializer):
     def get_stations(self, obj):
         stations = obj.stations.order_by('name', 'status')
         return StationSerializer(stations, many=True).data
+
+class FileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = ['id', 'name', 'file_path', 'created_at', 'server', 'online', 'indexed']
+
+
+class SnapshotSerializer(serializers.ModelSerializer):
+    snap_file = FileSerializer()
+    class Meta:
+        model = Snapshot
+        fields = ['id', 'snap_file', 'station', 'timestamp', 'duration']
