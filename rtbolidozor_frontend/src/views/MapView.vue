@@ -56,9 +56,6 @@
     },
 
     computed: {
-      iconUrl() {
-        return `https://placekitten.com/${this.iconWidth}/${this.iconHeight}`;
-      },
     },
     methods: {
       fetchObservatories() {
@@ -117,7 +114,8 @@
       
     },
   },
-  beforeDestroy() {
+  beforeUnmount() {
+    console.log('Closing map');
     if (this.socket) {
       this.socket.close();
     }

@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import StationsView from '../views/StationsView.vue'
 import MapView from '../views/MapView.vue'
 import SnapView from '../views/SnapView.vue'
+import MultiBolidView from '../views/MultiBolidView.vue'
 
 const routes = [
   {
@@ -22,6 +23,11 @@ const routes = [
     path: '/stations',
     name: 'stations',
     component: StationsView
+  },
+  {
+    path: '/multibolid',
+    name: 'multibolid',
+    component: MultiBolidView
   },
   {
     path: '/snapView',

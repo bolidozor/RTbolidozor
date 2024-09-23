@@ -18,9 +18,14 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework import routers
 from . import views
 
 
+# router = routers.DefaultRouter()
+# router.register(r'observatories', views.ObservatoryViewSet)
+# router.register(r'stations', views.StationViewSet)
+# router.register(r'snapshots/<str:timestamp_str>', views.SnapshotViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,5 +38,6 @@ urlpatterns = [
     path('api/v1/stations/', views.StationList.as_view()),
     path('api/v1/station/<str:pk>/', views.StationDetail.as_view()),
     path('api/v1/snapshots/<str:timestamp_str>/', views.SnapshotListAtTime.as_view()),
+    path('api/v1/multiStationEvent/', views.MultiStationEventViewSet.as_view()),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

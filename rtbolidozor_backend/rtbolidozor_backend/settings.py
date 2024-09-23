@@ -15,8 +15,8 @@ SECRET_KEY = '54$h6m@2gk=qx3bsqc&a7n=dm1f(gba0m%a9_dtkx&kp=20z%v'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
-
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
 # Application definition
 
 INSTALLED_APPS = [
@@ -40,6 +40,12 @@ INSTALLED_APPS = [
     
     'rtbolidozor_backend',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,  # Definuje počet položek na stránku
+}
+
 
 CORS_ALLOWED_ORIGINS = [
     "https://localhost:8080",

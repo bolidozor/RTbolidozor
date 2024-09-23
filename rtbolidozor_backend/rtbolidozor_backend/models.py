@@ -1,6 +1,10 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 import uuid
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
+from django.utils.timezone import make_aware
+from datetime import datetime
 
 
 
@@ -90,6 +94,10 @@ class File(UUIDMixin):
     online = models.BooleanField(default=True)
     indexed = models.BooleanField(default=False)
 
+    def link(self):
+        lf = str(self.file_path)[9:]
+        return f"http://space.astro.cz/bolidozor/{lf}"
+
     class Meta:
         indexes = [
             models.Index(fields=['name']),
@@ -127,7 +135,7 @@ class Snapshot(models.Model):
     station = models.ForeignKey('Station', on_delete=models.CASCADE, related_name='snapshot')
     timestamp = models.DateTimeField("Snapshot timestamp, start of the observation", null=True, blank=True)
     duration = models.FloatField(help_text="Duration of the snapshot in seconds", null=True, blank=True)
-
+#TODO: Pridat metadata (peakf, magnitude, noise)
 
 class Event(models.Model):
     id = models.BigAutoField(primary_key=True, auto_created=True, unique=True)  
@@ -141,10 +149,10 @@ class Event(models.Model):
     duration = models.FloatField(null=True, help_text="Duration of the event in seconds")
     corrected_time_flag = models.BooleanField(null=True, default=False, help_text="Flag indicating if the time is corrected")
     corrected_start_time = models.DateTimeField(null=True, help_text="Corrected start time of the event")
-
+#TODO: pridat noise 
 
     def __str__(self):
-        return f"Event at {self.exact_start_time} from {self.station}"
+        return f"Event from {self.station}"
     
     # class Meta:
     #     constraints = [
@@ -158,3 +166,11 @@ class MultiStationEvent(UUIDMixin):
     def __str__(self):
         return f"MultiStationEvent at {self.timestamp}"
     
+@receiver(m2m_changed, sender=MultiStationEvent.events.through)
+def update_timestamp(sender, instance, action, **kwargs):
+    if action in ['post_add', 'post_remove', 'post_clear']:
+        events = instance.events.all()
+        if events.exists():
+            avg_timestamp = sum(event.obs_start_time.timestamp() for event in events) / events.count()
+            instance.timestamp = make_aware(datetime.fromtimestamp(avg_timestamp))
+            instance.save()

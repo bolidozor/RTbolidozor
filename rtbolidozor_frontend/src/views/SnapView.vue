@@ -1,69 +1,60 @@
 
 
-import 'https://js9.si.edu/js9/js9support.min.js';
-import 'https://js9.si.edu/js9/js9.min.js';
-import 'https://js9.si.edu/js9/js9plugins.js';
-import 'https://js9.si.edu/js9/js9.css';
-import 'https://js9.si.edu/js9/js9support.css';
-
-
 <template>
-    <div class="stations">
-      <section class="hero is-medium is-dark mb-6">
-        SnapV
-      </section>
 
-
-      <input 
-      type="datetime-local" 
-      v-model="selectedTime" 
-      @change="onTimeChange"
-    />
-
-      <div class="">
-
-
-    <div class="JS9Menubar"></div>
-    <div class="JS9"></div>
-    <div class="JS9Statusbar"></div>
-
+    <section class="hero is-medium is-dark mb-6">
+        <div class="hero-body has-text-centered">
+            <p class="title mb-6">Parallel snapshot viewer</p>
         </div>
+    </section>
 
+      
+      
+    <div class="container.is-widescreen">
 
-
-      <div class="stations-container">
+    <input  type="datetime-local"  v-model="selectedTime"  @change="onTimeChange" /><br>
+    <button @click="showFurtherSnapshot" class="button btn-large" > <span class="icon is-large"><i class=" fa-lg fa-solid fa-caret-up"></i></span></button><br>
+    <div class="stations-container" >
     <div class="station-column" v-for="(station, index) in stations" :key="index">
 
 
 
-        <h3>{{ station.station_info.name }} ({{station.station_info.location}})</h3>
-        <p>{{ station.station_info }}</p>
-      
-      <!-- Procházíme snapshoty pro stanici -->
-      <div v-for="(snapshot, sIndex) in station.snapshots" :key="sIndex" class="snapshot">
+      <h3 class="bold">{{ station.station_info.name }}</h3>
+      <h3>({{station.station_info.location}})</h3>
 
-        <!-- Vykreslíme obrázek pro každý snapshot -->
-        {{ snapshot.snap_file }}
-      </div>
+      <div>{{ station.snapshots[0].timestamp}} + 1min</div>
+      <img v-for="snapshot in station.snapshots" class="snapshot-image" :src="`https://rtbolidozor.astro.cz/f.png?${snapshot.snap_file.link}`" ></img>
+      
+     
 
     </div>
+    <div v-if="stations.length===0" style="width: 100%;">
+      <div class="notification is-warning">
+        No data for required time <time>{{ selectedTime }}</time>
+      </div>
+    </div>
   </div>
+  <button @click="showPreviousSnapshot" class="button btn-large" ><span class="icon is-large"><i class=" fa-lg fa-solid fa-caret-down"></i></span></button>
+</div>
+  
+  
+    <div class="container">
+      <div class="content">
+        <h3 class="title is-3">Continuous Signal Previews from Bolidozor Stations</h3>
+  
+  <p>This page displays continuous snapshots of the signal from Bolidozor network stations. Each column represents one station, showing 3-minute snapshots. The oldest data is at the bottom, and the newest is at the top. </p>
+  
+  <p>Since snapshots are not taken at the exact same time, there might be a slight time shift between them, up to one minute. To help with this, we display three snapshots stacked vertically, each covering a 3-minute period. </p>
+  
+  <p>You can browse through time using the buttons above and below the images.Snapshot view </p>
+  
+      </div>
+  
 
-
-    <div class="columns is-multiline"></div>
-        <div class="column is-one-quarter" v-for="station in observatories.flatMap(obs => obs.stations)" :key="station.identificator">
-            <div class="card">
-                <div class="card-content">
-                    <p class="title">{{ station.identifier }}</p>
-                    <p class="subtitle">{{ station.status }}</p>
-                </div>
-            </div>
-        </div>
     </div>
 
 
     
-  
   </template>
   
   
@@ -75,14 +66,15 @@ import 'https://js9.si.edu/js9/js9support.css';
     data() {
       return {
         observatories: [],
-        stations: []
+        stations: [],
+        snapshotsTime: null,
         }
     },
     components: {
     },
     mounted() {
       this.setInitialTimeFromURL();  // Načteme čas z URL při vstupu na stránku
-      this.fetchSnapshots();
+      this.fetchSnapshotsByTime(this.snapshotsTime);  // Načteme data podle času
           
     },
     methods: {
@@ -93,30 +85,32 @@ import 'https://js9.si.edu/js9/js9support.css';
       const urlParams = new URLSearchParams(window.location.search);
       const timeFromURL = urlParams.get('time');
       if (timeFromURL) {
-        // Pokud je čas v URL, nastavíme datetime picker
         this.selectedTime = timeFromURL;
+        this.snapshotsTime = new Date(timeFromURL + 'Z');
+
+      } else {
+        this.snapshotsTime = new Date(new Date().getTime() - 60 * 60 * 1000);
+        this.selectedTime = this.snapshotsTime.toISOString().slice(0, 16);
+
+        this.fetchSnapshotsByTime(this.snapshotsTime);
       }
     },
 
 
-    // Funkce, která se volá, když se čas změní
     onTimeChange() {
-      // Změníme URL bez znovunačítání stránky
       const params = new URLSearchParams(window.location.search);
-      params.set('time', this.selectedTime);
+      params.set('time', this.snapshotsTime.toISOString().slice(0, 16));
       const newUrl = `${window.location.pathname}?${params.toString()}`;
       window.history.replaceState(null, '', newUrl);
 
-      // Zde můžete zavolat funkci na načtení dat podle nového času
-      console.log('Nový čas vybrán:', this.selectedTime);
-      this.fetchSnapshotsByTime(this.selectedTime);
+      this.fetchSnapshotsByTime(this.snapshotsTime);
     },
 
 
     // Funkce, která bude načítat data na základě vybraného času
     fetchSnapshotsByTime(time) {
       // URL přizpůsobené podle času
-      const apiUrl = `https://rtbolidozor.astro.cz/api/v1/snapshots/${time}/`;
+      const apiUrl = `https://rtbolidozor.astro.cz/api/v1/snapshots/${time.toISOString().slice(0, 19).replace(/[:\-]/g, '') }/`;
 
       // Fetch pro načtení dat podle času
       fetch(apiUrl)
@@ -124,9 +118,7 @@ import 'https://js9.si.edu/js9/js9support.css';
         .then(data => {
           console.log('Snapshots fetched for time:', time, data);
           this.stations = data;
-            this.$nextTick(() => {
-                this.showSnapshot();
-            });
+            
         })
         .catch(error => console.error('Error fetching snapshots:', error));
     },
@@ -137,24 +129,36 @@ import 'https://js9.si.edu/js9/js9support.css';
             .then(response => response.json())
             .then(data => {
                 this.stations = data;  // Uložíme seznam stanic do `stations`
-                this.$nextTick(() => {
-                    this.showSnapshot();
-                });
+                
             })
             .catch(error => console.error('Error fetching snapshots:', error));  
     },
 
-    showSnapshot() {
-        console.log('Showing snapshot:');
-        this.stations.forEach(station => {
-            station.snapshots.forEach(snapshot => {
-                console.log(snapshot.snap_file.file_path.substring(15), station.station_info.identifier);
-                const url = `https://space.astro.cz/bolidozor/${snapshot.snap_file.file_path.substring(15)}`;
+    showFurtherSnapshot() {
+      this.snapshotsTime.setMinutes(this.snapshotsTime.getMinutes() + 1);
 
-                JS9.Load(url);
+      const params = new URLSearchParams(window.location.search);
+      params.set('time', this.snapshotsTime.toISOString().slice(0, 19));
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState(null, '', newUrl);
 
-            });
-        });
+      // Zde můžete zavolat funkci na načtení dat podle nového času
+      console.log('Nový čas vybrán:', this.snapshotsTime);
+      this.fetchSnapshotsByTime(this.snapshotsTime);
+    },
+
+
+    showPreviousSnapshot() {
+      this.snapshotsTime.setMinutes(this.snapshotsTime.getMinutes() - 1);
+
+      const params = new URLSearchParams(window.location.search);
+      params.set('time', this.snapshotsTime.toISOString().slice(0, 19));
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState(null, '', newUrl);
+
+      // Zde můžete zavolat funkci na načtení dat podle nového času
+      this.fetchSnapshotsByTime(this.snapshotsTime);
+
     },
   }
 }
@@ -167,8 +171,9 @@ import 'https://js9.si.edu/js9/js9support.css';
   .stations-container {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
-    flex-wrap: wrap; /* Zajistí, že pokud je více stanic, budou se řadit na další řádek */
+    overflow: auto;
+    /* justify-content: space-around; */
+    /* flex-wrap: wrap; */ /* Zajistí, že pokud je více stanic, budou se řadit na další řádek */
   }
   
   .station-column {
@@ -178,15 +183,16 @@ import 'https://js9.si.edu/js9/js9support.css';
     padding: 10px;
     border: 1px solid #ccc;
     margin: 10px;
+    width: 300px;
   }
   
   .snapshot {
-    margin: 5px 0;
+    margin: 0 0;
   }
   
   .snapshot-image {
-    width: 200px;
+    width: 250pt;
     height: auto;  /* Zachovává poměr stran obrázků */
-    border: 1px solid #000;
+    margin: 0pt;
   }
   </style>

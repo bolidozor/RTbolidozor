@@ -2,9 +2,10 @@ from django.shortcuts import render
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 
-from .models import Observatory, Station, Snapshot
-from .serializers import ObservatorySerializer, StationSerializer, SnapshotSerializer
+from .models import Observatory, Station, Snapshot, MultiStationEvent
+from .serializers import ObservatorySerializer, StationSerializer, SnapshotSerializer, MultiStationEventSerializer
 from django.db.models import F, ExpressionWrapper, DurationField
 
 from django.utils import timezone
@@ -62,20 +63,16 @@ class SnapshotListAtTime(APIView):
         except ValueError:
             return Response({"error": "Invalid timestamp format"}, status=400)
         
-        print("...............")
-        print("Timestamp: ", timestamp)
-
-        # Najít snapshoty, které obsahují tento časový okamžik
         snapshots = Snapshot.objects.filter(
             #station_id=station_id,
-            timestamp__gte=timestamp - timedelta(seconds=60),
-            timestamp__lte=timestamp
+            timestamp__gte=timestamp - timedelta(seconds=60*2),
+            timestamp__lte=timestamp + timedelta(seconds=60)
             #timestamp__lte=ExpressionWrapper(
             #    F('timestamp') + 60 * timedelta(seconds=1), 
             #    output_field=DurationField()
             #)
             
-        ).order_by('timestamp').order_by('station')
+        ).order_by('-timestamp', 'station')
         station_snapshots = {}
         for snap in snapshots:
             station_id = snap.station.identifier
@@ -102,6 +99,28 @@ class SnapshotListAtTime(APIView):
         }
 
         return Response(response_data)
+
+
+class CustomPagination(PageNumberPagination):
+    page_size = 5  # Definice vlastního počtu položek na stránku
+    page_size_query_param = 'page_size'  # Uživatel může specifikovat velikost stránky pomocí dotazu ?page_size=
+    max_page_size = 100  # Maximální povolený počet položek na stránku
+
+
+class MultiStationEventViewSet(APIView):
+    """
+    API endpoint that allows MultiStationEvents to be viewed.
+    """
+    queryset = MultiStationEvent.objects.all().prefetch_related('events')
+    serializer_class = MultiStationEventSerializer
+    pagination_class = CustomPagination
+
+    def get(self, request):
+        paginator = PageNumberPagination()
+        events = MultiStationEvent.objects.all()
+        result_page = paginator.paginate_queryset(events, request)
+        serializer = MultiStationEventSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 

@@ -50,10 +50,11 @@
               </div>
               </div>
               </div>
-
-
-
       </div>
+      {{ observatories.length }}
+    <div v-if="observatories.length === 0" class="notification is-warning">
+      No data for required time <time>{{ selectedTime }}</time>
+    </div>
     </div>
 
   </div>

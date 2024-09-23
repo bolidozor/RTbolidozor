@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Observatory, Station, BolidozorUser, Snapshot, File
+from .models import Observatory, Station, BolidozorUser, Snapshot, File, MultiStationEvent, Event
 
 
 
@@ -36,7 +36,7 @@ class ObservatorySerializer(serializers.ModelSerializer):
 class FileSerializer(serializers.ModelSerializer):
     class Meta:
         model = File
-        fields = ['id', 'name', 'file_path', 'created_at', 'server', 'online', 'indexed']
+        fields = ['id', 'name', 'link']
 
 
 class SnapshotSerializer(serializers.ModelSerializer):
@@ -44,3 +44,22 @@ class SnapshotSerializer(serializers.ModelSerializer):
     class Meta:
         model = Snapshot
         fields = ['id', 'snap_file', 'station', 'timestamp', 'duration']
+
+
+class EventSerializer(serializers.ModelSerializer):
+    station = StationSerializer()
+    met_file = FileSerializer()
+    raw_file = FileSerializer()
+
+    class Meta:
+        model = Event
+        fields = ['id', 'obs_start_time', 'peak_frequency', 'magnitude', 'duration', 'station', 'met_file', 'raw_file']
+
+
+
+class MultiStationEventSerializer(serializers.ModelSerializer):
+    events = EventSerializer(many=True)
+
+    class Meta:
+        model = MultiStationEvent
+        fields = ['id', 'timestamp', 'events']
