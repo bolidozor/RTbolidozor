@@ -18,5 +18,5 @@ import glob2
 
 if __name__ == "__main__":
     #file_index(24*1, check_met=False, check_snap=False, check_meta=True)  # Data za poslední den
-    file_index(date_from=datetime(2024, 9, 1), date_to=datetime(2024, 9, 20))  # Data v rozsahu
+    file_index(date_from=datetime(2024, 1, 1), date_to=datetime(2024, 4, 1))  # Data v rozsahu
     print("Done")

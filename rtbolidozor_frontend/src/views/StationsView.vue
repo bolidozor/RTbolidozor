@@ -47,6 +47,13 @@
                     {{ station.status }}
                     </span>
                   </div>
+
+                  <div v-if="station.status === 'active'">
+                    <img 
+                        :src="`https://space.astro.cz/bolidozor/support/rmob/${station.identifier}_` + new Date().toLocaleDateString('en-GB').slice(3).replace(/\//g, '') + `.svg`" 
+                      alt="RMOB preview"
+                    />
+                  </div>
               </div>
               </div>
               </div>

@@ -1,17 +1,19 @@
 <template>
+
+
   <div id="app">
     <nav class="navbar is-dark">
       <div class="navbar-brand">
         <router-link to="/" class="navbar-item">RTBolidozor</router-link>
         
-        <a class="navbar-burger" @click="toggleNavbar" aria-label="menu" aria-expanded="false" data-trigger="navbar-menu">
+        <a :class="{'is-active': isActive}" class="navbar-burger" @click="toggleNavbar" aria-label="menu" aria-expanded="false" data-trigger="navbar-menu">
           <span aria-hidden="true"> Home </span>
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
         </a>
       </div>
 
-      <div id="navbar-menu" class="navbar-menu">
+      <div id="navbar-menu" :class="{'is-active': isActive}" class="navbar-menu">
         <div class="navbar-end">
           <router-link to="/" class="navbar-item">Home</router-link>
           <router-link to="/map" class="navbar-item">Map</router-link>
@@ -23,11 +25,18 @@
 
           <div class="navbar-item">
             <div class="buttons">
+              <a href="https://bolidozor.imo.net/" class="button is-warning" target="_blank">
+                Report a Fireball
+              </a>
+            </div>
+          </div>
+          <!-- <div class="navbar-item">
+            <div class="buttons">
               <router-link to="/login" class="button is-primary">
                 <strong>Login</strong>
               </router-link>
             </div>
-          </div>
+          </div> -->
 
         </div>
       </div>

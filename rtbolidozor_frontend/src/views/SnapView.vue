@@ -12,7 +12,7 @@
       
     <div class="container.is-widescreen">
 
-    <input  type="datetime-local"  v-model="selectedTime"  @change="onTimeChange" /><br>
+    <input  type="datetime-utc"  v-model="selectedTime"  @change="onTimeChange" disabled/><br>
     <button @click="showFurtherSnapshot" class="button btn-large" > <span class="icon is-large"><i class=" fa-lg fa-solid fa-caret-up"></i></span></button><br>
     <div class="stations-container" >
     <div class="station-column" v-for="(station, index) in stations" :key="index">
@@ -38,20 +38,24 @@
 </div>
   
   
-    <div class="container">
+<section class="section" id="signal-previews">
+  <div class="container">
+    <div class="box has-background">
+      <h2 class="title">Continuous Signal Previews from Bolidozor Stations</h2>
       <div class="content">
-        <h3 class="title is-3">Continuous Signal Previews from Bolidozor Stations</h3>
-  
-  <p>This page displays continuous snapshots of the signal from Bolidozor network stations. Each column represents one station, showing 3-minute snapshots. The oldest data is at the bottom, and the newest is at the top. </p>
-  
-  <p>Since snapshots are not taken at the exact same time, there might be a slight time shift between them, up to one minute. To help with this, we display three snapshots stacked vertically, each covering a 3-minute period. </p>
-  
-  <p>You can browse through time using the buttons above and below the images.Snapshot view </p>
-  
+        <p>
+          This section provides an ongoing visual preview of the signals captured by Bolidozor network stations. Each column represents a single station and displays three-minute snapshots of signal data. The most recent snapshots are at the top, while the older ones appear further down.
+        </p>
+        <p>
+          Please note that snapshots from different stations are not taken synchronously, so there may be a slight time discrepancy of up to one minute between them. To account for this, we display three consecutive snapshots stacked vertically, each covering a three-minute interval, allowing you to easily track changes over time.
+        </p>
+        <p>
+          You can navigate through different time periods using the buttons located above and below the images.
+        </p>
       </div>
-  
-
     </div>
+  </div>
+</section>
 
 
     
@@ -98,11 +102,19 @@
 
 
     onTimeChange() {
+      // const params = new URLSearchParams(window.location.search);
+      // params.set('time', this.snapshotsTime.toISOString().slice(0, 16));
+      // const newUrl = `${window.location.pathname}?${params.toString()}`;
+      // window.history.replaceState(null, '', newUrl);
+
+      // this.fetchSnapshotsByTime(this.snapshotsTime);
+
       const params = new URLSearchParams(window.location.search);
-      params.set('time', this.snapshotsTime.toISOString().slice(0, 16));
+      params.set('time', this.selectedTime);
       const newUrl = `${window.location.pathname}?${params.toString()}`;
       window.history.replaceState(null, '', newUrl);
 
+      this.snapshotsTime = new Date(this.selectedTime + 'Z');
       this.fetchSnapshotsByTime(this.snapshotsTime);
     },
 
@@ -124,15 +136,15 @@
     },
         
     
-    fetchSnapshots() {
-        fetch('https://rtbolidozor.astro.cz/api/v1/snapshots/20240913T114840666/')
-            .then(response => response.json())
-            .then(data => {
-                this.stations = data;  // Uložíme seznam stanic do `stations`
+    // fetchSnapshots() {
+    //     fetch('https://rtbolidozor.astro.cz/api/v1/snapshots/20240913T114840666/')
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             this.stations = data;  // Uložíme seznam stanic do `stations`
                 
-            })
-            .catch(error => console.error('Error fetching snapshots:', error));  
-    },
+    //         })
+    //         .catch(error => console.error('Error fetching snapshots:', error));  
+    // },
 
     showFurtherSnapshot() {
       this.snapshotsTime.setMinutes(this.snapshotsTime.getMinutes() + 1);
@@ -141,6 +153,8 @@
       params.set('time', this.snapshotsTime.toISOString().slice(0, 19));
       const newUrl = `${window.location.pathname}?${params.toString()}`;
       window.history.replaceState(null, '', newUrl);
+
+      this.selectedTime = this.snapshotsTime.toISOString().slice(0, 16);
 
       // Zde můžete zavolat funkci na načtení dat podle nového času
       console.log('Nový čas vybrán:', this.snapshotsTime);
@@ -155,6 +169,8 @@
       params.set('time', this.snapshotsTime.toISOString().slice(0, 19));
       const newUrl = `${window.location.pathname}?${params.toString()}`;
       window.history.replaceState(null, '', newUrl);
+
+      this.selectedTime = this.snapshotsTime.toISOString().slice(0, 16);
 
       // Zde můžete zavolat funkci na načtení dat podle nového času
       this.fetchSnapshotsByTime(this.snapshotsTime);
@@ -195,4 +211,29 @@
     height: auto;  /* Zachovává poměr stran obrázků */
     margin: 0pt;
   }
+
+
+  #signal-previews {
+  padding: 2rem 1.5rem;
+}
+
+#signal-previews .box {
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+#signal-previews .title {
+  text-align: center;
+  color: var(--text, inherit);
+}
+
+#signal-previews .content {
+  font-size: 1.125rem;
+  line-height: 1.8;
+}
+
+#signal-previews p {
+  margin-bottom: 1.5rem;
+}
+
   </style>

@@ -4,6 +4,7 @@ import StationsView from '../views/StationsView.vue'
 import MapView from '../views/MapView.vue'
 import SnapView from '../views/SnapView.vue'
 import MultiBolidView from '../views/MultiBolidView.vue'
+import ContactView from '../views/ContactView.vue'
 
 const routes = [
   {
@@ -38,6 +39,15 @@ const routes = [
     path: '/map',
     name: '/map',
     component: MapView
+  },
+  {
+    path: '/realtime',
+    redirect: '/map'
+  },
+  { path: '/contact',
+    name: 'contact',
+    component: ContactView
+
   }
 ]
 

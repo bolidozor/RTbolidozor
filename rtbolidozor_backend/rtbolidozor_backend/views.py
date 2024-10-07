@@ -111,13 +111,15 @@ class MultiStationEventViewSet(APIView):
     """
     API endpoint that allows MultiStationEvents to be viewed.
     """
-    queryset = MultiStationEvent.objects.all().prefetch_related('events')
+    queryset = MultiStationEvent.objects.all().prefetch_related('events').order_by('-timestamp')
     serializer_class = MultiStationEventSerializer
     pagination_class = CustomPagination
 
     def get(self, request):
         paginator = PageNumberPagination()
-        events = MultiStationEvent.objects.all()
+        paginator.page_size = 10
+        
+        events = MultiStationEvent.objects.all().order_by('-timestamp')
         result_page = paginator.paginate_queryset(events, request)
         serializer = MultiStationEventSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
