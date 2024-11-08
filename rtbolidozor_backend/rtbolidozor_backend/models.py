@@ -72,7 +72,7 @@ class Station(models.Model):
     location = models.CharField(max_length=255)
     observatory = models.ForeignKey(Observatory, on_delete=models.CASCADE, related_name='stations')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    last_active = models.DateTimeField(default='2000-01-01 00:00:00')
+    last_active = models.DateTimeField(default=datetime(2000, 1, 1, 0, 0, 0))
 
     def __str__(self):
         return f"Station {self.identifier} - {self.name}"
