@@ -13,7 +13,7 @@
 
       <div
         class = "card mgb-small"
-        v-for="observatory in observatories"
+        v-for="observatory in sortedObservatories"
         v-bind:key="observatory.name"
       >
 
@@ -31,7 +31,7 @@
                   
               <div 
                 class="station m-4"
-                v-for="station in observatory.stations"
+                v-for="station in [...observatory.stations].reverse()"
                 v-bind:key="station.identificator"
               >
                   <div class="tag is-llight-primary is-medium"><b>{{station.identifier}}</b>
@@ -82,6 +82,17 @@ export default {
   },
   mounted() {
     this.getStationsTree()
+  },
+  computed: {
+    sortedObservatories() {
+      const hasOnline = obs => obs.stations.some(s => s.status === 'active')
+      return [...this.observatories].sort((a, b) => {
+        const aOnline = hasOnline(a) ? 1 : 0
+        const bOnline = hasOnline(b) ? 1 : 0
+        if (bOnline !== aOnline) return bOnline - aOnline
+        return b.identifier.localeCompare(a.identifier)
+      })
+    }
   },
   methods: {
     getStationsTree(){
