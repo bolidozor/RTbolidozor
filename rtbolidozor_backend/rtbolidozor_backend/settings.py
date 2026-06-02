@@ -26,24 +26,37 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'django_q',
-    'rtbolidozor_backend.apps',
-    
-
+    'rtbolidozor_backend.apps.RtbolidozorBackendConfig',
+    'import_export',
     'rest_framework',
     'rest_framework.authtoken',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
     'corsheaders',
     'djoser',
     'channels',
 
     
-    'rtbolidozor_backend',
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,  # Definuje počet položek na stránku
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'RTbolidozor API',
+    'DESCRIPTION': "RTbolidozor data access API",
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': True,
+
+    'SWAGGER_UI_DIST': 'SIDECAR',  # shorthand to use the sidecar instead
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+    # OTHER SETTINGS
 }
 
 

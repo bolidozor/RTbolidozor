@@ -48,10 +48,11 @@
                     </span>
                   </div>
 
-                  <div v-if="station.status === 'active'">
-                    <img 
-                        :src="`https://space.astro.cz/bolidozor/support/rmob/${station.identifier}_` + new Date().toLocaleDateString('en-GB').slice(3).replace(/\//g, '') + `.svg`" 
+                  <div v-if="station.status === 'active'" class="rmob-card">
+                    <img
+                      :src="`https://space.astro.cz/bolidozor/support/rmob/${station.identifier}_` + new Date().toLocaleDateString('en-GB').slice(3).replace(/\//g, '') + `.svg`"
                       alt="RMOB preview"
+                      class="rmob-img"
                     />
                   </div>
               </div>
@@ -111,4 +112,19 @@ export default {
 
 </script>
 
-    
+<style scoped>
+.rmob-card {
+  display: inline-block;
+  background: #1e2a3a;
+  border: 1px solid #2d4060;
+  border-radius: 8px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+}
+.rmob-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+</style>

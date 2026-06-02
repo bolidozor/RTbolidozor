@@ -19,6 +19,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+
 from . import views
 
 
@@ -30,14 +32,23 @@ from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('event/', views.realtime_event, name="event"),
-    path('api/v1', include('djoser.urls')),
-    path('api/v1', include('djoser.urls.authtoken')),
+
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
+    path('api/v1/', include('djoser.urls')),
+    path('api/v1/', include('djoser.urls.authtoken')),
     path('api/v1/event/', views.realtime_event),
     path('api/v1/observatories/', views.ObservatoryList.as_view()),
-    path('api/v1/observatory/<str:pk>/', views.ObservatoryDetail.as_view()),
+    path('api/v1/observatory/<str:identifier>/', views.ObservatoryDetail.as_view()),
+    path('api/v1/observatory/<str:identifier>/stations/', views.ObservatoryStations.as_view()),
     path('api/v1/stations/', views.StationList.as_view()),
-    path('api/v1/station/<str:pk>/', views.StationDetail.as_view()),
+    path('api/v1/station/<str:identifier>/', views.StationDetail.as_view()),
     path('api/v1/snapshots/<str:timestamp_str>/', views.SnapshotListAtTime.as_view()),
     path('api/v1/multiStationEvent/', views.MultiStationEventViewSet.as_view()),
+    path('api/v1/events/', views.EventListView.as_view()),
+    path('api/v1/fits/', views.fits_proxy),
+    path('api/v1/stats/', views.StatsView.as_view()),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

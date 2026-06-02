@@ -5,6 +5,7 @@ import router from './router'
 import store from './store'
 import axios from 'axios'
 import 'leaflet/dist/leaflet.css';
+import VueApexCharts from 'vue3-apexcharts';
 
   // Google Analytics
   const script = document.createElement('script');
@@ -24,4 +25,4 @@ import 'leaflet/dist/leaflet.css';
     });
   });
 
-createApp(App).use(store).use(router).mount('#app')
+createApp(App).use(store).use(router).use(VueApexCharts).mount('#app')

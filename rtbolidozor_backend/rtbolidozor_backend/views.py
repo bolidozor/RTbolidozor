@@ -4,17 +4,19 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
-from .models import Observatory, Station, Snapshot, MultiStationEvent
-from .serializers import ObservatorySerializer, StationSerializer, SnapshotSerializer, MultiStationEventSerializer
+from .models import Observatory, Station, Snapshot, MultiStationEvent, Event
+from .serializers import ObservatorySerializer, StationSerializer, SnapshotSerializer, MultiStationEventSerializer, EventSerializer
+from rest_framework import generics
 from django.db.models import F, ExpressionWrapper, DurationField
 
 from django.utils import timezone
 from datetime import timedelta
 
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+import urllib.request
 
 
 class ObservatoryList(APIView):
@@ -29,6 +31,12 @@ class ObservatoryDetail(APIView):
         serializer = ObservatorySerializer(observatory)
         return Response(serializer.data)
 
+class ObservatoryStations(APIView):
+    def get(self, request, identifier):
+        observatory = Observatory.objects.get(identifier=identifier)
+        serializer = StationSerializer(observatory.stations, many=True)
+        return Response(serializer.data)
+
 class StationList(APIView):
     def get(self, request):
         status = request.query_params.get('status', None)
@@ -40,7 +48,8 @@ class StationList(APIView):
 
         serializer = StationSerializer(stations, many=True)
         return Response(serializer.data)
-    
+
+
 class StationDetail(APIView):
     def get(self, request, identifier):
         station = Station.objects.get(identifier=identifier)
@@ -117,13 +126,73 @@ class MultiStationEventViewSet(APIView):
 
     def get(self, request):
         paginator = PageNumberPagination()
-        paginator.page_size = 10
-        
+        paginator.page_size = int(request.query_params.get('page_size', 10))
+
         events = MultiStationEvent.objects.all().order_by('-timestamp')
+        from_param = request.query_params.get('from')
+        to_param   = request.query_params.get('to')
+        id_param   = request.query_params.get('id')
+        if from_param:
+            events = events.filter(timestamp__gte=from_param)
+        if to_param:
+            events = events.filter(timestamp__lte=to_param)
+        if id_param:
+            events = events.filter(id=id_param)
         result_page = paginator.paginate_queryset(events, request)
         serializer = MultiStationEventSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
 
+
+
+class EventPagination(PageNumberPagination):
+    page_size = 500
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
+
+class EventListView(generics.ListAPIView):
+    serializer_class = EventSerializer
+    pagination_class = EventPagination
+
+    def get_queryset(self):
+        qs = Event.objects.select_related('station', 'met_file', 'raw_file').order_by('obs_start_time')
+        from_param = self.request.query_params.get('from')
+        to_param   = self.request.query_params.get('to')
+        station    = self.request.query_params.get('station')
+        if from_param:
+            qs = qs.filter(obs_start_time__gte=from_param)
+        if to_param:
+            qs = qs.filter(obs_start_time__lte=to_param)
+        if station:
+            qs = qs.filter(station__identifier=station)
+        return qs
+
+
+class StatsView(APIView):
+    def get(self, request):
+        from .models import CachedStats
+        from .tasks import generate_statistics
+        try:
+            obj = CachedStats.objects.get(key='main')
+            return Response(obj.data)
+        except CachedStats.DoesNotExist:
+            generate_statistics()
+            obj = CachedStats.objects.get(key='main')
+            return Response(obj.data)
+
+
+def fits_proxy(request):
+    url = request.GET.get('url', '')
+    if not url.startswith('http://space.astro.cz/bolidozor/'):
+        raise Http404
+    try:
+        with urllib.request.urlopen(url, timeout=30) as r:
+            data = r.read()
+        response = HttpResponse(data, content_type='application/fits')
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
+    except Exception:
+        raise Http404
 
 
 def realtime_event(request):

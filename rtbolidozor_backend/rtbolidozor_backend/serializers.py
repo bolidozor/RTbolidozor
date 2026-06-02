@@ -53,7 +53,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ['id', 'obs_start_time', 'peak_frequency', 'magnitude', 'duration', 'station', 'met_file', 'raw_file']
+        fields = ['id', 'obs_start_time', 'corrected_start_time', 'peak_frequency', 'magnitude', 'duration', 'station', 'met_file', 'raw_file']
 
 
 

@@ -5,6 +5,8 @@ gunicorn==20.1.0
 psycopg2-binary
 redis==3.5.3
 djangorestframework==3.12.4
+drf-spectacular
+drf-spectacular[sidecar]
 djoser==2.1.0
 environ==1.0.0
 django-cors-headers==4.4.0
@@ -17,3 +19,4 @@ pandas
 glob2
 django-q
 astropy
+django-import-export<3.3

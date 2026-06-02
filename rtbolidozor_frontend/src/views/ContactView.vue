@@ -1,64 +1,48 @@
 <template>
-
-<section class="section" id="contact">
-  <div class="container">
-    <h2 class="title is-3 has-text-centered">Get in Touch with Bolidozor</h2>
-    <div class="content has-text-centered">
-      <p>
-        Whether you're looking for more information, want to collaborate, access our data, or have any other inquiries, we'd love to hear from you. We are very open to collaboration and are always excited to connect with new partners. Visit our main website for more details: 
-        <a href="https://www.bolidozor.cz">www.bolidozor.cz</a>.
-      </p>
-    </div>
-    <div class="columns is-centered">
-      <div class="column is-4">
-        <h3 class="title is-4">Useful Links</h3>
-        <ul>
-          <li><a href="https://github.com/bolidozor"><i class="fab fa-github"></i> GitHub</a></li>
-          <li><a href="https://fb.me/bolidozor"><i class="fab fa-facebook"></i> Facebook</a></li>
-          <li><a href="http://wiki.bolidozor.cz"><i class="fab fa-wikipedia-w"></i> Bolidozor Wiki</a></li>
-        </ul>
+  <div>
+    <section class="hero is-medium is-dark mb-5">
+      <div class="hero-body has-text-centered">
+        <p class="title">Get in Touch</p>
+        <p class="subtitle">Bolidozor network contacts &amp; links</p>
       </div>
-      <div class="column is-4">
-        <h3 class="title is-4">Contact</h3>
-        <p>
-          <a href="https://groups.google.com/forum/#!forum/bolidozor"><i class="fas fa-users"></i> Bolidozor Mailing List</a><br>
-          <a href="mailto:bolidozor@googlegroups.com"><i class="fas fa-envelope"></i> bolidozor@googlegroups.com</a>
+    </section>
+    <div class="container" style="max-width:700px;">
+      <div class="box mb-4">
+        <p class="dark-text">
+          Whether you're looking for more information, want to collaborate, or have any inquiries — we'd love to hear from you.
+          Visit <a href="https://www.bolidozor.cz" target="_blank">www.bolidozor.cz</a> for more details.
         </p>
+      </div>
+      <div class="columns">
+        <div class="column">
+          <div class="box">
+            <p class="heading mb-3" style="color:#64748b;">Useful Links</p>
+            <ul class="link-list">
+              <li><a href="https://github.com/bolidozor" target="_blank">GitHub</a></li>
+              <li><a href="https://fb.me/bolidozor" target="_blank">Facebook</a></li>
+              <li><a href="http://wiki.bolidozor.cz" target="_blank">Bolidozor Wiki</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="column">
+          <div class="box">
+            <p class="heading mb-3" style="color:#64748b;">Contact</p>
+            <ul class="link-list">
+              <li><a href="https://groups.google.com/forum/#!forum/bolidozor" target="_blank">Bolidozor Mailing List</a></li>
+              <li><a href="mailto:bolidozor@googlegroups.com">bolidozor@googlegroups.com</a></li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</section>
-
-
-
 </template>
+
 <style scoped>
-
-#contact {
-  padding: 2rem 1.5rem;
-}
-
-#contact h3 {
-  color: var(--text, inherit);
-}
-
-#contact ul {
-  list-style-type: none;
-  padding-left: 0;
-}
-
-#contact li {
-  margin-bottom: 1rem;
-}
-
-#contact a {
-  color: var(--link, #3273dc);
-  text-decoration: underline;
-}
-
-#contact a:hover {
-  color: var(--link-hover, #0044cc);
-}
-
-
+.dark-text { color: #94a3b8; line-height: 1.7; }
+.dark-text a { color: #3b82f6; }
+.link-list { list-style: none; padding: 0; margin: 0; }
+.link-list li { margin-bottom: 0.75rem; }
+.link-list a { color: #3b82f6; text-decoration: none; }
+.link-list a:hover { color: #60a5fa; text-decoration: underline; }
 </style>

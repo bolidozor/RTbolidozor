@@ -22,8 +22,17 @@
       <h3 class="bold">{{ station.station_info.name }}</h3>
       <h3>({{station.station_info.location}})</h3>
 
-      <div>{{ station.snapshots[0].timestamp}} + 1min</div>
-      <img v-for="snapshot in station.snapshots" class="snapshot-image" :src="`https://rtbolidozor.astro.cz/f.png?${snapshot.snap_file.link}`" ></img>
+      <div class="snapshot-time">{{ formatSnapTime(station.snapshots[0].timestamp) }}</div>
+      <div class="snap-frame">
+        <div class="snap-stack" :style="{ transform: `translateY(${columnShift(station.snapshots)}px)` }">
+          <img
+            v-for="snapshot in station.snapshots"
+            :key="snapshot.id"
+            class="snapshot-image"
+            :src="`https://rtbolidozor.astro.cz/f.png?${snapshot.snap_file.link}`"
+          />
+        </div>
+      </div>
       
      
 
@@ -72,6 +81,7 @@
         observatories: [],
         stations: [],
         snapshotsTime: null,
+        imgHeight: 280,  // px per snapshot image, update if images aren't square
         }
     },
     components: {
@@ -172,9 +182,26 @@
 
       this.selectedTime = this.snapshotsTime.toISOString().slice(0, 16);
 
-      // Zde můžete zavolat funkci na načtení dat podle nového času
       this.fetchSnapshotsByTime(this.snapshotsTime);
+    },
 
+    columnShift(snapshots) {
+      if (!this.snapshotsTime || !snapshots.length) return 0
+      const IMG_H = this.imgHeight
+      for (let i = 0; i < snapshots.length; i++) {
+        const start = new Date(snapshots[i].timestamp)
+        const offset = (this.snapshotsTime - start) / 60000
+        if (offset >= 0 && offset <= 1) {
+          // center of 3-image frame = 1.5 * IMG_H
+          return Math.round((1.5 - i - offset) * IMG_H)
+        }
+      }
+      return 0
+    },
+
+    formatSnapTime(ts) {
+      if (!ts) return ''
+      return new Date(ts).toISOString().replace('T', ' ').slice(0, 19) + ' UTC'
     },
   }
 }
@@ -188,8 +215,7 @@
     display: flex;
     flex-direction: row;
     overflow: auto;
-    /* justify-content: space-around; */
-    /* flex-wrap: wrap; */ /* Zajistí, že pokud je více stanic, budou se řadit na další řádek */
+    --img-h: 280px;
   }
   
   .station-column {
@@ -206,11 +232,36 @@
     margin: 0 0;
   }
   
-  .snapshot-image {
-    width: 250pt;
-    height: auto;  /* Zachovává poměr stran obrázků */
-    margin: 0pt;
+  .snapshot-time {
+    font-size: 0.72rem;
+    color: #888;
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
   }
+
+  .snap-frame {
+    width: 100%;
+    height: calc(var(--img-h) * 3);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #444;
+    background: #000;
+  }
+
+  .snap-stack {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  .snapshot-image {
+    width: 100%;
+    height: var(--img-h);
+    display: block;
+    object-fit: fill;
+  }
+
 
 
   #signal-previews {

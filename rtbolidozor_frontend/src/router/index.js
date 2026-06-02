@@ -5,6 +5,7 @@ import MapView from '../views/MapView.vue'
 import SnapView from '../views/SnapView.vue'
 import MultiBolidView from '../views/MultiBolidView.vue'
 import ContactView from '../views/ContactView.vue'
+import EventsView from '../views/EventsView.vue'
 
 const routes = [
   {
@@ -43,6 +44,16 @@ const routes = [
   {
     path: '/realtime',
     redirect: '/map'
+  },
+  {
+    path: '/events',
+    name: 'events',
+    component: EventsView
+  },
+  {
+    path: '/stats',
+    name: 'stats',
+    component: () => import('../views/StatsView.vue')
   },
   { path: '/contact',
     name: 'contact',

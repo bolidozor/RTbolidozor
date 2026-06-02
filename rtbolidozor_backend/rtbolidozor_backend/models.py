@@ -7,7 +7,6 @@ from django.utils.timezone import make_aware
 from datetime import datetime
 
 
-
 class UUIDMixin(models.Model):
     id = models.UUIDField(
         primary_key = True,
@@ -15,8 +14,6 @@ class UUIDMixin(models.Model):
         editable = False,
         unique = True
     )
-
-
 
 class BolidozorUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -34,8 +31,6 @@ class BolidozorUser(AbstractUser):
     
     def get_full_name(self) -> str:
         return super().get_full_name()
-
-
 
 class Observatory(models.Model):
     identifier = models.CharField(max_length=100, unique=True, primary_key=True)
@@ -76,7 +71,7 @@ class Station(models.Model):
 
     def __str__(self):
         return f"Station {self.identifier} - {self.name}"
-    
+
     def get_absolute_url(self):
         return f"/o/{self.observatory.identifier}/{self.identifier}/"
 
@@ -158,6 +153,18 @@ class Event(models.Model):
     #     constraints = [
     #         models.UniqueConstraint(fields=['obs_start_time', 'station'], name='unique_event')
     #     ]
+
+class CachedStats(models.Model):
+    key = models.CharField(max_length=64, unique=True, default='main')
+    generated_at = models.DateTimeField(auto_now=True)
+    data = models.JSONField()
+
+    class Meta:
+        verbose_name = 'Cached Stats'
+
+    def __str__(self):
+        return f"Stats '{self.key}' generated {self.generated_at}"
+
 
 class MultiStationEvent(UUIDMixin):
     timestamp = models.DateTimeField()
